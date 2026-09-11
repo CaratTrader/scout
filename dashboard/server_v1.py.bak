@@ -1,0 +1,184 @@
+"""Scout bot dashboard: serves index.html + /api/state assembled from data files."""
+from __future__ import annotations
+
+import json
+import re
+import time
+from datetime import datetime, timezone
+from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parent.parent
+DATA = ROOT / "data"
+HERE = Path(__file__).resolve().parent
+PORT = 8787
+
+
+def read_json(path: Path, default):
+    try:
+        return json.loads(path.read_text())
+    except Exception:
+        return default
+
+
+def tail_lines(path: Path, n: int) -> list[str]:
+    try:
+        lines = path.read_text(encoding="utf-8", errors="replace").splitlines()
+        return lines[-n:]
+    except Exception:
+        return []
+
+
+def parse_ts(ts: str) -> float:
+    try:
+        return datetime.fromisoformat(ts.replace("Z", "+00:00")).timestamp()
+    except Exception:
+        return 0.0
+
+
+def window_from_slug(slug: str) -> tuple[int, int] | None:
+    m = re.search(r"updown-(\d+)m-(\d{10})", slug or "")
+    if not m:
+        return None
+    start = int(m.group(2))
+    return start, start + int(m.group(1)) * 60
+
+
+def build_state() -> dict:
+    now = time.time()
+    ledger = read_json(DATA / "ledger.json", {})
+    fills = ledger.get("fills") or []
+    session_start = str(ledger.get("session_started_at") or "")
+
+    closes = [f for f in fills if str(f.get("side", "")).startswith("CLOSE_")]
+    entries = [f for f in fills if not str(f.get("side", "")).startswith("CLOSE_")]
+    wins = [f for f in closes if float(f.get("pnl") or 0) > 0]
+    session_closes = [f for f in closes if str(f.get("ts", "")) >= session_start]
+
+    # realized bankroll curve: starting bankroll + cumulative close pnl
+    start_bank = float(ledger.get("starting_bankroll") or 50.0)
+    curve = [{"t": parse_ts(fills[0]["ts"]) if fills else now, "v": start_bank}]
+    bank = start_bank
+    for f in closes:
+        bank += float(f.get("pnl") or 0)
+        curve.append({"t": parse_ts(str(f.get("ts"))), "v": round(bank, 4)})
+
+    # open positions with window countdown
+    positions = []
+    for p in ledger.get("positions") or []:
+        win = window_from_slug(str(p.get("slug") or p.get("event_slug") or ""))
+        positions.append({
+            "question": p.get("question"),
+            "side": p.get("side"),
+            "entry_price": p.get("entry_price"),
+            "stake": p.get("stake"),
+            "shares": p.get("shares"),
+            "opened_at": p.get("opened_at"),
+            "expires_in_s": max(0, int(win[1] - now)) if win else None,
+        })
+
+    # trade table rows: pair each close with its entry
+    entry_by_market: dict[str, dict] = {}
+    for e in entries:
+        entry_by_market[str(e.get("market_id"))] = e
+    trades = []
+    for c in closes:
+        e = entry_by_market.get(str(c.get("market_id")), {})
+        trades.append({
+            "ts": c.get("ts"),
+            "question": c.get("question"),
+            "side": str(c.get("side", "")).replace("CLOSE_", ""),
+            "entry": e.get("price"),
+            "stake": e.get("stake"),
+            "fee": e.get("fee") or c.get("entry_fee"),
+            "reason": e.get("reason"),
+            "pnl": float(c.get("pnl") or 0),
+            "won": float(c.get("pnl") or 0) > 0,
+        })
+
+    log_path = DATA / "night.log"
+    log_age = now - log_path.stat().st_mtime if log_path.exists() else 1e9
+    halted = bool(ledger.get("halted"))
+    if halted:
+        status = "halted"
+    elif log_age < 90:
+        status = "running"
+    else:
+        status = "down"
+
+    raw_log = tail_lines(log_path, 400)
+    actions = [
+        ln.strip() for ln in raw_log
+        if any(k in ln for k in ("POST", "veto", "halt", "exit", "cycle error", "no trade"))
+    ][-25:]
+
+    lessons = read_json(HERE.parent / "learning" / "lessons.json", None)
+
+    backtest = read_json(HERE.parent / "backtest" / "stress.json", None)
+    bt_summary = None
+    if backtest:
+        bt_summary = [
+            {k: r.get(k) for k in (
+                "trades", "win_rate", "net_pnl", "trades_per_day", "avg_quote_age")}
+            for r in backtest
+        ]
+
+    session_pnl = round(sum(float(f.get("pnl") or 0) for f in session_closes), 2)
+    return {
+        "now": now,
+        "status": status,
+        "log_age_s": round(log_age, 1),
+        "halt_reason": ledger.get("halt_reason") or "",
+        "cash": float(ledger.get("cash") or 0),
+        "equity": float(ledger.get("last_equity") or ledger.get("cash") or 0),
+        "starting_bankroll": start_bank,
+        "risk": {
+            "baseline": ledger.get("risk_baseline_cash"),
+            "peak": ledger.get("realized_peak_cash"),
+            "locked_floor": ledger.get("locked_equity_floor"),
+            "cash_floor": ledger.get("cash_floor"),
+            "loss_streak": ledger.get("crypto_loss_streak"),
+            "session_started_at": session_start,
+        },
+        "totals": {
+            "trades": len(closes),
+            "wins": len(wins),
+            "losses": len(closes) - len(wins),
+            "win_rate": round(len(wins) / len(closes), 4) if closes else None,
+            "realized_pnl": round(sum(float(f.get("pnl") or 0) for f in closes), 2),
+            "session_trades": len(session_closes),
+            "session_pnl": session_pnl,
+            "fees_paid": round(sum(float(f.get("fee") or 0) for f in entries), 2),
+        },
+        "positions": positions,
+        "curve": curve,
+        "trades": trades[::-1],
+        "actions": actions,
+        "supervisor": tail_lines(DATA / "supervisor.log", 6),
+        "backtest": bt_summary,
+        "lessons": lessons,
+    }
+
+
+class Handler(BaseHTTPRequestHandler):
+    def do_GET(self):  # noqa: N802
+        if self.path.startswith("/api/state"):
+            body = json.dumps(build_state()).encode()
+            ctype = "application/json"
+        else:
+            body = (HERE / "index.html").read_bytes()
+            ctype = "text/html; charset=utf-8"
+        self.send_response(200)
+        self.send_header("Content-Type", ctype)
+        self.send_header("Cache-Control", "no-store")
+        self.send_header("Content-Length", str(len(body)))
+        self.end_headers()
+        self.wfile.write(body)
+
+    def log_message(self, *args):  # quiet
+        pass
+
+
+if __name__ == "__main__":
+    print(f"scout dashboard: http://localhost:{PORT}")
+    ThreadingHTTPServer(("127.0.0.1", PORT), Handler).serve_forever()

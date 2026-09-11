@@ -1,0 +1,29 @@
+# secrets and local environment — never commit
+.env
+.env.*
+!.env.example
+*.pem
+.venv/
+venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.DS_Store
+.claude/
+
+# runtime state stays on the machine that trades: ledgers (paper and live), journals,
+# logs, caches. Research recordings that are pure market data are shared (see below).
+data/*
+!data/lab/
+data/lab/*
+!data/lab/ticks/
+data/lab/ticks/*
+!data/lab/ticks/*.jsonl.gz
+!data/lab/tick_leaderboard.json
+!data/lab/backtest_leaderboard.json
+lab/cache/*.log
+lab/results/*.tmp
+
+# Windows leftovers with local paths
+Start Dashboard.bat
+supervisor.ps1

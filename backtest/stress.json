@@ -1,0 +1,76 @@
+[
+ {
+  "half_spread": 0.01,
+  "trades": 7949,
+  "wins": 4408,
+  "win_rate": 0.5545,
+  "net_pnl": 2582.06,
+  "final_bankroll": 2632.06,
+  "max_drawdown": 142.59,
+  "avg_stake": 2.0,
+  "skips": {
+   "no_data": 1,
+   "stale_book": 0,
+   "no_edge": 690,
+   "gate": 0,
+   "no_klines": 0
+  },
+  "avg_quote_age": 47.8,
+  "entries_by_tick": {
+   "60": 4224,
+   "120": 2282,
+   "180": 1019,
+   "240": 424
+  },
+  "trades_per_day": 265.0
+ },
+ {
+  "half_spread": 0.01,
+  "trades": 102,
+  "wins": 46,
+  "win_rate": 0.451,
+  "net_pnl": -17.68,
+  "final_bankroll": 32.32,
+  "max_drawdown": 26.89,
+  "avg_stake": 2.0,
+  "skips": {
+   "no_data": 1,
+   "stale_book": 0,
+   "no_edge": 8537,
+   "gate": 0,
+   "no_klines": 0
+  },
+  "avg_quote_age": 24.2,
+  "entries_by_tick": {
+   "60": 49,
+   "120": 22,
+   "240": 12,
+   "180": 19
+  },
+  "trades_per_day": 3.4
+ },
+ {
+  "half_spread": 0.01,
+  "trades": 12,
+  "wins": 5,
+  "win_rate": 0.4167,
+  "net_pnl": 2.76,
+  "final_bankroll": 52.76,
+  "max_drawdown": 7.43,
+  "avg_stake": 2.0,
+  "skips": {
+   "no_data": 1,
+   "stale_book": 0,
+   "no_edge": 8627,
+   "gate": 0,
+   "no_klines": 0
+  },
+  "avg_quote_age": 6.3,
+  "entries_by_tick": {
+   "60": 6,
+   "240": 3,
+   "180": 3
+  },
+  "trades_per_day": 0.4
+ }
+]

@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  Scout LIVE loop (real money). Not installed by default: copy to ~/Library/LaunchAgents
+  yourself after docs/GO_LIVE_CHECKLIST.md steps 1-5. Requires the live flag in ProgramArguments.
+  KeepAlive is SuccessfulExit=false: a deliberate halt (clean exit) is NOT restarted.
+-->
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.tradeinc.scout.live</string>
+    <key>ProgramArguments</key>
+    <array>
+        <string>/usr/bin/caffeinate</string>
+        <string>-i</string>
+        <string>-s</string>
+        <string>/Users/roomyhome/Tradeinc/.venv/bin/python</string>
+        <string>-X</string>
+        <string>utf8</string>
+        <string>-u</string>
+        <string>-m</string>
+        <string>scout</string>
+        <string>loop</string>
+        <string>--live</string>
+        <string>--no-grok</string>
+    </array>
+    <key>WorkingDirectory</key>
+    <string>/Users/roomyhome/Tradeinc</string>
+    <key>EnvironmentVariables</key>
+    <dict>
+        <key>HOME</key>
+        <string>/Users/roomyhome</string>
+        <key>PATH</key>
+        <string>/Users/roomyhome/Tradeinc/.venv/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin</string>
+        <key>LANG</key>
+        <string>en_US.UTF-8</string>
+        <key>PYTHONUTF8</key>
+        <string>1</string>
+        <key>PYTHONUNBUFFERED</key>
+        <string>1</string>
+        <!-- live caps: these override .env for this job only; the paper job keeps its own values -->
+        <key>MIN_CRYPTO_STAKE</key>
+        <string>1</string>
+        <key>MAX_CRYPTO_STAKE</key>
+        <string>2</string>
+        <key>MAX_CRYPTO_POSITIONS</key>
+        <string>1</string>
+        <key>MAX_POSITIONS</key>
+        <string>1</string>
+        <key>CRYPTO_MIN_EDGE</key>
+        <string>0.05</string>
+        <key>CRYPTO_MAX_SLIP</key>
+        <string>0.01</string>
+        <key>CRYPTO_SIGNAL_TTL_SECONDS</key>
+        <string>3</string>
+        <key>MAX_SESSION_DRAWDOWN</key>
+        <string>1000</string>
+        <key>HALT_BANKROLL</key>
+        <string>0</string>
+        <key>CAMPAIGN_TARGET_USD</key>
+        <string>0</string>
+        <!-- learn from the paper bot's record; take only Coinbase-confirmed sides -->
+        <key>MAX_DRAWDOWN</key>
+        <string>1.0</string>
+        <key>PROFIT_LOCK_FRACTION</key>
+        <string>0</string>
+        <key>MAX_CONSECUTIVE_CRYPTO_LOSSES</key>
+        <string>3</string>
+        <key>MAX_DAILY_LOSS</key>
+        <string>1000</string>
+        <key>LESSONS_SOURCE</key>
+        <string>/Users/roomyhome/Tradeinc/data/ledger.json</string>
+        <key>CRYPTO_BASIS_MIN_BPS</key>
+        <string>0.15</string>
+    </dict>
+    <key>RunAtLoad</key>
+    <true/>
+    <key>KeepAlive</key>
+    <dict>
+        <key>SuccessfulExit</key>
+        <false/>
+    </dict>
+    <key>ThrottleInterval</key>
+    <integer>60</integer>
+    <key>ProcessType</key>
+    <string>Interactive</string>
+    <key>StandardOutPath</key>
+    <string>/Users/roomyhome/Tradeinc/data/live.log</string>
+    <key>StandardErrorPath</key>
+    <string>/Users/roomyhome/Tradeinc/data/live.err.log</string>
+</dict>
+</plist>

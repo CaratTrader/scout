@@ -1,0 +1,432 @@
+{
+ "generated_at": 1789081298.3351521,
+ "days": 5.81,
+ "windows": 5977,
+ "windows_with_outcome": 5971,
+ "source": "1-second arena ticks, real books",
+ "strategies": [
+  {
+   "name": "lock_live_mirror",
+   "family": "lock",
+   "desc": "LIVE MIRROR: settlement lock |z|>=3.5, favourite at 0.955-0.98, 8-45 s left, every asset and window",
+   "sizing": "kelly",
+   "assets": [
+    "btc",
+    "eth",
+    "sol"
+   ],
+   "windows": [
+    5,
+    15
+   ],
+   "n": 93,
+   "unfilled": 0,
+   "avg_slippage": null,
+   "trades_per_day": 16.0,
+   "win_rate": 1.0,
+   "ret_mean": 0.0241,
+   "ret_sd": 0.0072,
+   "t": 32.14,
+   "pnl5": 11.21,
+   "max_dd5": 0.0,
+   "profit_factor": null,
+   "brier": 0.0,
+   "avg_price": 0.975,
+   "avg_edge": 0.0184,
+   "final_bankroll": 61.21,
+   "half1": {
+    "n": 46,
+    "win": 1.0,
+    "ret": 0.0244,
+    "t": 22.25,
+    "pnl5": 5.61
+   },
+   "half2": {
+    "n": 47,
+    "win": 1.0,
+    "ret": 0.0238,
+    "t": 23.01,
+    "pnl5": 5.6
+   },
+   "pre_twap": {
+    "n": 0
+   },
+   "post_twap": {
+    "n": 93,
+    "win": 1.0,
+    "ret": 0.0241,
+    "t": 32.14,
+    "pnl5": 11.21
+   },
+   "passes_bar": false,
+   "daily": [
+    {
+     "date": "2026-09-05",
+     "pnl5": 1.25
+    },
+    {
+     "date": "2026-09-06",
+     "pnl5": 1.48
+    },
+    {
+     "date": "2026-09-07",
+     "pnl5": 5.25
+    },
+    {
+     "date": "2026-09-08",
+     "pnl5": 1.49
+    },
+    {
+     "date": "2026-09-09",
+     "pnl5": 1.58
+    },
+    {
+     "date": "2026-09-10",
+     "pnl5": 0.14
+    }
+   ],
+   "skipped_size": 1,
+   "fills_below_085": 0
+  },
+  {
+   "name": "lock_wide",
+   "family": "lock",
+   "desc": "lock mirror widened: ask up to 0.99, 8-55 s left, all listed assets",
+   "sizing": "kelly",
+   "assets": [
+    "btc",
+    "eth",
+    "sol",
+    "xrp",
+    "doge",
+    "bnb",
+    "hype"
+   ],
+   "windows": [
+    5,
+    15
+   ],
+   "n": 331,
+   "unfilled": 0,
+   "avg_slippage": null,
+   "trades_per_day": 57.0,
+   "win_rate": 0.997,
+   "ret_mean": 0.0124,
+   "ret_sd": 0.0566,
+   "t": 3.99,
+   "pnl5": 20.56,
+   "max_dd5": 5.0,
+   "profit_factor": 5.109,
+   "brier": 0.003,
+   "avg_price": 0.984,
+   "avg_edge": 0.0101,
+   "final_bankroll": 70.57,
+   "half1": {
+    "n": 163,
+    "win": 1.0,
+    "ret": 0.0152,
+    "t": 21.59,
+    "pnl5": 12.37
+   },
+   "half2": {
+    "n": 168,
+    "win": 0.994,
+    "ret": 0.0097,
+    "t": 1.6,
+    "pnl5": 8.19
+   },
+   "pre_twap": {
+    "n": 0
+   },
+   "post_twap": {
+    "n": 331,
+    "win": 0.997,
+    "ret": 0.0124,
+    "t": 3.99,
+    "pnl5": 20.56
+   },
+   "passes_bar": true,
+   "daily": [
+    {
+     "date": "2026-09-05",
+     "pnl5": 1.72
+    },
+    {
+     "date": "2026-09-06",
+     "pnl5": 2.4
+    },
+    {
+     "date": "2026-09-07",
+     "pnl5": 12.12
+    },
+    {
+     "date": "2026-09-08",
+     "pnl5": -1.32
+    },
+    {
+     "date": "2026-09-09",
+     "pnl5": 5.11
+    },
+    {
+     "date": "2026-09-10",
+     "pnl5": 0.52
+    }
+   ],
+   "skipped_size": 154,
+   "fills_below_085": 0
+  },
+  {
+   "name": "lock_maker1",
+   "family": "lock",
+   "desc": "lock as maker: bid one tick under the favourite's ask, fee 0, fills only if the ask comes down",
+   "sizing": "kelly",
+   "assets": [
+    "btc",
+    "eth",
+    "sol",
+    "xrp",
+    "doge",
+    "bnb",
+    "hype"
+   ],
+   "windows": [
+    5,
+    15
+   ],
+   "n": 44,
+   "unfilled": 3101,
+   "avg_slippage": null,
+   "trades_per_day": 7.6,
+   "win_rate": 0.9773,
+   "ret_mean": 0.0103,
+   "ret_sd": 0.1562,
+   "t": 0.44,
+   "pnl5": 2.26,
+   "max_dd5": 5.0,
+   "profit_factor": 1.452,
+   "brier": 0.0225,
+   "avg_price": 0.968,
+   "avg_edge": 0.0273,
+   "final_bankroll": 52.26,
+   "half1": {
+    "n": 22,
+    "win": 0.955,
+    "ret": -0.0119,
+    "t": -0.25,
+    "pnl5": -1.31
+   },
+   "half2": {
+    "n": 22,
+    "win": 1.0,
+    "ret": 0.0324,
+    "t": 17.07,
+    "pnl5": 3.57
+   },
+   "pre_twap": {
+    "n": 0
+   },
+   "post_twap": {
+    "n": 44,
+    "win": 0.977,
+    "ret": 0.0103,
+    "t": 0.44,
+    "pnl5": 2.26
+   },
+   "passes_bar": false,
+   "daily": [
+    {
+     "date": "2026-09-05",
+     "pnl5": 0.36
+    },
+    {
+     "date": "2026-09-06",
+     "pnl5": 1.51
+    },
+    {
+     "date": "2026-09-07",
+     "pnl5": 0.62
+    },
+    {
+     "date": "2026-09-08",
+     "pnl5": -3.28
+    },
+    {
+     "date": "2026-09-09",
+     "pnl5": 2.95
+    },
+    {
+     "date": "2026-09-10",
+     "pnl5": 0.1
+    }
+   ],
+   "skipped_size": 0,
+   "fills_below_085": 0
+  },
+  {
+   "name": "lock_maker2",
+   "family": "lock",
+   "desc": "lock as maker, two ticks under the ask",
+   "sizing": "kelly",
+   "assets": [
+    "btc",
+    "eth",
+    "sol",
+    "xrp",
+    "doge",
+    "bnb",
+    "hype"
+   ],
+   "windows": [
+    5,
+    15
+   ],
+   "n": 24,
+   "unfilled": 3223,
+   "avg_slippage": null,
+   "trades_per_day": 4.1,
+   "win_rate": 0.9583,
+   "ret_mean": 0.0029,
+   "ret_sd": 0.214,
+   "t": 0.07,
+   "pnl5": 0.35,
+   "max_dd5": 5.0,
+   "profit_factor": 1.07,
+   "brier": 0.0413,
+   "avg_price": 0.956,
+   "avg_edge": 0.0387,
+   "final_bankroll": 50.35,
+   "half1": {
+    "n": 12,
+    "win": 0.917,
+    "ret": -0.0395,
+    "t": -0.45,
+    "pnl5": -2.37
+   },
+   "half2": {
+    "n": 12,
+    "win": 1.0,
+    "ret": 0.0454,
+    "t": 16.21,
+    "pnl5": 2.72
+   },
+   "pre_twap": {
+    "n": 0
+   },
+   "post_twap": {
+    "n": 24,
+    "win": 0.958,
+    "ret": 0.0029,
+    "t": 0.07,
+    "pnl5": 0.35
+   },
+   "passes_bar": false,
+   "daily": [
+    {
+     "date": "2026-09-05",
+     "pnl5": 0.26
+    },
+    {
+     "date": "2026-09-06",
+     "pnl5": 1.38
+    },
+    {
+     "date": "2026-09-07",
+     "pnl5": 0.31
+    },
+    {
+     "date": "2026-09-08",
+     "pnl5": -3.37
+    },
+    {
+     "date": "2026-09-09",
+     "pnl5": 1.78
+    }
+   ],
+   "skipped_size": 0,
+   "fills_below_085": 0
+  },
+  {
+   "name": "lock_twap_all",
+   "family": "lock",
+   "desc": "settlement-integral lock on every asset and window",
+   "sizing": "kelly",
+   "assets": [
+    "btc",
+    "eth",
+    "sol"
+   ],
+   "windows": [
+    5,
+    15
+   ],
+   "n": 644,
+   "unfilled": 0,
+   "avg_slippage": null,
+   "trades_per_day": 110.9,
+   "win_rate": 0.8634,
+   "ret_mean": -0.0152,
+   "ret_sd": 0.4061,
+   "t": -0.95,
+   "pnl5": -49.46,
+   "max_dd5": 107.04,
+   "profit_factor": 0.889,
+   "brier": 0.1321,
+   "avg_price": 0.868,
+   "avg_edge": 0.105,
+   "final_bankroll": 0.73,
+   "half1": {
+    "n": 322,
+    "win": 0.835,
+    "ret": -0.0573,
+    "t": -2.41,
+    "pnl5": -93.6
+   },
+   "half2": {
+    "n": 322,
+    "win": 0.891,
+    "ret": 0.027,
+    "t": 1.27,
+    "pnl5": 44.14
+   },
+   "pre_twap": {
+    "n": 0
+   },
+   "post_twap": {
+    "n": 644,
+    "win": 0.863,
+    "ret": -0.0152,
+    "t": -0.95,
+    "pnl5": -49.46
+   },
+   "passes_bar": false,
+   "daily": [
+    {
+     "date": "2026-09-05",
+     "pnl5": 6.46
+    },
+    {
+     "date": "2026-09-06",
+     "pnl5": -64.39
+    },
+    {
+     "date": "2026-09-07",
+     "pnl5": -38.34
+    },
+    {
+     "date": "2026-09-08",
+     "pnl5": 48.42
+    },
+    {
+     "date": "2026-09-09",
+     "pnl5": 26.63
+    },
+    {
+     "date": "2026-09-10",
+     "pnl5": -28.25
+    }
+   ],
+   "skipped_size": 32,
+   "fills_below_085": 152
+  }
+ ]
+}

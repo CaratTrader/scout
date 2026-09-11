@@ -1,0 +1,1348 @@
+{
+ "generated_at": 1788579386.253249,
+ "half_spread": 0.01,
+ "exec": "next",
+ "max_slip": 1.0,
+ "tag": "btc15_partial",
+ "since": null,
+ "days": 10.0,
+ "datasets": [
+  {
+   "asset": "btc",
+   "mins": 15,
+   "windows": 957
+  }
+ ],
+ "multiple_test_t": 3.0,
+ "strategies": [
+  {
+   "name": "lag_raw_15m",
+   "family": "lag",
+   "desc": "raw spot on BTC 15-minute windows",
+   "sizing": "kelly",
+   "assets": [
+    "btc"
+   ],
+   "windows": [
+    15
+   ],
+   "n": 868,
+   "unfilled": 1,
+   "avg_slippage": 0.0943,
+   "trades_per_day": 86.9,
+   "win_rate": 0.6106,
+   "ret_mean": 0.014,
+   "ret_sd": 0.9169,
+   "t": 0.45,
+   "pnl5": 62.39,
+   "max_dd5": 165.83,
+   "profit_factor": 1.036,
+   "brier": 0.2093,
+   "avg_price": 0.587,
+   "avg_edge": -0.0157,
+   "final_bankroll": 1.46,
+   "half1": {
+    "n": 434,
+    "win": 0.581,
+    "ret": -0.0374,
+    "t": -0.85,
+    "pnl5": -85.56
+   },
+   "half2": {
+    "n": 434,
+    "win": 0.641,
+    "ret": 0.0655,
+    "t": 1.5,
+    "pnl5": 147.95
+   },
+   "pre_twap": {
+    "n": 0
+   },
+   "post_twap": {
+    "n": 868,
+    "win": 0.611,
+    "ret": 0.014,
+    "t": 0.45,
+    "pnl5": 62.39
+   },
+   "passes_bar": false,
+   "daily": [
+    {
+     "date": "2026-08-26",
+     "pnl5": 32.52
+    },
+    {
+     "date": "2026-08-27",
+     "pnl5": -47.26
+    },
+    {
+     "date": "2026-08-28",
+     "pnl5": 43.35
+    },
+    {
+     "date": "2026-08-29",
+     "pnl5": -98.58
+    },
+    {
+     "date": "2026-08-30",
+     "pnl5": -15.09
+    },
+    {
+     "date": "2026-08-31",
+     "pnl5": -7.91
+    },
+    {
+     "date": "2026-09-01",
+     "pnl5": 25.09
+    },
+    {
+     "date": "2026-09-02",
+     "pnl5": 37.86
+    },
+    {
+     "date": "2026-09-03",
+     "pnl5": 127.36
+    },
+    {
+     "date": "2026-09-04",
+     "pnl5": -49.23
+    },
+    {
+     "date": "2026-09-05",
+     "pnl5": 14.28
+    }
+   ]
+  },
+  {
+   "name": "lag_twap",
+   "family": "lag",
+   "desc": "Scout as deployed: 60s-TWAP spot, 75/25 blend, edge>=0.03, ask 0.25-0.92",
+   "sizing": "kelly",
+   "assets": [
+    "btc"
+   ],
+   "windows": [
+    5
+   ],
+   "n": 0,
+   "unfilled": 0,
+   "avg_slippage": null,
+   "trades_per_day": 0.0,
+   "win_rate": null,
+   "ret_mean": null,
+   "ret_sd": null,
+   "t": null,
+   "pnl5": 0,
+   "max_dd5": 0.0,
+   "profit_factor": null,
+   "brier": null,
+   "avg_price": null,
+   "avg_edge": null,
+   "final_bankroll": 50.0,
+   "half1": {
+    "n": 0
+   },
+   "half2": {
+    "n": 0
+   },
+   "pre_twap": {
+    "n": 0
+   },
+   "post_twap": {
+    "n": 0
+   },
+   "passes_bar": false,
+   "daily": []
+  },
+  {
+   "name": "lag_raw",
+   "family": "lag",
+   "desc": "Scout with the fresh raw price as spot (CRYPTO_SPOT_SOURCE=raw)",
+   "sizing": "kelly",
+   "assets": [
+    "btc"
+   ],
+   "windows": [
+    5
+   ],
+   "n": 0,
+   "unfilled": 0,
+   "avg_slippage": null,
+   "trades_per_day": 0.0,
+   "win_rate": null,
+   "ret_mean": null,
+   "ret_sd": null,
+   "t": null,
+   "pnl5": 0,
+   "max_dd5": 0.0,
+   "profit_factor": null,
+   "brier": null,
+   "avg_price": null,
+   "avg_edge": null,
+   "final_bankroll": 50.0,
+   "half1": {
+    "n": 0
+   },
+   "half2": {
+    "n": 0
+   },
+   "pre_twap": {
+    "n": 0
+   },
+   "post_twap": {
+    "n": 0
+   },
+   "passes_bar": false,
+   "daily": []
+  },
+  {
+   "name": "lag_raw_pure",
+   "family": "lag",
+   "desc": "raw spot, model only (no book blend)",
+   "sizing": "kelly",
+   "assets": [
+    "btc"
+   ],
+   "windows": [
+    5
+   ],
+   "n": 0,
+   "unfilled": 0,
+   "avg_slippage": null,
+   "trades_per_day": 0.0,
+   "win_rate": null,
+   "ret_mean": null,
+   "ret_sd": null,
+   "t": null,
+   "pnl5": 0,
+   "max_dd5": 0.0,
+   "profit_factor": null,
+   "brier": null,
+   "avg_price": null,
+   "avg_edge": null,
+   "final_bankroll": 50.0,
+   "half1": {
+    "n": 0
+   },
+   "half2": {
+    "n": 0
+   },
+   "pre_twap": {
+    "n": 0
+   },
+   "post_twap": {
+    "n": 0
+   },
+   "passes_bar": false,
+   "daily": []
+  },
+  {
+   "name": "lag_raw_edge6",
+   "family": "lag",
+   "desc": "raw spot, demand 6% edge after fees",
+   "sizing": "kelly",
+   "assets": [
+    "btc"
+   ],
+   "windows": [
+    5
+   ],
+   "n": 0,
+   "unfilled": 0,
+   "avg_slippage": null,
+   "trades_per_day": 0.0,
+   "win_rate": null,
+   "ret_mean": null,
+   "ret_sd": null,
+   "t": null,
+   "pnl5": 0,
+   "max_dd5": 0.0,
+   "profit_factor": null,
+   "brier": null,
+   "avg_price": null,
+   "avg_edge": null,
+   "final_bankroll": 50.0,
+   "half1": {
+    "n": 0
+   },
+   "half2": {
+    "n": 0
+   },
+   "pre_twap": {
+    "n": 0
+   },
+   "post_twap": {
+    "n": 0
+   },
+   "passes_bar": false,
+   "daily": []
+  },
+  {
+   "name": "lag_raw_late",
+   "family": "lag",
+   "desc": "raw spot, only the last 50-130s",
+   "sizing": "kelly",
+   "assets": [
+    "btc"
+   ],
+   "windows": [
+    5
+   ],
+   "n": 0,
+   "unfilled": 0,
+   "avg_slippage": null,
+   "trades_per_day": 0.0,
+   "win_rate": null,
+   "ret_mean": null,
+   "ret_sd": null,
+   "t": null,
+   "pnl5": 0,
+   "max_dd5": 0.0,
+   "profit_factor": null,
+   "brier": null,
+   "avg_price": null,
+   "avg_edge": null,
+   "final_bankroll": 50.0,
+   "half1": {
+    "n": 0
+   },
+   "half2": {
+    "n": 0
+   },
+   "pre_twap": {
+    "n": 0
+   },
+   "post_twap": {
+    "n": 0
+   },
+   "passes_bar": false,
+   "daily": []
+  },
+  {
+   "name": "lag_raw_early",
+   "family": "lag",
+   "desc": "raw spot, only 170-250s left",
+   "sizing": "kelly",
+   "assets": [
+    "btc"
+   ],
+   "windows": [
+    5
+   ],
+   "n": 0,
+   "unfilled": 0,
+   "avg_slippage": null,
+   "trades_per_day": 0.0,
+   "win_rate": null,
+   "ret_mean": null,
+   "ret_sd": null,
+   "t": null,
+   "pnl5": 0,
+   "max_dd5": 0.0,
+   "profit_factor": null,
+   "brier": null,
+   "avg_price": null,
+   "avg_edge": null,
+   "final_bankroll": 50.0,
+   "half1": {
+    "n": 0
+   },
+   "half2": {
+    "n": 0
+   },
+   "pre_twap": {
+    "n": 0
+   },
+   "post_twap": {
+    "n": 0
+   },
+   "passes_bar": false,
+   "daily": []
+  },
+  {
+   "name": "lag_raw_fav",
+   "family": "lag",
+   "desc": "raw spot, favourites only (ask>=0.50)",
+   "sizing": "kelly",
+   "assets": [
+    "btc"
+   ],
+   "windows": [
+    5
+   ],
+   "n": 0,
+   "unfilled": 0,
+   "avg_slippage": null,
+   "trades_per_day": 0.0,
+   "win_rate": null,
+   "ret_mean": null,
+   "ret_sd": null,
+   "t": null,
+   "pnl5": 0,
+   "max_dd5": 0.0,
+   "profit_factor": null,
+   "brier": null,
+   "avg_price": null,
+   "avg_edge": null,
+   "final_bankroll": 50.0,
+   "half1": {
+    "n": 0
+   },
+   "half2": {
+    "n": 0
+   },
+   "pre_twap": {
+    "n": 0
+   },
+   "post_twap": {
+    "n": 0
+   },
+   "passes_bar": false,
+   "daily": []
+  },
+  {
+   "name": "lag_raw_dog",
+   "family": "lag",
+   "desc": "raw spot, underdogs only (ask<0.50) - Scout's current de-facto book",
+   "sizing": "kelly",
+   "assets": [
+    "btc"
+   ],
+   "windows": [
+    5
+   ],
+   "n": 0,
+   "unfilled": 0,
+   "avg_slippage": null,
+   "trades_per_day": 0.0,
+   "win_rate": null,
+   "ret_mean": null,
+   "ret_sd": null,
+   "t": null,
+   "pnl5": 0,
+   "max_dd5": 0.0,
+   "profit_factor": null,
+   "brier": null,
+   "avg_price": null,
+   "avg_edge": null,
+   "final_bankroll": 50.0,
+   "half1": {
+    "n": 0
+   },
+   "half2": {
+    "n": 0
+   },
+   "pre_twap": {
+    "n": 0
+   },
+   "post_twap": {
+    "n": 0
+   },
+   "passes_bar": false,
+   "daily": []
+  },
+  {
+   "name": "lag_gauss",
+   "family": "lag",
+   "desc": "raw spot, plain Gaussian (no calibration table)",
+   "sizing": "kelly",
+   "assets": [
+    "btc"
+   ],
+   "windows": [
+    5
+   ],
+   "n": 0,
+   "unfilled": 0,
+   "avg_slippage": null,
+   "trades_per_day": 0.0,
+   "win_rate": null,
+   "ret_mean": null,
+   "ret_sd": null,
+   "t": null,
+   "pnl5": 0,
+   "max_dd5": 0.0,
+   "profit_factor": null,
+   "brier": null,
+   "avg_price": null,
+   "avg_edge": null,
+   "final_bankroll": 50.0,
+   "half1": {
+    "n": 0
+   },
+   "half2": {
+    "n": 0
+   },
+   "pre_twap": {
+    "n": 0
+   },
+   "post_twap": {
+    "n": 0
+   },
+   "passes_bar": false,
+   "daily": []
+  },
+  {
+   "name": "lag_raw_fixed",
+   "family": "lag",
+   "desc": "raw spot, flat $5 stakes",
+   "sizing": "fixed5",
+   "assets": [
+    "btc"
+   ],
+   "windows": [
+    5
+   ],
+   "n": 0,
+   "unfilled": 0,
+   "avg_slippage": null,
+   "trades_per_day": 0.0,
+   "win_rate": null,
+   "ret_mean": null,
+   "ret_sd": null,
+   "t": null,
+   "pnl5": 0,
+   "max_dd5": 0.0,
+   "profit_factor": null,
+   "brier": null,
+   "avg_price": null,
+   "avg_edge": null,
+   "final_bankroll": 50.0,
+   "half1": {
+    "n": 0
+   },
+   "half2": {
+    "n": 0
+   },
+   "pre_twap": {
+    "n": 0
+   },
+   "post_twap": {
+    "n": 0
+   },
+   "passes_bar": false,
+   "daily": []
+  },
+  {
+   "name": "lag_raw_eth",
+   "family": "lag",
+   "desc": "raw spot on ETH 5m",
+   "sizing": "kelly",
+   "assets": [
+    "eth"
+   ],
+   "windows": [
+    5
+   ],
+   "n": 0,
+   "unfilled": 0,
+   "avg_slippage": null,
+   "trades_per_day": 0.0,
+   "win_rate": null,
+   "ret_mean": null,
+   "ret_sd": null,
+   "t": null,
+   "pnl5": 0,
+   "max_dd5": 0.0,
+   "profit_factor": null,
+   "brier": null,
+   "avg_price": null,
+   "avg_edge": null,
+   "final_bankroll": 50.0,
+   "half1": {
+    "n": 0
+   },
+   "half2": {
+    "n": 0
+   },
+   "pre_twap": {
+    "n": 0
+   },
+   "post_twap": {
+    "n": 0
+   },
+   "passes_bar": false,
+   "daily": []
+  },
+  {
+   "name": "lag_raw_sol",
+   "family": "lag",
+   "desc": "raw spot on SOL 5m",
+   "sizing": "kelly",
+   "assets": [
+    "sol"
+   ],
+   "windows": [
+    5
+   ],
+   "n": 0,
+   "unfilled": 0,
+   "avg_slippage": null,
+   "trades_per_day": 0.0,
+   "win_rate": null,
+   "ret_mean": null,
+   "ret_sd": null,
+   "t": null,
+   "pnl5": 0,
+   "max_dd5": 0.0,
+   "profit_factor": null,
+   "brier": null,
+   "avg_price": null,
+   "avg_edge": null,
+   "final_bankroll": 50.0,
+   "half1": {
+    "n": 0
+   },
+   "half2": {
+    "n": 0
+   },
+   "pre_twap": {
+    "n": 0
+   },
+   "post_twap": {
+    "n": 0
+   },
+   "passes_bar": false,
+   "daily": []
+  },
+  {
+   "name": "mom_z1",
+   "family": "momentum",
+   "desc": "buy the favourite when |z|>=1 and ask<=0.85",
+   "sizing": "kelly",
+   "assets": [
+    "btc"
+   ],
+   "windows": [
+    5
+   ],
+   "n": 0,
+   "unfilled": 0,
+   "avg_slippage": null,
+   "trades_per_day": 0.0,
+   "win_rate": null,
+   "ret_mean": null,
+   "ret_sd": null,
+   "t": null,
+   "pnl5": 0,
+   "max_dd5": 0.0,
+   "profit_factor": null,
+   "brier": null,
+   "avg_price": null,
+   "avg_edge": null,
+   "final_bankroll": 50.0,
+   "half1": {
+    "n": 0
+   },
+   "half2": {
+    "n": 0
+   },
+   "pre_twap": {
+    "n": 0
+   },
+   "post_twap": {
+    "n": 0
+   },
+   "passes_bar": false,
+   "daily": []
+  },
+  {
+   "name": "mom_z15_late",
+   "family": "momentum",
+   "desc": "|z|>=1.5 in the last 130s, ask<=0.90",
+   "sizing": "kelly",
+   "assets": [
+    "btc"
+   ],
+   "windows": [
+    5
+   ],
+   "n": 0,
+   "unfilled": 0,
+   "avg_slippage": null,
+   "trades_per_day": 0.0,
+   "win_rate": null,
+   "ret_mean": null,
+   "ret_sd": null,
+   "t": null,
+   "pnl5": 0,
+   "max_dd5": 0.0,
+   "profit_factor": null,
+   "brier": null,
+   "avg_price": null,
+   "avg_edge": null,
+   "final_bankroll": 50.0,
+   "half1": {
+    "n": 0
+   },
+   "half2": {
+    "n": 0
+   },
+   "pre_twap": {
+    "n": 0
+   },
+   "post_twap": {
+    "n": 0
+   },
+   "passes_bar": false,
+   "daily": []
+  },
+  {
+   "name": "fade_flat",
+   "family": "fade",
+   "desc": "buy the underdog (0.25-0.42) when price barely moved (|z|<=0.35)",
+   "sizing": "kelly",
+   "assets": [
+    "btc"
+   ],
+   "windows": [
+    5
+   ],
+   "n": 0,
+   "unfilled": 0,
+   "avg_slippage": null,
+   "trades_per_day": 0.0,
+   "win_rate": null,
+   "ret_mean": null,
+   "ret_sd": null,
+   "t": null,
+   "pnl5": 0,
+   "max_dd5": 0.0,
+   "profit_factor": null,
+   "brier": null,
+   "avg_price": null,
+   "avg_edge": null,
+   "final_bankroll": 50.0,
+   "half1": {
+    "n": 0
+   },
+   "half2": {
+    "n": 0
+   },
+   "pre_twap": {
+    "n": 0
+   },
+   "post_twap": {
+    "n": 0
+   },
+   "passes_bar": false,
+   "daily": []
+  },
+  {
+   "name": "follow_jump",
+   "family": "jump",
+   "desc": "book jumped >=0.15 in 60s: follow it (informed flow)",
+   "sizing": "kelly",
+   "assets": [
+    "btc"
+   ],
+   "windows": [
+    5
+   ],
+   "n": 0,
+   "unfilled": 0,
+   "avg_slippage": null,
+   "trades_per_day": 0.0,
+   "win_rate": null,
+   "ret_mean": null,
+   "ret_sd": null,
+   "t": null,
+   "pnl5": 0,
+   "max_dd5": 0.0,
+   "profit_factor": null,
+   "brier": null,
+   "avg_price": null,
+   "avg_edge": null,
+   "final_bankroll": 50.0,
+   "half1": {
+    "n": 0
+   },
+   "half2": {
+    "n": 0
+   },
+   "pre_twap": {
+    "n": 0
+   },
+   "post_twap": {
+    "n": 0
+   },
+   "passes_bar": false,
+   "daily": []
+  },
+  {
+   "name": "fade_jump",
+   "family": "jump",
+   "desc": "book jumped >=0.15 in 60s: fade it (overreaction)",
+   "sizing": "kelly",
+   "assets": [
+    "btc"
+   ],
+   "windows": [
+    5
+   ],
+   "n": 0,
+   "unfilled": 0,
+   "avg_slippage": null,
+   "trades_per_day": 0.0,
+   "win_rate": null,
+   "ret_mean": null,
+   "ret_sd": null,
+   "t": null,
+   "pnl5": 0,
+   "max_dd5": 0.0,
+   "profit_factor": null,
+   "brier": null,
+   "avg_price": null,
+   "avg_edge": null,
+   "final_bankroll": 50.0,
+   "half1": {
+    "n": 0
+   },
+   "half2": {
+    "n": 0
+   },
+   "pre_twap": {
+    "n": 0
+   },
+   "post_twap": {
+    "n": 0
+   },
+   "passes_bar": false,
+   "daily": []
+  },
+  {
+   "name": "lock_k3",
+   "family": "lock",
+   "desc": "<=90s left, lead is >=3 sigma of the remaining average",
+   "sizing": "kelly",
+   "assets": [
+    "btc"
+   ],
+   "windows": [
+    5
+   ],
+   "n": 0,
+   "unfilled": 0,
+   "avg_slippage": null,
+   "trades_per_day": 0.0,
+   "win_rate": null,
+   "ret_mean": null,
+   "ret_sd": null,
+   "t": null,
+   "pnl5": 0,
+   "max_dd5": 0.0,
+   "profit_factor": null,
+   "brier": null,
+   "avg_price": null,
+   "avg_edge": null,
+   "final_bankroll": 50.0,
+   "half1": {
+    "n": 0
+   },
+   "half2": {
+    "n": 0
+   },
+   "pre_twap": {
+    "n": 0
+   },
+   "post_twap": {
+    "n": 0
+   },
+   "passes_bar": false,
+   "daily": []
+  },
+  {
+   "name": "lock_k2",
+   "family": "lock",
+   "desc": "<=90s left, lead >=2 sigma",
+   "sizing": "kelly",
+   "assets": [
+    "btc"
+   ],
+   "windows": [
+    5
+   ],
+   "n": 0,
+   "unfilled": 0,
+   "avg_slippage": null,
+   "trades_per_day": 0.0,
+   "win_rate": null,
+   "ret_mean": null,
+   "ret_sd": null,
+   "t": null,
+   "pnl5": 0,
+   "max_dd5": 0.0,
+   "profit_factor": null,
+   "brier": null,
+   "avg_price": null,
+   "avg_edge": null,
+   "final_bankroll": 50.0,
+   "half1": {
+    "n": 0
+   },
+   "half2": {
+    "n": 0
+   },
+   "pre_twap": {
+    "n": 0
+   },
+   "post_twap": {
+    "n": 0
+   },
+   "passes_bar": false,
+   "daily": []
+  },
+  {
+   "name": "fav_lock_90",
+   "family": "lock",
+   "desc": "book >=0.90 with the move on its side, <=120s, tiny edge",
+   "sizing": "kelly",
+   "assets": [
+    "btc"
+   ],
+   "windows": [
+    5
+   ],
+   "n": 0,
+   "unfilled": 0,
+   "avg_slippage": null,
+   "trades_per_day": 0.0,
+   "win_rate": null,
+   "ret_mean": null,
+   "ret_sd": null,
+   "t": null,
+   "pnl5": 0,
+   "max_dd5": 0.0,
+   "profit_factor": null,
+   "brier": null,
+   "avg_price": null,
+   "avg_edge": null,
+   "final_bankroll": 50.0,
+   "half1": {
+    "n": 0
+   },
+   "half2": {
+    "n": 0
+   },
+   "pre_twap": {
+    "n": 0
+   },
+   "post_twap": {
+    "n": 0
+   },
+   "passes_bar": false,
+   "daily": []
+  },
+  {
+   "name": "table_pure",
+   "family": "lag",
+   "desc": "calibration table only, edge>=0.05",
+   "sizing": "kelly",
+   "assets": [
+    "btc"
+   ],
+   "windows": [
+    5
+   ],
+   "n": 0,
+   "unfilled": 0,
+   "avg_slippage": null,
+   "trades_per_day": 0.0,
+   "win_rate": null,
+   "ret_mean": null,
+   "ret_sd": null,
+   "t": null,
+   "pnl5": 0,
+   "max_dd5": 0.0,
+   "profit_factor": null,
+   "brier": null,
+   "avg_price": null,
+   "avg_edge": null,
+   "final_bankroll": 50.0,
+   "half1": {
+    "n": 0
+   },
+   "half2": {
+    "n": 0
+   },
+   "pre_twap": {
+    "n": 0
+   },
+   "post_twap": {
+    "n": 0
+   },
+   "passes_bar": false,
+   "daily": []
+  },
+  {
+   "name": "x_btc_eth",
+   "family": "cross",
+   "desc": "ETH 5m with BTC's z as a prior",
+   "sizing": "kelly",
+   "assets": [
+    "eth"
+   ],
+   "windows": [
+    5
+   ],
+   "n": 0,
+   "unfilled": 0,
+   "avg_slippage": null,
+   "trades_per_day": 0.0,
+   "win_rate": null,
+   "ret_mean": null,
+   "ret_sd": null,
+   "t": null,
+   "pnl5": 0,
+   "max_dd5": 0.0,
+   "profit_factor": null,
+   "brier": null,
+   "avg_price": null,
+   "avg_edge": null,
+   "final_bankroll": 50.0,
+   "half1": {
+    "n": 0
+   },
+   "half2": {
+    "n": 0
+   },
+   "pre_twap": {
+    "n": 0
+   },
+   "post_twap": {
+    "n": 0
+   },
+   "passes_bar": false,
+   "daily": []
+  },
+  {
+   "name": "x_btc_sol",
+   "family": "cross",
+   "desc": "SOL 5m with BTC's z as a prior",
+   "sizing": "kelly",
+   "assets": [
+    "sol"
+   ],
+   "windows": [
+    5
+   ],
+   "n": 0,
+   "unfilled": 0,
+   "avg_slippage": null,
+   "trades_per_day": 0.0,
+   "win_rate": null,
+   "ret_mean": null,
+   "ret_sd": null,
+   "t": null,
+   "pnl5": 0,
+   "max_dd5": 0.0,
+   "profit_factor": null,
+   "brier": null,
+   "avg_price": null,
+   "avg_edge": null,
+   "final_bankroll": 50.0,
+   "half1": {
+    "n": 0
+   },
+   "half2": {
+    "n": 0
+   },
+   "pre_twap": {
+    "n": 0
+   },
+   "post_twap": {
+    "n": 0
+   },
+   "passes_bar": false,
+   "daily": []
+  },
+  {
+   "name": "lag_raw_maker",
+   "family": "maker",
+   "desc": "lag_raw signal, rest at the bid, zero fee",
+   "sizing": "kelly",
+   "assets": [
+    "btc"
+   ],
+   "windows": [
+    5
+   ],
+   "n": 0,
+   "unfilled": 0,
+   "avg_slippage": null,
+   "trades_per_day": 0.0,
+   "win_rate": null,
+   "ret_mean": null,
+   "ret_sd": null,
+   "t": null,
+   "pnl5": 0,
+   "max_dd5": 0.0,
+   "profit_factor": null,
+   "brier": null,
+   "avg_price": null,
+   "avg_edge": null,
+   "final_bankroll": 50.0,
+   "half1": {
+    "n": 0
+   },
+   "half2": {
+    "n": 0
+   },
+   "pre_twap": {
+    "n": 0
+   },
+   "post_twap": {
+    "n": 0
+   },
+   "passes_bar": false,
+   "daily": []
+  },
+  {
+   "name": "mom_z1_maker",
+   "family": "maker",
+   "desc": "momentum signal, rest at the bid",
+   "sizing": "kelly",
+   "assets": [
+    "btc"
+   ],
+   "windows": [
+    5
+   ],
+   "n": 0,
+   "unfilled": 0,
+   "avg_slippage": null,
+   "trades_per_day": 0.0,
+   "win_rate": null,
+   "ret_mean": null,
+   "ret_sd": null,
+   "t": null,
+   "pnl5": 0,
+   "max_dd5": 0.0,
+   "profit_factor": null,
+   "brier": null,
+   "avg_price": null,
+   "avg_edge": null,
+   "final_bankroll": 50.0,
+   "half1": {
+    "n": 0
+   },
+   "half2": {
+    "n": 0
+   },
+   "pre_twap": {
+    "n": 0
+   },
+   "post_twap": {
+    "n": 0
+   },
+   "passes_bar": false,
+   "daily": []
+  },
+  {
+   "name": "lag_raw_us",
+   "family": "filter",
+   "desc": "lag_raw during US hours (13-21 UTC)",
+   "sizing": "kelly",
+   "assets": [
+    "btc"
+   ],
+   "windows": [
+    5
+   ],
+   "n": 0,
+   "unfilled": 0,
+   "avg_slippage": null,
+   "trades_per_day": 0.0,
+   "win_rate": null,
+   "ret_mean": null,
+   "ret_sd": null,
+   "t": null,
+   "pnl5": 0,
+   "max_dd5": 0.0,
+   "profit_factor": null,
+   "brier": null,
+   "avg_price": null,
+   "avg_edge": null,
+   "final_bankroll": 50.0,
+   "half1": {
+    "n": 0
+   },
+   "half2": {
+    "n": 0
+   },
+   "pre_twap": {
+    "n": 0
+   },
+   "post_twap": {
+    "n": 0
+   },
+   "passes_bar": false,
+   "daily": []
+  },
+  {
+   "name": "lag_raw_offhours",
+   "family": "filter",
+   "desc": "lag_raw outside US hours",
+   "sizing": "kelly",
+   "assets": [
+    "btc"
+   ],
+   "windows": [
+    5
+   ],
+   "n": 0,
+   "unfilled": 0,
+   "avg_slippage": null,
+   "trades_per_day": 0.0,
+   "win_rate": null,
+   "ret_mean": null,
+   "ret_sd": null,
+   "t": null,
+   "pnl5": 0,
+   "max_dd5": 0.0,
+   "profit_factor": null,
+   "brier": null,
+   "avg_price": null,
+   "avg_edge": null,
+   "final_bankroll": 50.0,
+   "half1": {
+    "n": 0
+   },
+   "half2": {
+    "n": 0
+   },
+   "pre_twap": {
+    "n": 0
+   },
+   "post_twap": {
+    "n": 0
+   },
+   "passes_bar": false,
+   "daily": []
+  },
+  {
+   "name": "lag_raw_lowvol",
+   "family": "filter",
+   "desc": "lag_raw when sigma<=0.12%/window",
+   "sizing": "kelly",
+   "assets": [
+    "btc"
+   ],
+   "windows": [
+    5
+   ],
+   "n": 0,
+   "unfilled": 0,
+   "avg_slippage": null,
+   "trades_per_day": 0.0,
+   "win_rate": null,
+   "ret_mean": null,
+   "ret_sd": null,
+   "t": null,
+   "pnl5": 0,
+   "max_dd5": 0.0,
+   "profit_factor": null,
+   "brier": null,
+   "avg_price": null,
+   "avg_edge": null,
+   "final_bankroll": 50.0,
+   "half1": {
+    "n": 0
+   },
+   "half2": {
+    "n": 0
+   },
+   "pre_twap": {
+    "n": 0
+   },
+   "post_twap": {
+    "n": 0
+   },
+   "passes_bar": false,
+   "daily": []
+  },
+  {
+   "name": "lag_raw_highvol",
+   "family": "filter",
+   "desc": "lag_raw when sigma>0.12%/window",
+   "sizing": "kelly",
+   "assets": [
+    "btc"
+   ],
+   "windows": [
+    5
+   ],
+   "n": 0,
+   "unfilled": 0,
+   "avg_slippage": null,
+   "trades_per_day": 0.0,
+   "win_rate": null,
+   "ret_mean": null,
+   "ret_sd": null,
+   "t": null,
+   "pnl5": 0,
+   "max_dd5": 0.0,
+   "profit_factor": null,
+   "brier": null,
+   "avg_price": null,
+   "avg_edge": null,
+   "final_bankroll": 50.0,
+   "half1": {
+    "n": 0
+   },
+   "half2": {
+    "n": 0
+   },
+   "pre_twap": {
+    "n": 0
+   },
+   "post_twap": {
+    "n": 0
+   },
+   "passes_bar": false,
+   "daily": []
+  },
+  {
+   "name": "ens_lag_mom",
+   "family": "ensemble",
+   "desc": "trade only when lag_raw and momentum agree on the side",
+   "sizing": "kelly",
+   "assets": [
+    "btc"
+   ],
+   "windows": [
+    5
+   ],
+   "n": 0,
+   "unfilled": 0,
+   "avg_slippage": null,
+   "trades_per_day": 0.0,
+   "win_rate": null,
+   "ret_mean": null,
+   "ret_sd": null,
+   "t": null,
+   "pnl5": 0,
+   "max_dd5": 0.0,
+   "profit_factor": null,
+   "brier": null,
+   "avg_price": null,
+   "avg_edge": null,
+   "final_bankroll": 50.0,
+   "half1": {
+    "n": 0
+   },
+   "half2": {
+    "n": 0
+   },
+   "pre_twap": {
+    "n": 0
+   },
+   "post_twap": {
+    "n": 0
+   },
+   "passes_bar": false,
+   "daily": []
+  }
+ ],
+ "elapsed_s": 0.0
+}
