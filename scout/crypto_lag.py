@@ -335,13 +335,17 @@ def p_up_from_move(
 def realized_window_sigma(closes: list[float], window_s: int) -> float:
     """Estimate full-window volatility from recent one-minute log returns."""
     returns = [math.log(b / a) for a, b in zip(closes, closes[1:]) if a > 0 and b > 0]
+    # Clamps scale with sqrt(window length) so a 4h window is not judged with the 15m
+    # bounds (that inflated 4h z-scores ~2.6x). Reproduces the old 5m/15m values exactly:
+    # floor 0.0008/0.0014, ceiling 0.008/0.014, default 0.0024/0.0040.
+    scale = math.sqrt(window_s / 60.0)
     if len(returns) < 5:
-        return 0.0024 if window_s <= 300 else 0.0040
+        return round(0.00107 * scale, 6)
     mean = sum(returns) / len(returns)
     variance = sum((value - mean) ** 2 for value in returns) / max(1, len(returns) - 1)
-    estimate = math.sqrt(variance) * math.sqrt(window_s / 60.0)
-    floor = 0.0008 if window_s <= 300 else 0.0014
-    ceiling = 0.008 if window_s <= 300 else 0.014
+    estimate = math.sqrt(variance) * scale
+    floor = 0.00036 * scale
+    ceiling = 0.0036 * scale
     return min(ceiling, max(floor, estimate))
 
 
@@ -422,6 +426,11 @@ def _try_twap_lock(
     if "twap" not in rules and "60s-stream" not in rules:
         return None
     asset = win["asset"]
+    max_book_age = _lock_max_book_age()
+    if max_book_age > 0:
+        event_ts = float(market.get("clob_event_ts") or 0)
+        if event_ts and now - event_ts > max_book_age:
+            return None  # the offer we would price against is older than the lock allows
     exact = chainlink_window_context(asset, win["start"], now)
     if exact is None:
         return None
@@ -485,6 +494,15 @@ def _oracle_minute_sigma(asset: str, window_s: int, now: float) -> float | None:
     if len(rows) < 6:
         return None
     return realized_window_sigma(rows, window_s)
+
+
+def _lock_max_book_age() -> float:
+    """TWAP_LOCK_MAX_BOOK_AGE=<s>: refuse a lock when the websocket book last changed more than
+    this many seconds ago (a live lock was once decided on a stale HYPE book). 0 = off."""
+    try:
+        return max(0.0, float(os.getenv("TWAP_LOCK_MAX_BOOK_AGE") or 0))
+    except ValueError:
+        return 0.0
 
 
 def _basis_min_bps() -> float:

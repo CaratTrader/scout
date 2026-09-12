@@ -376,12 +376,17 @@ class LockTwap(Strategy):
             pts = [(min(max(ts, twap_start), s.t), px) for ts, px in rows]
             if len(pts) < 2 or pts[0][0] > twap_start + 6:
                 return None
+            covered = 0.0
             for (a, pa), (b, pb) in zip(pts, pts[1:]):
                 dt = b - a
                 if dt > 6:
                     return None
                 observed += (pa + pb) / 2.0 * dt
-            observed += pts[-1][1] * max(0.0, s.t - pts[-1][0])
+                covered += dt
+            tail = max(0.0, s.t - pts[-1][0])
+            if tail > 6 or (covered + tail) < 0.85 * (s.t - twap_start):
+                return None  # recording gap: the integral would be a stale carry-forward (bogus |z|)
+            observed += pts[-1][1] * tail
             remaining = end - s.t
         else:
             remaining = 60.0

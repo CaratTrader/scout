@@ -179,6 +179,7 @@ def fill_order(
         mode=mode,
         settings=settings,
         raw=raw,
+        force=(mode == "live"),  # the venue already matched it; never refuse to book it
     )
 
 
@@ -210,17 +211,21 @@ def record_fill(
     settings: Settings,
     raw: Any = None,
     fee: float = 0.0,
+    force: bool = False,
 ) -> dict[str, Any]:
-    if ledger.get("halted"):
+    """Book a fill. force=True is for venue-confirmed fills (a resting order that matched):
+    those must be recorded even if the slot or cash checks would refuse a new entry."""
+    if ledger.get("halted") and not force:
         raise RuntimeError("ledger is halted")
     if stake <= 0 or shares <= 0 or price <= 0:
         raise ValueError("invalid fill")
     fee = round(max(0.0, float(fee)), 4)
     cost_basis = round(stake + fee, 4)
-    if cost_basis > float(ledger["cash"]) + 1e-9:
-        raise ValueError("insufficient cash")
-    if len(ledger["positions"]) >= settings.max_positions:
-        raise RuntimeError("max positions reached")
+    if not force:
+        if cost_basis > float(ledger["cash"]) + 1e-9:
+            raise ValueError("insufficient cash")
+        if len(ledger["positions"]) >= settings.max_positions:
+            raise RuntimeError("max positions reached")
 
     ledger["cash"] = round(float(ledger["cash"]) - cost_basis, 4)
     opened_ts = time.time()

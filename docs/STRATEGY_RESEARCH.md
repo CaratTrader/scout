@@ -564,3 +564,55 @@ constraint. Judge the profile on live fills per day over the first week before s
   74 % of them, 2 s later in 51 %, 3 s in 36 %, 5 s in 18 %. The old ~5 s cycle therefore
   captured ~1 in 6 (exactly the live record: 1 fill in 6 attempts); a 0.3 s watch with ~1 s order
   latency should capture roughly half to three quarters. That is the single biggest lever left.
+
+## 13. Deep review (2026-09-12): what 37 independent reports changed
+
+Four forensic readers (live journal, all 2.68 M tick rows, the live code path, the lab), eight
+repo miners, five research lenses and twenty adversarial refuters. The synthesis, in order of
+money at risk:
+
+**Where the losses live.** Every recorded loss of the lock rule sits at a 0.99 fill or inside
+the 45–55 s extension added on Sep 10 evening. At 0.99 with |z| ≥ 3.5: 301 windows, 3 losses,
+−0.07 ¢/$ (break-even loss rate at 0.99 is 0.93 %). Fills under 0.985: 183 windows, 0 losses,
++2.45 ¢/$. Split halves of the wide rule: first half 182/0 +1.43 ¢/$, second half 184 trades 5
+losses +0.25 ¢/$. **Profile change:** cap back to 0.98, window 4–45 s (the 3–8 s tail replayed
+0 losses / 97 % capture), `CRYPTO_MIN_EDGE` 0.012.
+
+**Two real bugs in the resting-bid code that was live since 12:18 EDT.** (1) A venue-confirmed
+fill arriving while the slots were full raised inside `_working`, crashed every cycle and would
+never have been booked — fixed with `record_fill(force=True)` for live fills, resting orders now
+count as slots in `risk.veto`. (2) A failed cancel dropped the order from the ledger while it was
+still live at the venue — fixed: the order is kept and retried until the venue tears the book
+down (10 min after close). Also: the ledger is saved immediately after every live fill or post.
+
+**Sizing was the largest risk to the account, not the venue.** 27 % of cash per lock, up to 82 %
+across one boundary when seven windows end together, on an edge whose 95 % loss-rate bound
+(2.2 %) sits at break-even. Changes: `CRYPTO_KELLY_MULT` 0.35, `MAX_CRYPTO_STAKE` 20,
+`LOCK_MAX_EXPOSURE_FRAC` 0.30 (all lock dollars across all coins ≤ 30 % of cash),
+resting bids capped at $5 (`LOCK_REST_MAX_USD`) until live fills prove them.
+
+**Data integrity.** The tick recorder rounded prices to 2 decimals, so every DOGE/XRP lock in the
+replays was a rounding artefact (87 % of DOGE rows show raw == open); the lab lock had no
+tick-coverage check, so recording gaps produced bogus |z| ≈ 300 locks (~20 % of one replay);
+2026-09-07 16–21 UTC is a frozen-feed artefact; 4h windows used the 15m sigma clamps, inflating
+their z 2.6×. All four fixed (`record_tick` full precision, `LockTwap.p_up` coverage, sigma clamps
+scale with √window). Evidence for the four new coins is therefore only the arena's live-state
+paper fills (doge 25, hype 30, xrp 10, bnb 11, all won) — thin; they stay, sized like the rest.
+
+**Execution.** Signal→order 0.6 s median, round trip 1.2–1.9 s; 99.1 % of live lock observations
+show the favourite with no ask at all; when not geoblocked the taker path captured 5–10 % of
+attempts. The 60 s geoblock pause (`entry_pause_until`) stops hammering the venue; websocket books
+now record empty ask sides; a lock is refused when the book is older than 3 s or the newest oracle
+print older than 2 s (`TWAP_LOCK_MAX_BOOK_AGE`, `TWAP_LOCK_MAX_ORACLE_AGE`).
+
+**Rest of Polymarket (verified negatives).** Already-resolved-but-unsettled markets trade at
+0.999/1.000, not 0.97; negRisk complete sets: 10 of 1,081 events under $1, single-digit dollars,
+locked for months; sub-cent queue jumps: 1–3/day; in-play sports needs a stadium feed;
+FOMC/BLS release sniping is real but one-shot and execution-bound; maker rebates ≈ 0 at our
+scale; the maker version of the lock fills 1–2 % of the time and adversely. Nothing beats the
+tight lock for this bankroll.
+
+**Honest expectation, unchanged in direction, lower in size:** the only lossless cell is
+< 0.985 fills, ~24 signals/day on paper, live capture 5–10 % at taker speed; resting bids are an
+unmeasured upside. At $44 this is cents per fill. The 2026-09-17 goal is not reachable from
+returns at this bankroll; the machine is correct, the capital is small.

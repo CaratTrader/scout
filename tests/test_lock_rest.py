@@ -71,7 +71,7 @@ def test_live_rest_buy_posts_post_only_bid(monkeypatch):
     assert raw["order_id"] == "ord-1" and raw["rest_price"] == "0.98"
     call = client.calls[0]
     assert call["token_id"] == "y1" and call["side"] == "BUY" and call["post_only"] is True
-    assert call["price"] == Decimal("0.98") and call["size"] == Decimal("10.20")  # 10 / 0.98 floored to cents
+    assert call["price"] == Decimal("0.98") and call["size"] == Decimal("5.10")  # capped at LOCK_REST_MAX_USD=$5 -> 5/0.98 floored to cents
     # below the venue minimum -> refused, nothing posted
     try:
         live_rest_buy(_cand(0.97, 3.0), s)

@@ -410,7 +410,12 @@ def live_rest_buy(candidate: dict[str, Any], settings: Settings) -> dict[str, An
     price = _rest_price(candidate, settings, tick)
     if price < tick:
         raise LiveDisabled("no resting price with edge")
-    stake = Decimal(str(candidate["stake"]))
+    # Unproven fill rate: rest at most LOCK_REST_MAX_USD (default $5) until live fills say more.
+    try:
+        rest_cap = Decimal(str(float(os.getenv("LOCK_REST_MAX_USD") or 5)))
+    except ValueError:
+        rest_cap = Decimal("5")
+    stake = min(Decimal(str(candidate["stake"])), rest_cap)
     size = (stake / price).quantize(Decimal("0.01"), rounding=ROUND_FLOOR)
     min_size = max(Decimal(str(candidate.get("min_order_size") or 0)), Decimal("5"))
     if size < min_size:

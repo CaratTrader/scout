@@ -82,22 +82,27 @@
         <string>off</string>
         <key>LESSONS</key>
         <string>0</string>
+        <!-- 2026-09-12 review (docs section 13): every recorded loss sat at 0.99 or in the 45-55 s
+             extension; fills under 0.985 are 183/0 at +2.45%/$. Back to the tight cut, and 4 s
+             later into the window (3-8 s: 0 losses, 97% capture at 1 s in replay). -->
         <key>TWAP_LOCK_MIN_SECONDS</key>
-        <string>8</string>
-        <!-- band widened 2026-09-10 23:00 after the real-book replay: ask up to 0.99 and 8-55 s left
-             = 331 trades, 1 loss, +1.24%/trade, +$20.6 per $5 fixed vs +$11.2 for the 0.98/45 s cut -->
+        <string>4</string>
         <key>TWAP_LOCK_MAX_SECONDS</key>
-        <string>55</string>
+        <string>45</string>
         <key>TWAP_LOCK_ASK_FLOOR</key>
         <string>0.955</string>
         <key>TWAP_LOCK_ASK_CAP</key>
-        <string>0.99</string>
+        <string>0.98</string>
         <key>TWAP_LOCK_MIN_Z</key>
         <string>3.5</string>
+        <key>TWAP_LOCK_MAX_ORACLE_AGE</key>
+        <string>2</string>
+        <key>TWAP_LOCK_MAX_BOOK_AGE</key>
+        <string>3</string>
         <key>CRYPTO_MIN_EDGE</key>
-        <string>0.004</string>
+        <string>0.012</string>
         <key>CRYPTO_MIN_SECONDS_TO_EXPIRY</key>
-        <string>5</string>
+        <string>2</string>
         <key>CRYPTO_SIGNAL_TTL_SECONDS</key>
         <string>6</string>
         <key>CRYPTO_MAX_SLIP</key>
@@ -107,7 +112,15 @@
         <key>MIN_CRYPTO_STAKE</key>
         <string>2</string>
         <key>MAX_CRYPTO_STAKE</key>
-        <string>40</string>
+        <string>20</string>
+        <!-- 2026-09-12 review: size for a loss rate near the confidence bound, not the 0.995 clamp;
+             all lock dollars across the seven coins count as one bet (LOCK_MAX_EXPOSURE_FRAC) -->
+        <key>CRYPTO_KELLY_MULT</key>
+        <string>0.35</string>
+        <key>LOCK_MAX_EXPOSURE_FRAC</key>
+        <string>0.30</string>
+        <key>LOCK_REST_MAX_USD</key>
+        <string>5</string>
         <key>MAX_CRYPTO_POSITIONS</key>
         <string>3</string>
         <key>MAX_POSITIONS</key>

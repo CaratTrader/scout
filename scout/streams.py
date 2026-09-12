@@ -160,15 +160,15 @@ def _apply_market_event(event: Any) -> None:
     if etype == "book":
         asks = sorted((float(lv.price), lv) for lv in p.asks or [])
         bids = sorted((float(lv.price), lv) for lv in p.bids or [])
-        if not asks:
-            return
-        ask = asks[0][0]
+        # An empty ask side is real information (decided window: nobody offers the loser /
+        # the favourite has been swept). Record ask=0 instead of keeping the last offer alive.
+        ask = asks[0][0] if asks else 0.0
         bid = bids[-1][0] if bids else 0.0
         with _LOCK:
             _BOOKS[str(p.token_id)] = {
                 "bid": bid,
                 "ask": ask,
-                "ask_size": _near_ask_size(p.asks, ask),
+                "ask_size": _near_ask_size(p.asks, ask) if asks else 0.0,
                 "tick_size": float(p.tick_size or 0.01),
                 "event_ts": now,
             }

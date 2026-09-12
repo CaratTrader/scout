@@ -41,6 +41,7 @@ MIN_P_LOCK = _env_float("TWAP_LOCK_MIN_P", 0.95)
 ASK_FLOOR = _env_float("TWAP_LOCK_ASK_FLOOR", 0.30)
 ASK_CAP = _env_float("TWAP_LOCK_ASK_CAP", 0.92)
 MIN_Z = _env_float("TWAP_LOCK_MIN_Z", 0.0)  # |z| of the remaining-average requirement; 0 = gate on p only
+MAX_ORACLE_AGE = _env_float("TWAP_LOCK_MAX_ORACLE_AGE", 3.0)  # newest oracle print must be this fresh
 MIN_COVERAGE = 0.85  # observed tick coverage of the elapsed TWAP interval
 MAX_TICK_GAP = 6.0   # seconds without an oracle tick = integral untrustworthy
 AVG_VOL_SHRINK = 1.0 / math.sqrt(3.0)  # std of a Brownian time-average vs endpoint
@@ -100,7 +101,7 @@ def lock_signal(
     r = end - now
     if not (MIN_SECONDS <= r <= MAX_SECONDS) or open_twap <= 0:
         return None
-    spot_row = streams.oracle_spot(asset)
+    spot_row = streams.oracle_spot(asset, max_age=MAX_ORACLE_AGE)
     if spot_row is None:
         return None
     spot, _ = spot_row

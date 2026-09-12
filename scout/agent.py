@@ -326,6 +326,8 @@ def _refresh_crypto_books(markets: list[dict[str, Any]], client: Any = None) -> 
                 "tick_size": float(yes.get("tick_size") or 0.01),
                 "clob_fresh": True,
                 "clob_quoted_at": float(yes["quoted_at"]),
+                # when the book last actually changed (quoted_at only says the stream is alive)
+                "clob_event_ts": max(float(yes.get("event_ts") or 0), float(no.get("event_ts") or 0)),
             }
         )
         ws_refreshed += 1
@@ -378,6 +380,7 @@ def _refresh_crypto_books(markets: list[dict[str, Any]], client: Any = None) -> 
                 "tick_size": float(yes.tick_size),
                 "clob_fresh": True,
                 "clob_quoted_at": time.time(),
+                "clob_event_ts": time.time(),
             }
         )
         refreshed += 1
@@ -588,7 +591,10 @@ def _execute_candidate_batch(
     errors: list[str],
 ) -> None:
     for cand in candidates:
-        reason = veto(cand, ledger, settings, occupied=held)
+        if settings.live and _entry_paused(ledger):
+            vetoes.append({"id": cand["id"], "reason": "entry_pause", "kind": cand.get("kind", "")})
+            continue
+        reason = veto(cand, ledger, settings, occupied=held) or _cap_lock_stake(cand, ledger, settings)
         age = max(0.0, time.time() - float(cand.get("signal_ts") or time.time()))
         common = {
             "id": cand["id"],
@@ -618,6 +624,8 @@ def _execute_candidate_batch(
             fill = execute(ledger, cand, settings)
             taken.append(fill)
             held.add(cand["id"])
+            if settings.live:
+                save_ledger(ledger)  # a real fill must survive any later exception in this cycle
             journal(
                 {
                     "ts": time.time(),
@@ -640,6 +648,12 @@ def _execute_candidate_batch(
                     **common,
                 }
             )
+            if settings.live and "restricted in your region" in str(exc).lower():
+                # Geoblock is an exit-IP state that lasts minutes to hours: stop hammering the
+                # venue (and stop resting bids) for a minute, then probe again.
+                ledger["entry_pause_until"] = time.time() + 60.0
+                journal({"ts": time.time(), "event": "entry_pause", "reason": "geoblock", "seconds": 60})
+                continue
             if settings.live and rest_fallback_applies(cand, exc):
                 # The offer was gone before our taker order landed: rest a bid at the
                 # ceiling instead (fee 0). Tracked in ledger["orders"]; _working fills it.
@@ -658,6 +672,7 @@ def _execute_candidate_batch(
                         raw=raw,
                     )
                     held.add(cand["id"])
+                    save_ledger(ledger)
                     print(f"  REST {cand['side']:4} {order['shares']} sh @ {order['price']}  {str(cand.get('question'))[:60]}")
                     journal({"ts": time.time(), "event": "post", "price": order["price"], "shares": order["shares"], "venue_id": order.get("venue_id"), **common})
                 except (LiveDisabled, RuntimeError, ValueError) as rest_exc:
@@ -720,6 +735,8 @@ def hunt_locks(
     last_try: dict[str, float] = {}
     try:
         while time.time() < deadline and not ledger.get("halted"):
+            if settings.live and _entry_paused(ledger):
+                break
             ticks += 1
             _refresh_crypto_books(markets, client)
             scores = {
@@ -978,15 +995,26 @@ def _working(ledger: dict[str, Any], by_id: dict[str, dict[str, Any]], settings:
     return filled
 
 
+_VENUE_TEARDOWN_S = 600.0  # the CLOB removes a closed window's book within minutes; after this nothing can fill
+
+
 def _working_live(ledger: dict[str, Any], order: dict[str, Any], settings: Settings) -> list[dict[str, Any]]:
-    """Poll one resting live order: fill what matched, cancel what the window outlived."""
+    """Poll one resting live order: book what matched (always — the venue already did),
+    cancel what the window outlived, and never forget an order whose cancel failed."""
+    win = parse_window(order)
+    now = time.time()
+    ended = bool(win and now >= float(win["end"]))
+    long_gone = bool(win and now >= float(win["end"]) + _VENUE_TEARDOWN_S)
     try:
         status, matched, px = live_order_state(str(order["venue_id"]), settings)
     except LiveDisabled as exc:
+        text = str(exc).lower()
+        if long_gone and ("404" in text or "not found" in text or "no orderbook" in text):
+            out = [cancel_order(ledger, order, reason="venue_closed")]
+            save_ledger(ledger)
+            return out
         print("order status:", str(exc)[:120])
         return []
-    win = parse_window(order)
-    ended = bool(win and time.time() >= float(win["end"]))
     shares = float(order["shares"])
     done = status.upper() in {"MATCHED", "FILLED"} or matched >= shares - 1e-6
     if matched > 0 and (done or ended):
@@ -996,16 +1024,70 @@ def _working_live(ledger: dict[str, Any], order: dict[str, Any], settings: Setti
             ledger["cash"] = round(float(ledger["cash"]) + refund, 4)
             order["shares"] = round(matched, 4)
             order["stake"] = round(float(order["stake"]) - refund, 4)
-        return [fill_order(ledger, order, fill_price=px or float(order["price"]), mode="live", settings=settings,
-                           raw={"order_id": order["venue_id"], "status": status, "size_matched": matched})]
-    if ended or status.upper() in {"CANCELED", "CANCELLED", "EXPIRED"}:
-        if ended and status.upper() not in {"CANCELED", "CANCELLED", "EXPIRED"}:
-            try:
-                live_cancel(str(order["venue_id"]), settings)  # best effort; the venue cancels at close anyway
-            except LiveDisabled:
-                pass
-        return [cancel_order(ledger, order, reason="window_end" if ended else status.lower())]
+        fill = fill_order(ledger, order, fill_price=px or float(order["price"]), mode="live", settings=settings,
+                          raw={"order_id": order["venue_id"], "status": status, "size_matched": matched})
+        save_ledger(ledger)
+        return [fill]
+    if status.upper() in {"CANCELED", "CANCELLED", "EXPIRED"}:
+        out = [cancel_order(ledger, order, reason=status.lower())]
+        save_ledger(ledger)
+        return out
+    if ended:
+        try:
+            live_cancel(str(order["venue_id"]), settings)
+        except LiveDisabled as exc:
+            order["cancel_failed_at"] = now
+            order["cancel_error"] = str(exc)[:120]
+            if not long_gone:
+                return []  # keep tracking it; retry next cycle rather than orphan a live order
+        out = [cancel_order(ledger, order, reason="window_end")]
+        save_ledger(ledger)
+        return out
     return []
+
+
+def _lock_exposure(ledger: dict[str, Any]) -> float:
+    """Dollars currently at risk in lock trades: open positions plus resting orders."""
+    total = 0.0
+    for pos in ledger.get("positions") or []:
+        if pos.get("edge_type") == "twap_lock":
+            total += float(pos.get("stake") or 0)
+    for order in ledger.get("orders") or []:
+        if order.get("edge_type") == "twap_lock":
+            total += float(order.get("stake") or 0)
+    return total
+
+
+def lock_max_exposure_frac() -> float:
+    """LOCK_MAX_EXPOSURE_FRAC: cap on total lock dollars at risk as a fraction of cash (all
+    assets together — seven windows ending on the same second are one bet, not seven).
+    Default 1.0 = no cap beyond the per-trade sizer."""
+    try:
+        return max(0.0, min(1.0, float(os.getenv("LOCK_MAX_EXPOSURE_FRAC") or 1.0)))
+    except ValueError:
+        return 1.0
+
+
+def _cap_lock_stake(cand: dict[str, Any], ledger: dict[str, Any], settings: Settings) -> str | None:
+    """Shrink a lock candidate's stake to the remaining exposure budget; return a veto reason if none is left."""
+    if cand.get("edge_type") != "twap_lock":
+        return None
+    frac = lock_max_exposure_frac()
+    if frac >= 1.0:
+        return None
+    allowed = frac * float(ledger.get("cash") or 0) - _lock_exposure(ledger)
+    if allowed < settings.min_crypto_stake - 1e-9:
+        return "lock_exposure"
+    if float(cand.get("stake") or 0) > allowed:
+        cand["stake"] = round(allowed, 2)
+        price = float(cand.get("price") or 0)
+        if price > 0:
+            cand["shares"] = round(cand["stake"] / price, 4)
+    return None
+
+
+def _entry_paused(ledger: dict[str, Any]) -> bool:
+    return time.time() < float(ledger.get("entry_pause_until") or 0)
 
 
 def _exits(ledger: dict[str, Any], by_id: dict[str, dict[str, Any]], settings: Settings) -> list[dict[str, Any]]:

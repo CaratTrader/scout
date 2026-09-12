@@ -1,0 +1,6011 @@
+{
+ "args": {
+  "assets": "btc,eth,sol",
+  "mins": 5,
+  "days": 2.0,
+  "max_windows": 200,
+  "last_seconds": 55.0
+ },
+ "windows": [
+  {
+   "asset": "btc",
+   "epoch": 1789129800,
+   "winner": "Up",
+   "late_trades": 1388,
+   "winner_taker_buy_usd": 12970.68,
+   "winner_taker_sell_usd": 4457.03,
+   "sell_at_or_below_099_usd": 4457.03,
+   "sell_at_or_below_098_usd": 4007.07
+  },
+  {
+   "asset": "btc",
+   "epoch": 1789130100,
+   "winner": "Up",
+   "late_trades": 11,
+   "winner_taker_buy_usd": 0,
+   "winner_taker_sell_usd": 73.04,
+   "sell_at_or_below_099_usd": 73.04,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "btc",
+   "epoch": 1789130400,
+   "winner": "Up",
+   "late_trades": 192,
+   "winner_taker_buy_usd": 6116.08,
+   "winner_taker_sell_usd": 1874.41,
+   "sell_at_or_below_099_usd": 1874.41,
+   "sell_at_or_below_098_usd": 1097.28
+  },
+  {
+   "asset": "btc",
+   "epoch": 1789130700,
+   "winner": "Up",
+   "late_trades": 13,
+   "winner_taker_buy_usd": 0,
+   "winner_taker_sell_usd": 327.96,
+   "sell_at_or_below_099_usd": 327.96,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "btc",
+   "epoch": 1789131000,
+   "winner": "Up",
+   "late_trades": 13,
+   "winner_taker_buy_usd": 0,
+   "winner_taker_sell_usd": 101.65,
+   "sell_at_or_below_099_usd": 101.65,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "btc",
+   "epoch": 1789131300,
+   "winner": "Down",
+   "late_trades": 287,
+   "winner_taker_buy_usd": 7198.74,
+   "winner_taker_sell_usd": 823.48,
+   "sell_at_or_below_099_usd": 823.48,
+   "sell_at_or_below_098_usd": 291.22
+  },
+  {
+   "asset": "btc",
+   "epoch": 1789131600,
+   "winner": "Down",
+   "late_trades": 13,
+   "winner_taker_buy_usd": 0,
+   "winner_taker_sell_usd": 249.3,
+   "sell_at_or_below_099_usd": 249.3,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "btc",
+   "epoch": 1789131900,
+   "winner": "Down",
+   "late_trades": 23,
+   "winner_taker_buy_usd": 0,
+   "winner_taker_sell_usd": 122.77,
+   "sell_at_or_below_099_usd": 122.77,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "btc",
+   "epoch": 1789132200,
+   "winner": "Up",
+   "late_trades": 72,
+   "winner_taker_buy_usd": 3196.15,
+   "winner_taker_sell_usd": 811.62,
+   "sell_at_or_below_099_usd": 811.62,
+   "sell_at_or_below_098_usd": 180.78
+  },
+  {
+   "asset": "btc",
+   "epoch": 1789132500,
+   "winner": "Up",
+   "late_trades": 854,
+   "winner_taker_buy_usd": 15050.37,
+   "winner_taker_sell_usd": 1368.54,
+   "sell_at_or_below_099_usd": 1368.54,
+   "sell_at_or_below_098_usd": 989.26
+  },
+  {
+   "asset": "btc",
+   "epoch": 1789132800,
+   "winner": "Up",
+   "late_trades": 114,
+   "winner_taker_buy_usd": 4037.04,
+   "winner_taker_sell_usd": 386.71,
+   "sell_at_or_below_099_usd": 386.71,
+   "sell_at_or_below_098_usd": 126.95
+  },
+  {
+   "asset": "btc",
+   "epoch": 1789133100,
+   "winner": "Down",
+   "late_trades": 12,
+   "winner_taker_buy_usd": 0,
+   "winner_taker_sell_usd": 131.92,
+   "sell_at_or_below_099_usd": 23.18,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "btc",
+   "epoch": 1789133400,
+   "winner": "Down",
+   "late_trades": 73,
+   "winner_taker_buy_usd": 553.6,
+   "winner_taker_sell_usd": 908.66,
+   "sell_at_or_below_099_usd": 908.66,
+   "sell_at_or_below_098_usd": 1.04
+  },
+  {
+   "asset": "btc",
+   "epoch": 1789133700,
+   "winner": "Up",
+   "late_trades": 323,
+   "winner_taker_buy_usd": 12140.57,
+   "winner_taker_sell_usd": 1512.1,
+   "sell_at_or_below_099_usd": 1512.1,
+   "sell_at_or_below_098_usd": 631.79
+  },
+  {
+   "asset": "btc",
+   "epoch": 1789134000,
+   "winner": "Up",
+   "late_trades": 3,
+   "winner_taker_buy_usd": 0,
+   "winner_taker_sell_usd": 32.27,
+   "sell_at_or_below_099_usd": 32.27,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "btc",
+   "epoch": 1789134300,
+   "winner": "Up",
+   "late_trades": 13,
+   "winner_taker_buy_usd": 0,
+   "winner_taker_sell_usd": 7.3,
+   "sell_at_or_below_099_usd": 7.3,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "btc",
+   "epoch": 1789134600,
+   "winner": "Up",
+   "late_trades": 7,
+   "winner_taker_buy_usd": 0,
+   "winner_taker_sell_usd": 85.32,
+   "sell_at_or_below_099_usd": 0,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "btc",
+   "epoch": 1789134900,
+   "winner": "Up",
+   "late_trades": 16,
+   "winner_taker_buy_usd": 0,
+   "winner_taker_sell_usd": 82.02,
+   "sell_at_or_below_099_usd": 54.84,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "btc",
+   "epoch": 1789135200,
+   "winner": "Up",
+   "late_trades": 3,
+   "winner_taker_buy_usd": 0,
+   "winner_taker_sell_usd": 0.33,
+   "sell_at_or_below_099_usd": 0,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "btc",
+   "epoch": 1789135500,
+   "winner": "Down",
+   "late_trades": 30,
+   "winner_taker_buy_usd": 0,
+   "winner_taker_sell_usd": 58.26,
+   "sell_at_or_below_099_usd": 0,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "btc",
+   "epoch": 1789135800,
+   "winner": "Up",
+   "late_trades": 53,
+   "winner_taker_buy_usd": 0,
+   "winner_taker_sell_usd": 840.78,
+   "sell_at_or_below_099_usd": 840.78,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "btc",
+   "epoch": 1789136100,
+   "winner": "Up",
+   "late_trades": 885,
+   "winner_taker_buy_usd": 11203.15,
+   "winner_taker_sell_usd": 2732.67,
+   "sell_at_or_below_099_usd": 2732.67,
+   "sell_at_or_below_098_usd": 1134.48
+  },
+  {
+   "asset": "btc",
+   "epoch": 1789136400,
+   "winner": "Down",
+   "late_trades": 184,
+   "winner_taker_buy_usd": 7460.96,
+   "winner_taker_sell_usd": 494.11,
+   "sell_at_or_below_099_usd": 494.11,
+   "sell_at_or_below_098_usd": 23.19
+  },
+  {
+   "asset": "btc",
+   "epoch": 1789136700,
+   "winner": "Down",
+   "late_trades": 1082,
+   "winner_taker_buy_usd": 14983.64,
+   "winner_taker_sell_usd": 1429.15,
+   "sell_at_or_below_099_usd": 1429.15,
+   "sell_at_or_below_098_usd": 1148.13
+  },
+  {
+   "asset": "btc",
+   "epoch": 1789137000,
+   "winner": "Down",
+   "late_trades": 11,
+   "winner_taker_buy_usd": 0,
+   "winner_taker_sell_usd": 11.07,
+   "sell_at_or_below_099_usd": 11.07,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "btc",
+   "epoch": 1789137300,
+   "winner": "Down",
+   "late_trades": 154,
+   "winner_taker_buy_usd": 5199.48,
+   "winner_taker_sell_usd": 602.14,
+   "sell_at_or_below_099_usd": 571.25,
+   "sell_at_or_below_098_usd": 53.81
+  },
+  {
+   "asset": "btc",
+   "epoch": 1789137600,
+   "winner": "Down",
+   "late_trades": 33,
+   "winner_taker_buy_usd": 0,
+   "winner_taker_sell_usd": 101.24,
+   "sell_at_or_below_099_usd": 101.24,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "btc",
+   "epoch": 1789137900,
+   "winner": "Up",
+   "late_trades": 825,
+   "winner_taker_buy_usd": 13575.78,
+   "winner_taker_sell_usd": 2438.19,
+   "sell_at_or_below_099_usd": 2438.19,
+   "sell_at_or_below_098_usd": 941.21
+  },
+  {
+   "asset": "btc",
+   "epoch": 1789138200,
+   "winner": "Up",
+   "late_trades": 10,
+   "winner_taker_buy_usd": 0,
+   "winner_taker_sell_usd": 51.32,
+   "sell_at_or_below_099_usd": 51.32,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "btc",
+   "epoch": 1789138500,
+   "winner": "Down",
+   "late_trades": 173,
+   "winner_taker_buy_usd": 7780.25,
+   "winner_taker_sell_usd": 878.05,
+   "sell_at_or_below_099_usd": 878.05,
+   "sell_at_or_below_098_usd": 484.67
+  },
+  {
+   "asset": "btc",
+   "epoch": 1789138800,
+   "winner": "Down",
+   "late_trades": 12,
+   "winner_taker_buy_usd": 0,
+   "winner_taker_sell_usd": 175.02,
+   "sell_at_or_below_099_usd": 175.02,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "btc",
+   "epoch": 1789139100,
+   "winner": "Up",
+   "late_trades": 685,
+   "winner_taker_buy_usd": 11042.14,
+   "winner_taker_sell_usd": 1036.63,
+   "sell_at_or_below_099_usd": 1036.63,
+   "sell_at_or_below_098_usd": 759.37
+  },
+  {
+   "asset": "btc",
+   "epoch": 1789139400,
+   "winner": "Down",
+   "late_trades": 127,
+   "winner_taker_buy_usd": 1534.87,
+   "winner_taker_sell_usd": 252.33,
+   "sell_at_or_below_099_usd": 252.33,
+   "sell_at_or_below_098_usd": 192.04
+  },
+  {
+   "asset": "btc",
+   "epoch": 1789139700,
+   "winner": "Up",
+   "late_trades": 98,
+   "winner_taker_buy_usd": 1929.91,
+   "winner_taker_sell_usd": 931.72,
+   "sell_at_or_below_099_usd": 931.72,
+   "sell_at_or_below_098_usd": 149.35
+  },
+  {
+   "asset": "btc",
+   "epoch": 1789140000,
+   "winner": "Up",
+   "late_trades": 44,
+   "winner_taker_buy_usd": 2252.71,
+   "winner_taker_sell_usd": 249.59,
+   "sell_at_or_below_099_usd": 249.59,
+   "sell_at_or_below_098_usd": 14.91
+  },
+  {
+   "asset": "btc",
+   "epoch": 1789140300,
+   "winner": "Up",
+   "late_trades": 99,
+   "winner_taker_buy_usd": 3769.12,
+   "winner_taker_sell_usd": 383.68,
+   "sell_at_or_below_099_usd": 383.68,
+   "sell_at_or_below_098_usd": 19.57
+  },
+  {
+   "asset": "btc",
+   "epoch": 1789140600,
+   "winner": "Up",
+   "late_trades": 13,
+   "winner_taker_buy_usd": 0,
+   "winner_taker_sell_usd": 154.94,
+   "sell_at_or_below_099_usd": 154.94,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "btc",
+   "epoch": 1789140900,
+   "winner": "Down",
+   "late_trades": 349,
+   "winner_taker_buy_usd": 9107.58,
+   "winner_taker_sell_usd": 1390.99,
+   "sell_at_or_below_099_usd": 1390.99,
+   "sell_at_or_below_098_usd": 185.46
+  },
+  {
+   "asset": "btc",
+   "epoch": 1789141200,
+   "winner": "Down",
+   "late_trades": 16,
+   "winner_taker_buy_usd": 0,
+   "winner_taker_sell_usd": 906.93,
+   "sell_at_or_below_099_usd": 906.93,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "btc",
+   "epoch": 1789141500,
+   "winner": "Down",
+   "late_trades": 5,
+   "winner_taker_buy_usd": 0,
+   "winner_taker_sell_usd": 168.72,
+   "sell_at_or_below_099_usd": 4.95,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "btc",
+   "epoch": 1789141800,
+   "winner": "Down",
+   "late_trades": 7,
+   "winner_taker_buy_usd": 0,
+   "winner_taker_sell_usd": 2.24,
+   "sell_at_or_below_099_usd": 0,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "btc",
+   "epoch": 1789142100,
+   "winner": "Up",
+   "late_trades": 735,
+   "winner_taker_buy_usd": 8731.71,
+   "winner_taker_sell_usd": 1494.43,
+   "sell_at_or_below_099_usd": 1494.43,
+   "sell_at_or_below_098_usd": 583.58
+  },
+  {
+   "asset": "btc",
+   "epoch": 1789142400,
+   "winner": "Up",
+   "late_trades": 8,
+   "winner_taker_buy_usd": 4.99,
+   "winner_taker_sell_usd": 54.78,
+   "sell_at_or_below_099_usd": 0,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "btc",
+   "epoch": 1789142700,
+   "winner": "Up",
+   "late_trades": 55,
+   "winner_taker_buy_usd": 3459.83,
+   "winner_taker_sell_usd": 680.61,
+   "sell_at_or_below_099_usd": 680.61,
+   "sell_at_or_below_098_usd": 23.32
+  },
+  {
+   "asset": "btc",
+   "epoch": 1789143000,
+   "winner": "Down",
+   "late_trades": 16,
+   "winner_taker_buy_usd": 0,
+   "winner_taker_sell_usd": 185.65,
+   "sell_at_or_below_099_usd": 185.65,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "btc",
+   "epoch": 1789143300,
+   "winner": "Down",
+   "late_trades": 22,
+   "winner_taker_buy_usd": 0,
+   "winner_taker_sell_usd": 56.24,
+   "sell_at_or_below_099_usd": 56.24,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "btc",
+   "epoch": 1789143600,
+   "winner": "Down",
+   "late_trades": 0,
+   "winner_taker_buy_usd": 0,
+   "winner_taker_sell_usd": 0,
+   "sell_at_or_below_099_usd": 0,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "btc",
+   "epoch": 1789143900,
+   "winner": "Up",
+   "late_trades": 0,
+   "winner_taker_buy_usd": 0,
+   "winner_taker_sell_usd": 0,
+   "sell_at_or_below_099_usd": 0,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "btc",
+   "epoch": 1789144200,
+   "winner": "Up",
+   "late_trades": 0,
+   "winner_taker_buy_usd": 0,
+   "winner_taker_sell_usd": 0,
+   "sell_at_or_below_099_usd": 0,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "btc",
+   "epoch": 1789144500,
+   "winner": "Down",
+   "late_trades": 0,
+   "winner_taker_buy_usd": 0,
+   "winner_taker_sell_usd": 0,
+   "sell_at_or_below_099_usd": 0,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "btc",
+   "epoch": 1789144800,
+   "winner": "Up",
+   "late_trades": 0,
+   "winner_taker_buy_usd": 0,
+   "winner_taker_sell_usd": 0,
+   "sell_at_or_below_099_usd": 0,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "btc",
+   "epoch": 1789145100,
+   "winner": "Up",
+   "late_trades": 13,
+   "winner_taker_buy_usd": 0,
+   "winner_taker_sell_usd": 10.19,
+   "sell_at_or_below_099_usd": 0,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "btc",
+   "epoch": 1789145400,
+   "winner": "Down",
+   "late_trades": 136,
+   "winner_taker_buy_usd": 4795.52,
+   "winner_taker_sell_usd": 423.43,
+   "sell_at_or_below_099_usd": 423.43,
+   "sell_at_or_below_098_usd": 285.13
+  },
+  {
+   "asset": "btc",
+   "epoch": 1789145700,
+   "winner": "Up",
+   "late_trades": 10,
+   "winner_taker_buy_usd": 0,
+   "winner_taker_sell_usd": 169.62,
+   "sell_at_or_below_099_usd": 169.62,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "btc",
+   "epoch": 1789146000,
+   "winner": "Down",
+   "late_trades": 9,
+   "winner_taker_buy_usd": 0,
+   "winner_taker_sell_usd": 720.51,
+   "sell_at_or_below_099_usd": 720.51,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "btc",
+   "epoch": 1789146300,
+   "winner": "Down",
+   "late_trades": 400,
+   "winner_taker_buy_usd": 6989.66,
+   "winner_taker_sell_usd": 1156.57,
+   "sell_at_or_below_099_usd": 1156.57,
+   "sell_at_or_below_098_usd": 572.8
+  },
+  {
+   "asset": "btc",
+   "epoch": 1789146600,
+   "winner": "Down",
+   "late_trades": 397,
+   "winner_taker_buy_usd": 6769.23,
+   "winner_taker_sell_usd": 1584.43,
+   "sell_at_or_below_099_usd": 1584.43,
+   "sell_at_or_below_098_usd": 992.95
+  },
+  {
+   "asset": "btc",
+   "epoch": 1789146900,
+   "winner": "Up",
+   "late_trades": 90,
+   "winner_taker_buy_usd": 4630.31,
+   "winner_taker_sell_usd": 686.4,
+   "sell_at_or_below_099_usd": 686.4,
+   "sell_at_or_below_098_usd": 438.23
+  },
+  {
+   "asset": "btc",
+   "epoch": 1789147200,
+   "winner": "Up",
+   "late_trades": 578,
+   "winner_taker_buy_usd": 8525.23,
+   "winner_taker_sell_usd": 1190.93,
+   "sell_at_or_below_099_usd": 1190.93,
+   "sell_at_or_below_098_usd": 782.02
+  },
+  {
+   "asset": "btc",
+   "epoch": 1789147500,
+   "winner": "Up",
+   "late_trades": 989,
+   "winner_taker_buy_usd": 7813.48,
+   "winner_taker_sell_usd": 458.56,
+   "sell_at_or_below_099_usd": 458.56,
+   "sell_at_or_below_098_usd": 458.56
+  },
+  {
+   "asset": "btc",
+   "epoch": 1789147800,
+   "winner": "Down",
+   "late_trades": 171,
+   "winner_taker_buy_usd": 6463.99,
+   "winner_taker_sell_usd": 682.89,
+   "sell_at_or_below_099_usd": 682.89,
+   "sell_at_or_below_098_usd": 169.07
+  },
+  {
+   "asset": "btc",
+   "epoch": 1789148100,
+   "winner": "Down",
+   "late_trades": 0,
+   "winner_taker_buy_usd": 0,
+   "winner_taker_sell_usd": 0,
+   "sell_at_or_below_099_usd": 0,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "btc",
+   "epoch": 1789148400,
+   "winner": "Up",
+   "late_trades": 31,
+   "winner_taker_buy_usd": 2363.27,
+   "winner_taker_sell_usd": 412.69,
+   "sell_at_or_below_099_usd": 412.69,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "btc",
+   "epoch": 1789148700,
+   "winner": "Down",
+   "late_trades": 316,
+   "winner_taker_buy_usd": 7028.75,
+   "winner_taker_sell_usd": 734.21,
+   "sell_at_or_below_099_usd": 734.21,
+   "sell_at_or_below_098_usd": 461.99
+  },
+  {
+   "asset": "btc",
+   "epoch": 1789149000,
+   "winner": "Down",
+   "late_trades": 5,
+   "winner_taker_buy_usd": 0,
+   "winner_taker_sell_usd": 19.0,
+   "sell_at_or_below_099_usd": 19.0,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "btc",
+   "epoch": 1789149300,
+   "winner": "Up",
+   "late_trades": 108,
+   "winner_taker_buy_usd": 2315.97,
+   "winner_taker_sell_usd": 474.36,
+   "sell_at_or_below_099_usd": 471.86,
+   "sell_at_or_below_098_usd": 78.13
+  },
+  {
+   "asset": "btc",
+   "epoch": 1789149600,
+   "winner": "Down",
+   "late_trades": 4,
+   "winner_taker_buy_usd": 0,
+   "winner_taker_sell_usd": 1.11,
+   "sell_at_or_below_099_usd": 0,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "btc",
+   "epoch": 1789149900,
+   "winner": "Up",
+   "late_trades": 973,
+   "winner_taker_buy_usd": 8909.88,
+   "winner_taker_sell_usd": 1142.37,
+   "sell_at_or_below_099_usd": 1142.37,
+   "sell_at_or_below_098_usd": 1142.37
+  },
+  {
+   "asset": "btc",
+   "epoch": 1789150200,
+   "winner": "Down",
+   "late_trades": 157,
+   "winner_taker_buy_usd": 4668.56,
+   "winner_taker_sell_usd": 1340.99,
+   "sell_at_or_below_099_usd": 1340.99,
+   "sell_at_or_below_098_usd": 245.0
+  },
+  {
+   "asset": "btc",
+   "epoch": 1789150500,
+   "winner": "Up",
+   "late_trades": 2,
+   "winner_taker_buy_usd": 0,
+   "winner_taker_sell_usd": 33.78,
+   "sell_at_or_below_099_usd": 33.78,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "btc",
+   "epoch": 1789150800,
+   "winner": "Down",
+   "late_trades": 7,
+   "winner_taker_buy_usd": 0,
+   "winner_taker_sell_usd": 703.08,
+   "sell_at_or_below_099_usd": 703.08,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "btc",
+   "epoch": 1789151100,
+   "winner": "Up",
+   "late_trades": 143,
+   "winner_taker_buy_usd": 4163.56,
+   "winner_taker_sell_usd": 1145.2,
+   "sell_at_or_below_099_usd": 1145.2,
+   "sell_at_or_below_098_usd": 197.97
+  },
+  {
+   "asset": "btc",
+   "epoch": 1789151400,
+   "winner": "Up",
+   "late_trades": 526,
+   "winner_taker_buy_usd": 8293.8,
+   "winner_taker_sell_usd": 1185.94,
+   "sell_at_or_below_099_usd": 1185.94,
+   "sell_at_or_below_098_usd": 565.19
+  },
+  {
+   "asset": "btc",
+   "epoch": 1789151700,
+   "winner": "Down",
+   "late_trades": 478,
+   "winner_taker_buy_usd": 9608.98,
+   "winner_taker_sell_usd": 2081.25,
+   "sell_at_or_below_099_usd": 2081.25,
+   "sell_at_or_below_098_usd": 1627.21
+  },
+  {
+   "asset": "btc",
+   "epoch": 1789152000,
+   "winner": "Down",
+   "late_trades": 4,
+   "winner_taker_buy_usd": 0,
+   "winner_taker_sell_usd": 106.35,
+   "sell_at_or_below_099_usd": 106.35,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "btc",
+   "epoch": 1789152300,
+   "winner": "Down",
+   "late_trades": 59,
+   "winner_taker_buy_usd": 1188.01,
+   "winner_taker_sell_usd": 917.72,
+   "sell_at_or_below_099_usd": 910.73,
+   "sell_at_or_below_098_usd": 29.64
+  },
+  {
+   "asset": "btc",
+   "epoch": 1789152600,
+   "winner": "Down",
+   "late_trades": 15,
+   "winner_taker_buy_usd": 0,
+   "winner_taker_sell_usd": 474.44,
+   "sell_at_or_below_099_usd": 474.44,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "btc",
+   "epoch": 1789152900,
+   "winner": "Up",
+   "late_trades": 12,
+   "winner_taker_buy_usd": 0,
+   "winner_taker_sell_usd": 333.72,
+   "sell_at_or_below_099_usd": 333.72,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "btc",
+   "epoch": 1789153200,
+   "winner": "Up",
+   "late_trades": 25,
+   "winner_taker_buy_usd": 0,
+   "winner_taker_sell_usd": 462.68,
+   "sell_at_or_below_099_usd": 462.68,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "btc",
+   "epoch": 1789153500,
+   "winner": "Up",
+   "late_trades": 27,
+   "winner_taker_buy_usd": 0,
+   "winner_taker_sell_usd": 732.54,
+   "sell_at_or_below_099_usd": 732.54,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "btc",
+   "epoch": 1789153800,
+   "winner": "Down",
+   "late_trades": 679,
+   "winner_taker_buy_usd": 8239.92,
+   "winner_taker_sell_usd": 1037.64,
+   "sell_at_or_below_099_usd": 1037.64,
+   "sell_at_or_below_098_usd": 512.1
+  },
+  {
+   "asset": "btc",
+   "epoch": 1789154100,
+   "winner": "Down",
+   "late_trades": 419,
+   "winner_taker_buy_usd": 8928.29,
+   "winner_taker_sell_usd": 1928.89,
+   "sell_at_or_below_099_usd": 1928.89,
+   "sell_at_or_below_098_usd": 1706.43
+  },
+  {
+   "asset": "btc",
+   "epoch": 1789154400,
+   "winner": "Up",
+   "late_trades": 14,
+   "winner_taker_buy_usd": 0,
+   "winner_taker_sell_usd": 222.92,
+   "sell_at_or_below_099_usd": 222.92,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "btc",
+   "epoch": 1789154700,
+   "winner": "Up",
+   "late_trades": 204,
+   "winner_taker_buy_usd": 5913.43,
+   "winner_taker_sell_usd": 1390.98,
+   "sell_at_or_below_099_usd": 1390.98,
+   "sell_at_or_below_098_usd": 996.82
+  },
+  {
+   "asset": "btc",
+   "epoch": 1789155000,
+   "winner": "Down",
+   "late_trades": 16,
+   "winner_taker_buy_usd": 0,
+   "winner_taker_sell_usd": 263.3,
+   "sell_at_or_below_099_usd": 263.3,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "btc",
+   "epoch": 1789155300,
+   "winner": "Up",
+   "late_trades": 354,
+   "winner_taker_buy_usd": 6538.53,
+   "winner_taker_sell_usd": 2213.54,
+   "sell_at_or_below_099_usd": 2213.54,
+   "sell_at_or_below_098_usd": 392.95
+  },
+  {
+   "asset": "btc",
+   "epoch": 1789155600,
+   "winner": "Up",
+   "late_trades": 117,
+   "winner_taker_buy_usd": 5099.33,
+   "winner_taker_sell_usd": 528.78,
+   "sell_at_or_below_099_usd": 528.78,
+   "sell_at_or_below_098_usd": 19.6
+  },
+  {
+   "asset": "btc",
+   "epoch": 1789155900,
+   "winner": "Up",
+   "late_trades": 520,
+   "winner_taker_buy_usd": 9210.33,
+   "winner_taker_sell_usd": 958.95,
+   "sell_at_or_below_099_usd": 958.95,
+   "sell_at_or_below_098_usd": 656.96
+  },
+  {
+   "asset": "btc",
+   "epoch": 1789156200,
+   "winner": "Up",
+   "late_trades": 390,
+   "winner_taker_buy_usd": 7531.59,
+   "winner_taker_sell_usd": 1219.55,
+   "sell_at_or_below_099_usd": 1219.55,
+   "sell_at_or_below_098_usd": 903.61
+  },
+  {
+   "asset": "btc",
+   "epoch": 1789156500,
+   "winner": "Down",
+   "late_trades": 892,
+   "winner_taker_buy_usd": 10546.53,
+   "winner_taker_sell_usd": 849.53,
+   "sell_at_or_below_099_usd": 849.53,
+   "sell_at_or_below_098_usd": 536.91
+  },
+  {
+   "asset": "btc",
+   "epoch": 1789156800,
+   "winner": "Up",
+   "late_trades": 6,
+   "winner_taker_buy_usd": 0,
+   "winner_taker_sell_usd": 64.68,
+   "sell_at_or_below_099_usd": 64.68,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "btc",
+   "epoch": 1789157100,
+   "winner": "Down",
+   "late_trades": 685,
+   "winner_taker_buy_usd": 8515.89,
+   "winner_taker_sell_usd": 4233.82,
+   "sell_at_or_below_099_usd": 4233.82,
+   "sell_at_or_below_098_usd": 3749.43
+  },
+  {
+   "asset": "btc",
+   "epoch": 1789157400,
+   "winner": "Up",
+   "late_trades": 58,
+   "winner_taker_buy_usd": 2931.96,
+   "winner_taker_sell_usd": 368.96,
+   "sell_at_or_below_099_usd": 368.96,
+   "sell_at_or_below_098_usd": 116.0
+  },
+  {
+   "asset": "btc",
+   "epoch": 1789157700,
+   "winner": "Down",
+   "late_trades": 5,
+   "winner_taker_buy_usd": 0,
+   "winner_taker_sell_usd": 228.31,
+   "sell_at_or_below_099_usd": 196.97,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "btc",
+   "epoch": 1789158000,
+   "winner": "Up",
+   "late_trades": 10,
+   "winner_taker_buy_usd": 0,
+   "winner_taker_sell_usd": 425.7,
+   "sell_at_or_below_099_usd": 425.7,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "btc",
+   "epoch": 1789158300,
+   "winner": "Down",
+   "late_trades": 200,
+   "winner_taker_buy_usd": 5865.67,
+   "winner_taker_sell_usd": 3675.9,
+   "sell_at_or_below_099_usd": 3675.9,
+   "sell_at_or_below_098_usd": 350.71
+  },
+  {
+   "asset": "btc",
+   "epoch": 1789158600,
+   "winner": "Down",
+   "late_trades": 96,
+   "winner_taker_buy_usd": 1384.28,
+   "winner_taker_sell_usd": 365.03,
+   "sell_at_or_below_099_usd": 365.03,
+   "sell_at_or_below_098_usd": 213.32
+  },
+  {
+   "asset": "btc",
+   "epoch": 1789158900,
+   "winner": "Up",
+   "late_trades": 3,
+   "winner_taker_buy_usd": 0,
+   "winner_taker_sell_usd": 11.4,
+   "sell_at_or_below_099_usd": 11.4,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "btc",
+   "epoch": 1789159200,
+   "winner": "Down",
+   "late_trades": 94,
+   "winner_taker_buy_usd": 5374.39,
+   "winner_taker_sell_usd": 489.0,
+   "sell_at_or_below_099_usd": 489.0,
+   "sell_at_or_below_098_usd": 20.03
+  },
+  {
+   "asset": "btc",
+   "epoch": 1789159500,
+   "winner": "Down",
+   "late_trades": 9,
+   "winner_taker_buy_usd": 0,
+   "winner_taker_sell_usd": 18.33,
+   "sell_at_or_below_099_usd": 18.33,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "btc",
+   "epoch": 1789159800,
+   "winner": "Down",
+   "late_trades": 209,
+   "winner_taker_buy_usd": 5238.16,
+   "winner_taker_sell_usd": 1072.93,
+   "sell_at_or_below_099_usd": 1072.93,
+   "sell_at_or_below_098_usd": 788.71
+  },
+  {
+   "asset": "btc",
+   "epoch": 1789160100,
+   "winner": "Up",
+   "late_trades": 5,
+   "winner_taker_buy_usd": 0,
+   "winner_taker_sell_usd": 69.31,
+   "sell_at_or_below_099_usd": 69.31,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "btc",
+   "epoch": 1789160400,
+   "winner": "Up",
+   "late_trades": 757,
+   "winner_taker_buy_usd": 9537.5,
+   "winner_taker_sell_usd": 2079.51,
+   "sell_at_or_below_099_usd": 2079.51,
+   "sell_at_or_below_098_usd": 1748.74
+  },
+  {
+   "asset": "btc",
+   "epoch": 1789160700,
+   "winner": "Up",
+   "late_trades": 4,
+   "winner_taker_buy_usd": 0,
+   "winner_taker_sell_usd": 132.83,
+   "sell_at_or_below_099_usd": 132.83,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "btc",
+   "epoch": 1789161000,
+   "winner": "Down",
+   "late_trades": 8,
+   "winner_taker_buy_usd": 19.8,
+   "winner_taker_sell_usd": 1197.34,
+   "sell_at_or_below_099_usd": 1197.34,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "btc",
+   "epoch": 1789161300,
+   "winner": "Up",
+   "late_trades": 4,
+   "winner_taker_buy_usd": 0,
+   "winner_taker_sell_usd": 163.95,
+   "sell_at_or_below_099_usd": 163.95,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "btc",
+   "epoch": 1789161600,
+   "winner": "Down",
+   "late_trades": 398,
+   "winner_taker_buy_usd": 7307.29,
+   "winner_taker_sell_usd": 982.12,
+   "sell_at_or_below_099_usd": 982.12,
+   "sell_at_or_below_098_usd": 430.61
+  },
+  {
+   "asset": "btc",
+   "epoch": 1789161900,
+   "winner": "Down",
+   "late_trades": 56,
+   "winner_taker_buy_usd": 1682.64,
+   "winner_taker_sell_usd": 407.0,
+   "sell_at_or_below_099_usd": 351.87,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "btc",
+   "epoch": 1789162200,
+   "winner": "Up",
+   "late_trades": 320,
+   "winner_taker_buy_usd": 7331.35,
+   "winner_taker_sell_usd": 1237.61,
+   "sell_at_or_below_099_usd": 1237.61,
+   "sell_at_or_below_098_usd": 894.53
+  },
+  {
+   "asset": "btc",
+   "epoch": 1789162500,
+   "winner": "Up",
+   "late_trades": 168,
+   "winner_taker_buy_usd": 4867.44,
+   "winner_taker_sell_usd": 533.93,
+   "sell_at_or_below_099_usd": 533.93,
+   "sell_at_or_below_098_usd": 297.4
+  },
+  {
+   "asset": "btc",
+   "epoch": 1789162800,
+   "winner": "Down",
+   "late_trades": 4,
+   "winner_taker_buy_usd": 0,
+   "winner_taker_sell_usd": 20.49,
+   "sell_at_or_below_099_usd": 20.49,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "btc",
+   "epoch": 1789163100,
+   "winner": "Down",
+   "late_trades": 8,
+   "winner_taker_buy_usd": 0,
+   "winner_taker_sell_usd": 959.76,
+   "sell_at_or_below_099_usd": 0,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "btc",
+   "epoch": 1789163400,
+   "winner": "Down",
+   "late_trades": 5,
+   "winner_taker_buy_usd": 0,
+   "winner_taker_sell_usd": 668.55,
+   "sell_at_or_below_099_usd": 668.55,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "btc",
+   "epoch": 1789163700,
+   "winner": "Down",
+   "late_trades": 2,
+   "winner_taker_buy_usd": 0,
+   "winner_taker_sell_usd": 31.49,
+   "sell_at_or_below_099_usd": 0,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "btc",
+   "epoch": 1789164000,
+   "winner": "Up",
+   "late_trades": 456,
+   "winner_taker_buy_usd": 7605.48,
+   "winner_taker_sell_usd": 2708.43,
+   "sell_at_or_below_099_usd": 2708.43,
+   "sell_at_or_below_098_usd": 1007.34
+  },
+  {
+   "asset": "btc",
+   "epoch": 1789164300,
+   "winner": "Down",
+   "late_trades": 96,
+   "winner_taker_buy_usd": 3735.37,
+   "winner_taker_sell_usd": 236.93,
+   "sell_at_or_below_099_usd": 236.93,
+   "sell_at_or_below_098_usd": 7.06
+  },
+  {
+   "asset": "btc",
+   "epoch": 1789164600,
+   "winner": "Up",
+   "late_trades": 5,
+   "winner_taker_buy_usd": 0,
+   "winner_taker_sell_usd": 1043.95,
+   "sell_at_or_below_099_usd": 0,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "btc",
+   "epoch": 1789164900,
+   "winner": "Down",
+   "late_trades": 257,
+   "winner_taker_buy_usd": 9917.85,
+   "winner_taker_sell_usd": 1060.27,
+   "sell_at_or_below_099_usd": 1060.27,
+   "sell_at_or_below_098_usd": 652.29
+  },
+  {
+   "asset": "btc",
+   "epoch": 1789165200,
+   "winner": "Up",
+   "late_trades": 103,
+   "winner_taker_buy_usd": 4756.27,
+   "winner_taker_sell_usd": 334.92,
+   "sell_at_or_below_099_usd": 334.92,
+   "sell_at_or_below_098_usd": 40.55
+  },
+  {
+   "asset": "btc",
+   "epoch": 1789165500,
+   "winner": "Down",
+   "late_trades": 20,
+   "winner_taker_buy_usd": 0,
+   "winner_taker_sell_usd": 727.29,
+   "sell_at_or_below_099_usd": 727.29,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "btc",
+   "epoch": 1789165800,
+   "winner": "Down",
+   "late_trades": 708,
+   "winner_taker_buy_usd": 24829.47,
+   "winner_taker_sell_usd": 2092.07,
+   "sell_at_or_below_099_usd": 2092.07,
+   "sell_at_or_below_098_usd": 1074.56
+  },
+  {
+   "asset": "btc",
+   "epoch": 1789166100,
+   "winner": "Up",
+   "late_trades": 2,
+   "winner_taker_buy_usd": 0,
+   "winner_taker_sell_usd": 5.0,
+   "sell_at_or_below_099_usd": 0,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "btc",
+   "epoch": 1789166400,
+   "winner": "Down",
+   "late_trades": 414,
+   "winner_taker_buy_usd": 6995.8,
+   "winner_taker_sell_usd": 887.47,
+   "sell_at_or_below_099_usd": 887.47,
+   "sell_at_or_below_098_usd": 279.57
+  },
+  {
+   "asset": "btc",
+   "epoch": 1789166700,
+   "winner": "Down",
+   "late_trades": 9,
+   "winner_taker_buy_usd": 0,
+   "winner_taker_sell_usd": 44.88,
+   "sell_at_or_below_099_usd": 44.88,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "btc",
+   "epoch": 1789167000,
+   "winner": "Up",
+   "late_trades": 157,
+   "winner_taker_buy_usd": 5301.28,
+   "winner_taker_sell_usd": 1042.35,
+   "sell_at_or_below_099_usd": 1042.35,
+   "sell_at_or_below_098_usd": 439.24
+  },
+  {
+   "asset": "btc",
+   "epoch": 1789167300,
+   "winner": "Up",
+   "late_trades": 49,
+   "winner_taker_buy_usd": 312.26,
+   "winner_taker_sell_usd": 375.52,
+   "sell_at_or_below_099_usd": 317.83,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "btc",
+   "epoch": 1789167600,
+   "winner": "Up",
+   "late_trades": 100,
+   "winner_taker_buy_usd": 4510.55,
+   "winner_taker_sell_usd": 671.68,
+   "sell_at_or_below_099_usd": 671.68,
+   "sell_at_or_below_098_usd": 52.59
+  },
+  {
+   "asset": "btc",
+   "epoch": 1789167900,
+   "winner": "Up",
+   "late_trades": 1007,
+   "winner_taker_buy_usd": 8645.65,
+   "winner_taker_sell_usd": 733.14,
+   "sell_at_or_below_099_usd": 733.14,
+   "sell_at_or_below_098_usd": 566.06
+  },
+  {
+   "asset": "btc",
+   "epoch": 1789168200,
+   "winner": "Down",
+   "late_trades": 65,
+   "winner_taker_buy_usd": 2647.25,
+   "winner_taker_sell_usd": 555.83,
+   "sell_at_or_below_099_usd": 555.83,
+   "sell_at_or_below_098_usd": 83.56
+  },
+  {
+   "asset": "btc",
+   "epoch": 1789168500,
+   "winner": "Up",
+   "late_trades": 241,
+   "winner_taker_buy_usd": 6629.2,
+   "winner_taker_sell_usd": 296.42,
+   "sell_at_or_below_099_usd": 296.42,
+   "sell_at_or_below_098_usd": 145.17
+  },
+  {
+   "asset": "btc",
+   "epoch": 1789168800,
+   "winner": "Up",
+   "late_trades": 364,
+   "winner_taker_buy_usd": 7051.11,
+   "winner_taker_sell_usd": 466.37,
+   "sell_at_or_below_099_usd": 466.37,
+   "sell_at_or_below_098_usd": 442.36
+  },
+  {
+   "asset": "btc",
+   "epoch": 1789169100,
+   "winner": "Up",
+   "late_trades": 12,
+   "winner_taker_buy_usd": 0,
+   "winner_taker_sell_usd": 423.93,
+   "sell_at_or_below_099_usd": 423.93,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "btc",
+   "epoch": 1789169400,
+   "winner": "Up",
+   "late_trades": 173,
+   "winner_taker_buy_usd": 3606.21,
+   "winner_taker_sell_usd": 239.23,
+   "sell_at_or_below_099_usd": 239.23,
+   "sell_at_or_below_098_usd": 23.94
+  },
+  {
+   "asset": "btc",
+   "epoch": 1789169700,
+   "winner": "Up",
+   "late_trades": 631,
+   "winner_taker_buy_usd": 7574.78,
+   "winner_taker_sell_usd": 445.15,
+   "sell_at_or_below_099_usd": 445.15,
+   "sell_at_or_below_098_usd": 424.79
+  },
+  {
+   "asset": "btc",
+   "epoch": 1789170000,
+   "winner": "Up",
+   "late_trades": 229,
+   "winner_taker_buy_usd": 5913.21,
+   "winner_taker_sell_usd": 978.85,
+   "sell_at_or_below_099_usd": 978.85,
+   "sell_at_or_below_098_usd": 398.9
+  },
+  {
+   "asset": "btc",
+   "epoch": 1789170300,
+   "winner": "Down",
+   "late_trades": 81,
+   "winner_taker_buy_usd": 4243.21,
+   "winner_taker_sell_usd": 56.37,
+   "sell_at_or_below_099_usd": 56.37,
+   "sell_at_or_below_098_usd": 5.0
+  },
+  {
+   "asset": "btc",
+   "epoch": 1789170600,
+   "winner": "Up",
+   "late_trades": 412,
+   "winner_taker_buy_usd": 7399.87,
+   "winner_taker_sell_usd": 421.87,
+   "sell_at_or_below_099_usd": 421.87,
+   "sell_at_or_below_098_usd": 341.24
+  },
+  {
+   "asset": "btc",
+   "epoch": 1789170900,
+   "winner": "Up",
+   "late_trades": 42,
+   "winner_taker_buy_usd": 3315.87,
+   "winner_taker_sell_usd": 127.15,
+   "sell_at_or_below_099_usd": 127.15,
+   "sell_at_or_below_098_usd": 4.5
+  },
+  {
+   "asset": "btc",
+   "epoch": 1789171200,
+   "winner": "Up",
+   "late_trades": 4,
+   "winner_taker_buy_usd": 0,
+   "winner_taker_sell_usd": 77.31,
+   "sell_at_or_below_099_usd": 77.31,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "btc",
+   "epoch": 1789171500,
+   "winner": "Up",
+   "late_trades": 441,
+   "winner_taker_buy_usd": 7144.42,
+   "winner_taker_sell_usd": 1511.64,
+   "sell_at_or_below_099_usd": 1511.64,
+   "sell_at_or_below_098_usd": 1089.08
+  },
+  {
+   "asset": "btc",
+   "epoch": 1789171800,
+   "winner": "Down",
+   "late_trades": 211,
+   "winner_taker_buy_usd": 6567.26,
+   "winner_taker_sell_usd": 1095.99,
+   "sell_at_or_below_099_usd": 1095.99,
+   "sell_at_or_below_098_usd": 993.31
+  },
+  {
+   "asset": "btc",
+   "epoch": 1789172100,
+   "winner": "Up",
+   "late_trades": 316,
+   "winner_taker_buy_usd": 6801.57,
+   "winner_taker_sell_usd": 1062.29,
+   "sell_at_or_below_099_usd": 1062.29,
+   "sell_at_or_below_098_usd": 493.11
+  },
+  {
+   "asset": "btc",
+   "epoch": 1789172400,
+   "winner": "Up",
+   "late_trades": 272,
+   "winner_taker_buy_usd": 5696.15,
+   "winner_taker_sell_usd": 814.62,
+   "sell_at_or_below_099_usd": 814.62,
+   "sell_at_or_below_098_usd": 348.24
+  },
+  {
+   "asset": "btc",
+   "epoch": 1789172700,
+   "winner": "Down",
+   "late_trades": 176,
+   "winner_taker_buy_usd": 4451.37,
+   "winner_taker_sell_usd": 758.04,
+   "sell_at_or_below_099_usd": 758.04,
+   "sell_at_or_below_098_usd": 283.01
+  },
+  {
+   "asset": "btc",
+   "epoch": 1789173000,
+   "winner": "Down",
+   "late_trades": 184,
+   "winner_taker_buy_usd": 2494.6,
+   "winner_taker_sell_usd": 930.39,
+   "sell_at_or_below_099_usd": 930.39,
+   "sell_at_or_below_098_usd": 34.27
+  },
+  {
+   "asset": "btc",
+   "epoch": 1789173300,
+   "winner": "Down",
+   "late_trades": 78,
+   "winner_taker_buy_usd": 3278.06,
+   "winner_taker_sell_usd": 774.9,
+   "sell_at_or_below_099_usd": 774.9,
+   "sell_at_or_below_098_usd": 56.72
+  },
+  {
+   "asset": "btc",
+   "epoch": 1789173600,
+   "winner": "Up",
+   "late_trades": 12,
+   "winner_taker_buy_usd": 772.79,
+   "winner_taker_sell_usd": 42.74,
+   "sell_at_or_below_099_usd": 42.74,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "btc",
+   "epoch": 1789173900,
+   "winner": "Down",
+   "late_trades": 648,
+   "winner_taker_buy_usd": 8416.2,
+   "winner_taker_sell_usd": 2613.57,
+   "sell_at_or_below_099_usd": 2613.57,
+   "sell_at_or_below_098_usd": 2608.52
+  },
+  {
+   "asset": "btc",
+   "epoch": 1789174200,
+   "winner": "Up",
+   "late_trades": 293,
+   "winner_taker_buy_usd": 6953.19,
+   "winner_taker_sell_usd": 615.33,
+   "sell_at_or_below_099_usd": 615.33,
+   "sell_at_or_below_098_usd": 57.78
+  },
+  {
+   "asset": "btc",
+   "epoch": 1789174500,
+   "winner": "Down",
+   "late_trades": 329,
+   "winner_taker_buy_usd": 6889.32,
+   "winner_taker_sell_usd": 1388.68,
+   "sell_at_or_below_099_usd": 1388.68,
+   "sell_at_or_below_098_usd": 963.97
+  },
+  {
+   "asset": "btc",
+   "epoch": 1789174800,
+   "winner": "Down",
+   "late_trades": 52,
+   "winner_taker_buy_usd": 2648.74,
+   "winner_taker_sell_usd": 435.8,
+   "sell_at_or_below_099_usd": 435.8,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "btc",
+   "epoch": 1789175100,
+   "winner": "Up",
+   "late_trades": 0,
+   "winner_taker_buy_usd": 0,
+   "winner_taker_sell_usd": 0,
+   "sell_at_or_below_099_usd": 0,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "btc",
+   "epoch": 1789175400,
+   "winner": "Up",
+   "late_trades": 126,
+   "winner_taker_buy_usd": 4195.55,
+   "winner_taker_sell_usd": 712.51,
+   "sell_at_or_below_099_usd": 712.51,
+   "sell_at_or_below_098_usd": 225.79
+  },
+  {
+   "asset": "btc",
+   "epoch": 1789175700,
+   "winner": "Up",
+   "late_trades": 169,
+   "winner_taker_buy_usd": 3745.89,
+   "winner_taker_sell_usd": 764.43,
+   "sell_at_or_below_099_usd": 764.43,
+   "sell_at_or_below_098_usd": 23.61
+  },
+  {
+   "asset": "btc",
+   "epoch": 1789176000,
+   "winner": "Down",
+   "late_trades": 5,
+   "winner_taker_buy_usd": 0,
+   "winner_taker_sell_usd": 659.7,
+   "sell_at_or_below_099_usd": 659.7,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "btc",
+   "epoch": 1789176300,
+   "winner": "Down",
+   "late_trades": 548,
+   "winner_taker_buy_usd": 6871.51,
+   "winner_taker_sell_usd": 287.99,
+   "sell_at_or_below_099_usd": 205.64,
+   "sell_at_or_below_098_usd": 75.38
+  },
+  {
+   "asset": "btc",
+   "epoch": 1789176600,
+   "winner": "Up",
+   "late_trades": 626,
+   "winner_taker_buy_usd": 9575.6,
+   "winner_taker_sell_usd": 1242.37,
+   "sell_at_or_below_099_usd": 1242.37,
+   "sell_at_or_below_098_usd": 1237.12
+  },
+  {
+   "asset": "btc",
+   "epoch": 1789176900,
+   "winner": "Down",
+   "late_trades": 3,
+   "winner_taker_buy_usd": 0,
+   "winner_taker_sell_usd": 18.19,
+   "sell_at_or_below_099_usd": 13.07,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "btc",
+   "epoch": 1789177200,
+   "winner": "Up",
+   "late_trades": 708,
+   "winner_taker_buy_usd": 8150.23,
+   "winner_taker_sell_usd": 1104.72,
+   "sell_at_or_below_099_usd": 1104.72,
+   "sell_at_or_below_098_usd": 1039.27
+  },
+  {
+   "asset": "btc",
+   "epoch": 1789177500,
+   "winner": "Up",
+   "late_trades": 4,
+   "winner_taker_buy_usd": 0,
+   "winner_taker_sell_usd": 79.77,
+   "sell_at_or_below_099_usd": 74.59,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "btc",
+   "epoch": 1789177800,
+   "winner": "Down",
+   "late_trades": 94,
+   "winner_taker_buy_usd": 2561.07,
+   "winner_taker_sell_usd": 167.15,
+   "sell_at_or_below_099_usd": 167.15,
+   "sell_at_or_below_098_usd": 4.02
+  },
+  {
+   "asset": "btc",
+   "epoch": 1789178100,
+   "winner": "Down",
+   "late_trades": 252,
+   "winner_taker_buy_usd": 5268.88,
+   "winner_taker_sell_usd": 1237.38,
+   "sell_at_or_below_099_usd": 1237.38,
+   "sell_at_or_below_098_usd": 618.29
+  },
+  {
+   "asset": "btc",
+   "epoch": 1789178400,
+   "winner": "Up",
+   "late_trades": 167,
+   "winner_taker_buy_usd": 4935.38,
+   "winner_taker_sell_usd": 1334.38,
+   "sell_at_or_below_099_usd": 1334.38,
+   "sell_at_or_below_098_usd": 422.71
+  },
+  {
+   "asset": "btc",
+   "epoch": 1789178700,
+   "winner": "Up",
+   "late_trades": 5,
+   "winner_taker_buy_usd": 0,
+   "winner_taker_sell_usd": 47.48,
+   "sell_at_or_below_099_usd": 5.38,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "btc",
+   "epoch": 1789179000,
+   "winner": "Down",
+   "late_trades": 726,
+   "winner_taker_buy_usd": 5774.78,
+   "winner_taker_sell_usd": 616.99,
+   "sell_at_or_below_099_usd": 616.99,
+   "sell_at_or_below_098_usd": 560.4
+  },
+  {
+   "asset": "btc",
+   "epoch": 1789179300,
+   "winner": "Down",
+   "late_trades": 166,
+   "winner_taker_buy_usd": 3842.96,
+   "winner_taker_sell_usd": 358.63,
+   "sell_at_or_below_099_usd": 358.63,
+   "sell_at_or_below_098_usd": 100.87
+  },
+  {
+   "asset": "btc",
+   "epoch": 1789179600,
+   "winner": "Up",
+   "late_trades": 450,
+   "winner_taker_buy_usd": 7384.69,
+   "winner_taker_sell_usd": 724.05,
+   "sell_at_or_below_099_usd": 724.05,
+   "sell_at_or_below_098_usd": 435.36
+  },
+  {
+   "asset": "btc",
+   "epoch": 1789179900,
+   "winner": "Down",
+   "late_trades": 148,
+   "winner_taker_buy_usd": 4743.55,
+   "winner_taker_sell_usd": 492.73,
+   "sell_at_or_below_099_usd": 492.73,
+   "sell_at_or_below_098_usd": 123.5
+  },
+  {
+   "asset": "btc",
+   "epoch": 1789180200,
+   "winner": "Down",
+   "late_trades": 147,
+   "winner_taker_buy_usd": 5206.41,
+   "winner_taker_sell_usd": 360.31,
+   "sell_at_or_below_099_usd": 360.31,
+   "sell_at_or_below_098_usd": 39.68
+  },
+  {
+   "asset": "btc",
+   "epoch": 1789180500,
+   "winner": "Down",
+   "late_trades": 8,
+   "winner_taker_buy_usd": 0,
+   "winner_taker_sell_usd": 2.56,
+   "sell_at_or_below_099_usd": 2.56,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "btc",
+   "epoch": 1789180800,
+   "winner": "Up",
+   "late_trades": 250,
+   "winner_taker_buy_usd": 5742.27,
+   "winner_taker_sell_usd": 1451.4,
+   "sell_at_or_below_099_usd": 1451.4,
+   "sell_at_or_below_098_usd": 1023.56
+  },
+  {
+   "asset": "btc",
+   "epoch": 1789181100,
+   "winner": "Up",
+   "late_trades": 20,
+   "winner_taker_buy_usd": 2539.6,
+   "winner_taker_sell_usd": 800.17,
+   "sell_at_or_below_099_usd": 800.17,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "btc",
+   "epoch": 1789181400,
+   "winner": "Down",
+   "late_trades": 396,
+   "winner_taker_buy_usd": 6437.74,
+   "winner_taker_sell_usd": 1058.51,
+   "sell_at_or_below_099_usd": 1058.51,
+   "sell_at_or_below_098_usd": 691.36
+  },
+  {
+   "asset": "btc",
+   "epoch": 1789181700,
+   "winner": "Down",
+   "late_trades": 86,
+   "winner_taker_buy_usd": 3966.65,
+   "winner_taker_sell_usd": 207.54,
+   "sell_at_or_below_099_usd": 207.54,
+   "sell_at_or_below_098_usd": 1.04
+  },
+  {
+   "asset": "btc",
+   "epoch": 1789182000,
+   "winner": "Up",
+   "late_trades": 3,
+   "winner_taker_buy_usd": 0,
+   "winner_taker_sell_usd": 16.61,
+   "sell_at_or_below_099_usd": 16.61,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "btc",
+   "epoch": 1789182300,
+   "winner": "Down",
+   "late_trades": 126,
+   "winner_taker_buy_usd": 3333.91,
+   "winner_taker_sell_usd": 401.16,
+   "sell_at_or_below_099_usd": 401.16,
+   "sell_at_or_below_098_usd": 26.37
+  },
+  {
+   "asset": "btc",
+   "epoch": 1789182600,
+   "winner": "Down",
+   "late_trades": 246,
+   "winner_taker_buy_usd": 7038.47,
+   "winner_taker_sell_usd": 733.33,
+   "sell_at_or_below_099_usd": 733.33,
+   "sell_at_or_below_098_usd": 299.25
+  },
+  {
+   "asset": "btc",
+   "epoch": 1789182900,
+   "winner": "Up",
+   "late_trades": 74,
+   "winner_taker_buy_usd": 2277.09,
+   "winner_taker_sell_usd": 298.64,
+   "sell_at_or_below_099_usd": 298.64,
+   "sell_at_or_below_098_usd": 7.94
+  },
+  {
+   "asset": "btc",
+   "epoch": 1789183200,
+   "winner": "Down",
+   "late_trades": 5,
+   "winner_taker_buy_usd": 0,
+   "winner_taker_sell_usd": 38.46,
+   "sell_at_or_below_099_usd": 0,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "btc",
+   "epoch": 1789183500,
+   "winner": "Up",
+   "late_trades": 51,
+   "winner_taker_buy_usd": 1545.23,
+   "winner_taker_sell_usd": 102.61,
+   "sell_at_or_below_099_usd": 102.61,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "btc",
+   "epoch": 1789183800,
+   "winner": "Down",
+   "late_trades": 73,
+   "winner_taker_buy_usd": 2717.24,
+   "winner_taker_sell_usd": 179.9,
+   "sell_at_or_below_099_usd": 179.9,
+   "sell_at_or_below_098_usd": 55.38
+  },
+  {
+   "asset": "btc",
+   "epoch": 1789184100,
+   "winner": "Down",
+   "late_trades": 71,
+   "winner_taker_buy_usd": 3755.01,
+   "winner_taker_sell_usd": 160.97,
+   "sell_at_or_below_099_usd": 160.97,
+   "sell_at_or_below_098_usd": 57.82
+  },
+  {
+   "asset": "btc",
+   "epoch": 1789184400,
+   "winner": "Down",
+   "late_trades": 59,
+   "winner_taker_buy_usd": 2755.91,
+   "winner_taker_sell_usd": 968.51,
+   "sell_at_or_below_099_usd": 968.51,
+   "sell_at_or_below_098_usd": 152.67
+  },
+  {
+   "asset": "btc",
+   "epoch": 1789184700,
+   "winner": "Down",
+   "late_trades": 207,
+   "winner_taker_buy_usd": 5603.82,
+   "winner_taker_sell_usd": 347.05,
+   "sell_at_or_below_099_usd": 347.05,
+   "sell_at_or_below_098_usd": 64.09
+  },
+  {
+   "asset": "btc",
+   "epoch": 1789185000,
+   "winner": "Up",
+   "late_trades": 72,
+   "winner_taker_buy_usd": 3879.89,
+   "winner_taker_sell_usd": 160.93,
+   "sell_at_or_below_099_usd": 160.93,
+   "sell_at_or_below_098_usd": 28.09
+  },
+  {
+   "asset": "btc",
+   "epoch": 1789185300,
+   "winner": "Up",
+   "late_trades": 114,
+   "winner_taker_buy_usd": 4530.68,
+   "winner_taker_sell_usd": 418.7,
+   "sell_at_or_below_099_usd": 418.7,
+   "sell_at_or_below_098_usd": 210.16
+  },
+  {
+   "asset": "btc",
+   "epoch": 1789185600,
+   "winner": "Up",
+   "late_trades": 23,
+   "winner_taker_buy_usd": 1098.77,
+   "winner_taker_sell_usd": 43.16,
+   "sell_at_or_below_099_usd": 38.04,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "btc",
+   "epoch": 1789185900,
+   "winner": "Up",
+   "late_trades": 398,
+   "winner_taker_buy_usd": 6880.08,
+   "winner_taker_sell_usd": 444.72,
+   "sell_at_or_below_099_usd": 444.72,
+   "sell_at_or_below_098_usd": 355.48
+  },
+  {
+   "asset": "btc",
+   "epoch": 1789186200,
+   "winner": "Down",
+   "late_trades": 130,
+   "winner_taker_buy_usd": 3417.47,
+   "winner_taker_sell_usd": 327.13,
+   "sell_at_or_below_099_usd": 327.13,
+   "sell_at_or_below_098_usd": 289.94
+  },
+  {
+   "asset": "btc",
+   "epoch": 1789186500,
+   "winner": "Down",
+   "late_trades": 3,
+   "winner_taker_buy_usd": 0,
+   "winner_taker_sell_usd": 10.07,
+   "sell_at_or_below_099_usd": 0,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "btc",
+   "epoch": 1789186800,
+   "winner": "Up",
+   "late_trades": 464,
+   "winner_taker_buy_usd": 7589.21,
+   "winner_taker_sell_usd": 1611.38,
+   "sell_at_or_below_099_usd": 1611.38,
+   "sell_at_or_below_098_usd": 1473.54
+  },
+  {
+   "asset": "btc",
+   "epoch": 1789187100,
+   "winner": "Up",
+   "late_trades": 784,
+   "winner_taker_buy_usd": 5121.49,
+   "winner_taker_sell_usd": 659.99,
+   "sell_at_or_below_099_usd": 659.99,
+   "sell_at_or_below_098_usd": 659.99
+  },
+  {
+   "asset": "btc",
+   "epoch": 1789187400,
+   "winner": "Up",
+   "late_trades": 5,
+   "winner_taker_buy_usd": 0,
+   "winner_taker_sell_usd": 54.05,
+   "sell_at_or_below_099_usd": 54.05,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "btc",
+   "epoch": 1789187700,
+   "winner": "Up",
+   "late_trades": 93,
+   "winner_taker_buy_usd": 3939.55,
+   "winner_taker_sell_usd": 378.61,
+   "sell_at_or_below_099_usd": 378.61,
+   "sell_at_or_below_098_usd": 95.39
+  },
+  {
+   "asset": "btc",
+   "epoch": 1789188000,
+   "winner": "Down",
+   "late_trades": 9,
+   "winner_taker_buy_usd": 0,
+   "winner_taker_sell_usd": 686.25,
+   "sell_at_or_below_099_usd": 0,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "btc",
+   "epoch": 1789188300,
+   "winner": "Up",
+   "late_trades": 181,
+   "winner_taker_buy_usd": 4158.93,
+   "winner_taker_sell_usd": 371.72,
+   "sell_at_or_below_099_usd": 371.72,
+   "sell_at_or_below_098_usd": 284.98
+  },
+  {
+   "asset": "btc",
+   "epoch": 1789188600,
+   "winner": "Down",
+   "late_trades": 58,
+   "winner_taker_buy_usd": 4164.27,
+   "winner_taker_sell_usd": 878.75,
+   "sell_at_or_below_099_usd": 878.75,
+   "sell_at_or_below_098_usd": 72.49
+  },
+  {
+   "asset": "btc",
+   "epoch": 1789188900,
+   "winner": "Down",
+   "late_trades": 70,
+   "winner_taker_buy_usd": 3083.11,
+   "winner_taker_sell_usd": 403.01,
+   "sell_at_or_below_099_usd": 403.01,
+   "sell_at_or_below_098_usd": 52.63
+  },
+  {
+   "asset": "btc",
+   "epoch": 1789189200,
+   "winner": "Down",
+   "late_trades": 100,
+   "winner_taker_buy_usd": 3359.22,
+   "winner_taker_sell_usd": 785.51,
+   "sell_at_or_below_099_usd": 785.51,
+   "sell_at_or_below_098_usd": 381.3
+  },
+  {
+   "asset": "btc",
+   "epoch": 1789189500,
+   "winner": "Down",
+   "late_trades": 161,
+   "winner_taker_buy_usd": 4167.25,
+   "winner_taker_sell_usd": 504.32,
+   "sell_at_or_below_099_usd": 504.32,
+   "sell_at_or_below_098_usd": 157.6
+  },
+  {
+   "asset": "eth",
+   "epoch": 1789129800,
+   "winner": "Up",
+   "late_trades": 14,
+   "winner_taker_buy_usd": 102.08,
+   "winner_taker_sell_usd": 0,
+   "sell_at_or_below_099_usd": 0,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "eth",
+   "epoch": 1789130100,
+   "winner": "Up",
+   "late_trades": 0,
+   "winner_taker_buy_usd": 0,
+   "winner_taker_sell_usd": 0,
+   "sell_at_or_below_099_usd": 0,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "eth",
+   "epoch": 1789130400,
+   "winner": "Down",
+   "late_trades": 44,
+   "winner_taker_buy_usd": 739.67,
+   "winner_taker_sell_usd": 57.29,
+   "sell_at_or_below_099_usd": 57.29,
+   "sell_at_or_below_098_usd": 30.73
+  },
+  {
+   "asset": "eth",
+   "epoch": 1789130700,
+   "winner": "Up",
+   "late_trades": 0,
+   "winner_taker_buy_usd": 0,
+   "winner_taker_sell_usd": 0,
+   "sell_at_or_below_099_usd": 0,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "eth",
+   "epoch": 1789131000,
+   "winner": "Up",
+   "late_trades": 5,
+   "winner_taker_buy_usd": 0,
+   "winner_taker_sell_usd": 15.38,
+   "sell_at_or_below_099_usd": 15.38,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "eth",
+   "epoch": 1789131300,
+   "winner": "Down",
+   "late_trades": 27,
+   "winner_taker_buy_usd": 461.71,
+   "winner_taker_sell_usd": 12.82,
+   "sell_at_or_below_099_usd": 12.82,
+   "sell_at_or_below_098_usd": 7.77
+  },
+  {
+   "asset": "eth",
+   "epoch": 1789131600,
+   "winner": "Down",
+   "late_trades": 0,
+   "winner_taker_buy_usd": 0,
+   "winner_taker_sell_usd": 0,
+   "sell_at_or_below_099_usd": 0,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "eth",
+   "epoch": 1789131900,
+   "winner": "Down",
+   "late_trades": 12,
+   "winner_taker_buy_usd": 241.17,
+   "winner_taker_sell_usd": 10.93,
+   "sell_at_or_below_099_usd": 10.93,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "eth",
+   "epoch": 1789132200,
+   "winner": "Up",
+   "late_trades": 8,
+   "winner_taker_buy_usd": 134.6,
+   "winner_taker_sell_usd": 107.52,
+   "sell_at_or_below_099_usd": 107.52,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "eth",
+   "epoch": 1789132500,
+   "winner": "Down",
+   "late_trades": 107,
+   "winner_taker_buy_usd": 861.37,
+   "winner_taker_sell_usd": 115.18,
+   "sell_at_or_below_099_usd": 115.18,
+   "sell_at_or_below_098_usd": 98.75
+  },
+  {
+   "asset": "eth",
+   "epoch": 1789132800,
+   "winner": "Up",
+   "late_trades": 0,
+   "winner_taker_buy_usd": 0,
+   "winner_taker_sell_usd": 0,
+   "sell_at_or_below_099_usd": 0,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "eth",
+   "epoch": 1789133100,
+   "winner": "Down",
+   "late_trades": 1,
+   "winner_taker_buy_usd": 0,
+   "winner_taker_sell_usd": 0,
+   "sell_at_or_below_099_usd": 0,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "eth",
+   "epoch": 1789133400,
+   "winner": "Down",
+   "late_trades": 1,
+   "winner_taker_buy_usd": 0,
+   "winner_taker_sell_usd": 0,
+   "sell_at_or_below_099_usd": 0,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "eth",
+   "epoch": 1789133700,
+   "winner": "Up",
+   "late_trades": 24,
+   "winner_taker_buy_usd": 503.04,
+   "winner_taker_sell_usd": 25.0,
+   "sell_at_or_below_099_usd": 25.0,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "eth",
+   "epoch": 1789134000,
+   "winner": "Up",
+   "late_trades": 2,
+   "winner_taker_buy_usd": 0,
+   "winner_taker_sell_usd": 344.38,
+   "sell_at_or_below_099_usd": 0,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "eth",
+   "epoch": 1789134300,
+   "winner": "Up",
+   "late_trades": 0,
+   "winner_taker_buy_usd": 0,
+   "winner_taker_sell_usd": 0,
+   "sell_at_or_below_099_usd": 0,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "eth",
+   "epoch": 1789134600,
+   "winner": "Up",
+   "late_trades": 0,
+   "winner_taker_buy_usd": 0,
+   "winner_taker_sell_usd": 0,
+   "sell_at_or_below_099_usd": 0,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "eth",
+   "epoch": 1789134900,
+   "winner": "Up",
+   "late_trades": 2,
+   "winner_taker_buy_usd": 0,
+   "winner_taker_sell_usd": 13.52,
+   "sell_at_or_below_099_usd": 0,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "eth",
+   "epoch": 1789135200,
+   "winner": "Up",
+   "late_trades": 75,
+   "winner_taker_buy_usd": 857.6,
+   "winner_taker_sell_usd": 47.63,
+   "sell_at_or_below_099_usd": 47.63,
+   "sell_at_or_below_098_usd": 47.63
+  },
+  {
+   "asset": "eth",
+   "epoch": 1789135500,
+   "winner": "Down",
+   "late_trades": 1,
+   "winner_taker_buy_usd": 0,
+   "winner_taker_sell_usd": 24.98,
+   "sell_at_or_below_099_usd": 0,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "eth",
+   "epoch": 1789135800,
+   "winner": "Down",
+   "late_trades": 47,
+   "winner_taker_buy_usd": 783.98,
+   "winner_taker_sell_usd": 11.98,
+   "sell_at_or_below_099_usd": 11.98,
+   "sell_at_or_below_098_usd": 2.08
+  },
+  {
+   "asset": "eth",
+   "epoch": 1789136100,
+   "winner": "Down",
+   "late_trades": 90,
+   "winner_taker_buy_usd": 933.83,
+   "winner_taker_sell_usd": 46.05,
+   "sell_at_or_below_099_usd": 46.05,
+   "sell_at_or_below_098_usd": 16.97
+  },
+  {
+   "asset": "eth",
+   "epoch": 1789136400,
+   "winner": "Up",
+   "late_trades": 53,
+   "winner_taker_buy_usd": 818.99,
+   "winner_taker_sell_usd": 0,
+   "sell_at_or_below_099_usd": 0,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "eth",
+   "epoch": 1789136700,
+   "winner": "Up",
+   "late_trades": 17,
+   "winner_taker_buy_usd": 201.95,
+   "winner_taker_sell_usd": 0,
+   "sell_at_or_below_099_usd": 0,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "eth",
+   "epoch": 1789137000,
+   "winner": "Down",
+   "late_trades": 11,
+   "winner_taker_buy_usd": 311.55,
+   "winner_taker_sell_usd": 60.39,
+   "sell_at_or_below_099_usd": 60.39,
+   "sell_at_or_below_098_usd": 48.9
+  },
+  {
+   "asset": "eth",
+   "epoch": 1789137300,
+   "winner": "Down",
+   "late_trades": 25,
+   "winner_taker_buy_usd": 494.48,
+   "winner_taker_sell_usd": 81.01,
+   "sell_at_or_below_099_usd": 62.03,
+   "sell_at_or_below_098_usd": 1.67
+  },
+  {
+   "asset": "eth",
+   "epoch": 1789137600,
+   "winner": "Down",
+   "late_trades": 4,
+   "winner_taker_buy_usd": 0,
+   "winner_taker_sell_usd": 140.26,
+   "sell_at_or_below_099_usd": 140.26,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "eth",
+   "epoch": 1789137900,
+   "winner": "Down",
+   "late_trades": 4,
+   "winner_taker_buy_usd": 0,
+   "winner_taker_sell_usd": 119.64,
+   "sell_at_or_below_099_usd": 119.64,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "eth",
+   "epoch": 1789138200,
+   "winner": "Up",
+   "late_trades": 2,
+   "winner_taker_buy_usd": 0,
+   "winner_taker_sell_usd": 23.03,
+   "sell_at_or_below_099_usd": 23.03,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "eth",
+   "epoch": 1789138500,
+   "winner": "Up",
+   "late_trades": 45,
+   "winner_taker_buy_usd": 1008.98,
+   "winner_taker_sell_usd": 102.11,
+   "sell_at_or_below_099_usd": 102.11,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "eth",
+   "epoch": 1789138800,
+   "winner": "Down",
+   "late_trades": 49,
+   "winner_taker_buy_usd": 1239.51,
+   "winner_taker_sell_usd": 202.72,
+   "sell_at_or_below_099_usd": 202.72,
+   "sell_at_or_below_098_usd": 10.88
+  },
+  {
+   "asset": "eth",
+   "epoch": 1789139100,
+   "winner": "Up",
+   "late_trades": 3,
+   "winner_taker_buy_usd": 0,
+   "winner_taker_sell_usd": 11.88,
+   "sell_at_or_below_099_usd": 11.88,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "eth",
+   "epoch": 1789139400,
+   "winner": "Down",
+   "late_trades": 72,
+   "winner_taker_buy_usd": 1515.32,
+   "winner_taker_sell_usd": 11.47,
+   "sell_at_or_below_099_usd": 11.47,
+   "sell_at_or_below_098_usd": 11.47
+  },
+  {
+   "asset": "eth",
+   "epoch": 1789139700,
+   "winner": "Up",
+   "late_trades": 1,
+   "winner_taker_buy_usd": 0,
+   "winner_taker_sell_usd": 13.99,
+   "sell_at_or_below_099_usd": 0,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "eth",
+   "epoch": 1789140000,
+   "winner": "Up",
+   "late_trades": 81,
+   "winner_taker_buy_usd": 609.05,
+   "winner_taker_sell_usd": 123.62,
+   "sell_at_or_below_099_usd": 123.62,
+   "sell_at_or_below_098_usd": 11.19
+  },
+  {
+   "asset": "eth",
+   "epoch": 1789140300,
+   "winner": "Down",
+   "late_trades": 76,
+   "winner_taker_buy_usd": 1119.53,
+   "winner_taker_sell_usd": 172.12,
+   "sell_at_or_below_099_usd": 172.12,
+   "sell_at_or_below_098_usd": 14.84
+  },
+  {
+   "asset": "eth",
+   "epoch": 1789140600,
+   "winner": "Up",
+   "late_trades": 181,
+   "winner_taker_buy_usd": 1165.18,
+   "winner_taker_sell_usd": 171.09,
+   "sell_at_or_below_099_usd": 171.09,
+   "sell_at_or_below_098_usd": 70.86
+  },
+  {
+   "asset": "eth",
+   "epoch": 1789140900,
+   "winner": "Down",
+   "late_trades": 206,
+   "winner_taker_buy_usd": 1345.5,
+   "winner_taker_sell_usd": 105.83,
+   "sell_at_or_below_099_usd": 105.83,
+   "sell_at_or_below_098_usd": 39.85
+  },
+  {
+   "asset": "eth",
+   "epoch": 1789141200,
+   "winner": "Down",
+   "late_trades": 2,
+   "winner_taker_buy_usd": 0,
+   "winner_taker_sell_usd": 52.53,
+   "sell_at_or_below_099_usd": 52.53,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "eth",
+   "epoch": 1789141500,
+   "winner": "Down",
+   "late_trades": 77,
+   "winner_taker_buy_usd": 1200.97,
+   "winner_taker_sell_usd": 272.69,
+   "sell_at_or_below_099_usd": 272.69,
+   "sell_at_or_below_098_usd": 272.69
+  },
+  {
+   "asset": "eth",
+   "epoch": 1789141800,
+   "winner": "Down",
+   "late_trades": 0,
+   "winner_taker_buy_usd": 0,
+   "winner_taker_sell_usd": 0,
+   "sell_at_or_below_099_usd": 0,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "eth",
+   "epoch": 1789142100,
+   "winner": "Down",
+   "late_trades": 11,
+   "winner_taker_buy_usd": 323.22,
+   "winner_taker_sell_usd": 35.66,
+   "sell_at_or_below_099_usd": 35.66,
+   "sell_at_or_below_098_usd": 1.11
+  },
+  {
+   "asset": "eth",
+   "epoch": 1789142400,
+   "winner": "Up",
+   "late_trades": 3,
+   "winner_taker_buy_usd": 0,
+   "winner_taker_sell_usd": 93.49,
+   "sell_at_or_below_099_usd": 93.49,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "eth",
+   "epoch": 1789142700,
+   "winner": "Up",
+   "late_trades": 50,
+   "winner_taker_buy_usd": 871.73,
+   "winner_taker_sell_usd": 31.21,
+   "sell_at_or_below_099_usd": 31.21,
+   "sell_at_or_below_098_usd": 5.71
+  },
+  {
+   "asset": "eth",
+   "epoch": 1789143000,
+   "winner": "Down",
+   "late_trades": 2,
+   "winner_taker_buy_usd": 0,
+   "winner_taker_sell_usd": 0,
+   "sell_at_or_below_099_usd": 0,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "eth",
+   "epoch": 1789143300,
+   "winner": "Down",
+   "late_trades": 6,
+   "winner_taker_buy_usd": 0,
+   "winner_taker_sell_usd": 15.13,
+   "sell_at_or_below_099_usd": 5.14,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "eth",
+   "epoch": 1789143600,
+   "winner": "Down",
+   "late_trades": 0,
+   "winner_taker_buy_usd": 0,
+   "winner_taker_sell_usd": 0,
+   "sell_at_or_below_099_usd": 0,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "eth",
+   "epoch": 1789143900,
+   "winner": "Up",
+   "late_trades": 0,
+   "winner_taker_buy_usd": 0,
+   "winner_taker_sell_usd": 0,
+   "sell_at_or_below_099_usd": 0,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "eth",
+   "epoch": 1789144200,
+   "winner": "Up",
+   "late_trades": 0,
+   "winner_taker_buy_usd": 0,
+   "winner_taker_sell_usd": 0,
+   "sell_at_or_below_099_usd": 0,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "eth",
+   "epoch": 1789144500,
+   "winner": "Down",
+   "late_trades": 0,
+   "winner_taker_buy_usd": 0,
+   "winner_taker_sell_usd": 0,
+   "sell_at_or_below_099_usd": 0,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "eth",
+   "epoch": 1789144800,
+   "winner": "Up",
+   "late_trades": 0,
+   "winner_taker_buy_usd": 0,
+   "winner_taker_sell_usd": 0,
+   "sell_at_or_below_099_usd": 0,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "eth",
+   "epoch": 1789145100,
+   "winner": "Up",
+   "late_trades": 1,
+   "winner_taker_buy_usd": 0,
+   "winner_taker_sell_usd": 116.09,
+   "sell_at_or_below_099_usd": 0,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "eth",
+   "epoch": 1789145400,
+   "winner": "Down",
+   "late_trades": 133,
+   "winner_taker_buy_usd": 1026.32,
+   "winner_taker_sell_usd": 76.01,
+   "sell_at_or_below_099_usd": 76.01,
+   "sell_at_or_below_098_usd": 56.97
+  },
+  {
+   "asset": "eth",
+   "epoch": 1789145700,
+   "winner": "Down",
+   "late_trades": 33,
+   "winner_taker_buy_usd": 620.25,
+   "winner_taker_sell_usd": 29.48,
+   "sell_at_or_below_099_usd": 29.48,
+   "sell_at_or_below_098_usd": 15.11
+  },
+  {
+   "asset": "eth",
+   "epoch": 1789146000,
+   "winner": "Down",
+   "late_trades": 87,
+   "winner_taker_buy_usd": 927.75,
+   "winner_taker_sell_usd": 48.64,
+   "sell_at_or_below_099_usd": 48.64,
+   "sell_at_or_below_098_usd": 46.5
+  },
+  {
+   "asset": "eth",
+   "epoch": 1789146300,
+   "winner": "Down",
+   "late_trades": 103,
+   "winner_taker_buy_usd": 1005.94,
+   "winner_taker_sell_usd": 13.81,
+   "sell_at_or_below_099_usd": 13.81,
+   "sell_at_or_below_098_usd": 5.75
+  },
+  {
+   "asset": "eth",
+   "epoch": 1789146600,
+   "winner": "Down",
+   "late_trades": 6,
+   "winner_taker_buy_usd": 175.36,
+   "winner_taker_sell_usd": 1.08,
+   "sell_at_or_below_099_usd": 1.08,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "eth",
+   "epoch": 1789146900,
+   "winner": "Up",
+   "late_trades": 0,
+   "winner_taker_buy_usd": 0,
+   "winner_taker_sell_usd": 0,
+   "sell_at_or_below_099_usd": 0,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "eth",
+   "epoch": 1789147200,
+   "winner": "Down",
+   "late_trades": 29,
+   "winner_taker_buy_usd": 442.65,
+   "winner_taker_sell_usd": 332.36,
+   "sell_at_or_below_099_usd": 1.37,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "eth",
+   "epoch": 1789147500,
+   "winner": "Up",
+   "late_trades": 90,
+   "winner_taker_buy_usd": 919.97,
+   "winner_taker_sell_usd": 22.24,
+   "sell_at_or_below_099_usd": 22.24,
+   "sell_at_or_below_098_usd": 12.55
+  },
+  {
+   "asset": "eth",
+   "epoch": 1789147800,
+   "winner": "Up",
+   "late_trades": 117,
+   "winner_taker_buy_usd": 1009.53,
+   "winner_taker_sell_usd": 22.19,
+   "sell_at_or_below_099_usd": 22.19,
+   "sell_at_or_below_098_usd": 16.94
+  },
+  {
+   "asset": "eth",
+   "epoch": 1789148100,
+   "winner": "Down",
+   "late_trades": 0,
+   "winner_taker_buy_usd": 0,
+   "winner_taker_sell_usd": 0,
+   "sell_at_or_below_099_usd": 0,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "eth",
+   "epoch": 1789148400,
+   "winner": "Up",
+   "late_trades": 3,
+   "winner_taker_buy_usd": 0,
+   "winner_taker_sell_usd": 58.22,
+   "sell_at_or_below_099_usd": 58.22,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "eth",
+   "epoch": 1789148700,
+   "winner": "Up",
+   "late_trades": 13,
+   "winner_taker_buy_usd": 201.88,
+   "winner_taker_sell_usd": 42.89,
+   "sell_at_or_below_099_usd": 42.89,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "eth",
+   "epoch": 1789149000,
+   "winner": "Down",
+   "late_trades": 0,
+   "winner_taker_buy_usd": 0,
+   "winner_taker_sell_usd": 0,
+   "sell_at_or_below_099_usd": 0,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "eth",
+   "epoch": 1789149300,
+   "winner": "Up",
+   "late_trades": 20,
+   "winner_taker_buy_usd": 125.73,
+   "winner_taker_sell_usd": 49.47,
+   "sell_at_or_below_099_usd": 49.47,
+   "sell_at_or_below_098_usd": 44.52
+  },
+  {
+   "asset": "eth",
+   "epoch": 1789149600,
+   "winner": "Down",
+   "late_trades": 0,
+   "winner_taker_buy_usd": 0,
+   "winner_taker_sell_usd": 0,
+   "sell_at_or_below_099_usd": 0,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "eth",
+   "epoch": 1789149900,
+   "winner": "Down",
+   "late_trades": 14,
+   "winner_taker_buy_usd": 339.31,
+   "winner_taker_sell_usd": 63.74,
+   "sell_at_or_below_099_usd": 63.74,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "eth",
+   "epoch": 1789150200,
+   "winner": "Down",
+   "late_trades": 15,
+   "winner_taker_buy_usd": 383.31,
+   "winner_taker_sell_usd": 0,
+   "sell_at_or_below_099_usd": 0,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "eth",
+   "epoch": 1789150500,
+   "winner": "Up",
+   "late_trades": 0,
+   "winner_taker_buy_usd": 0,
+   "winner_taker_sell_usd": 0,
+   "sell_at_or_below_099_usd": 0,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "eth",
+   "epoch": 1789150800,
+   "winner": "Down",
+   "late_trades": 20,
+   "winner_taker_buy_usd": 509.56,
+   "winner_taker_sell_usd": 87.59,
+   "sell_at_or_below_099_usd": 87.59,
+   "sell_at_or_below_098_usd": 1.96
+  },
+  {
+   "asset": "eth",
+   "epoch": 1789151100,
+   "winner": "Down",
+   "late_trades": 66,
+   "winner_taker_buy_usd": 419.8,
+   "winner_taker_sell_usd": 76.28,
+   "sell_at_or_below_099_usd": 76.28,
+   "sell_at_or_below_098_usd": 43.97
+  },
+  {
+   "asset": "eth",
+   "epoch": 1789151400,
+   "winner": "Up",
+   "late_trades": 79,
+   "winner_taker_buy_usd": 834.57,
+   "winner_taker_sell_usd": 23.0,
+   "sell_at_or_below_099_usd": 23.0,
+   "sell_at_or_below_098_usd": 23.0
+  },
+  {
+   "asset": "eth",
+   "epoch": 1789151700,
+   "winner": "Up",
+   "late_trades": 153,
+   "winner_taker_buy_usd": 1099.38,
+   "winner_taker_sell_usd": 64.24,
+   "sell_at_or_below_099_usd": 64.24,
+   "sell_at_or_below_098_usd": 62.08
+  },
+  {
+   "asset": "eth",
+   "epoch": 1789152000,
+   "winner": "Down",
+   "late_trades": 3,
+   "winner_taker_buy_usd": 0,
+   "winner_taker_sell_usd": 11.81,
+   "sell_at_or_below_099_usd": 11.81,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "eth",
+   "epoch": 1789152300,
+   "winner": "Up",
+   "late_trades": 164,
+   "winner_taker_buy_usd": 889.84,
+   "winner_taker_sell_usd": 35.77,
+   "sell_at_or_below_099_usd": 35.77,
+   "sell_at_or_below_098_usd": 7.59
+  },
+  {
+   "asset": "eth",
+   "epoch": 1789152600,
+   "winner": "Down",
+   "late_trades": 1,
+   "winner_taker_buy_usd": 0,
+   "winner_taker_sell_usd": 103.12,
+   "sell_at_or_below_099_usd": 103.12,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "eth",
+   "epoch": 1789152900,
+   "winner": "Up",
+   "late_trades": 2,
+   "winner_taker_buy_usd": 0,
+   "winner_taker_sell_usd": 4.8,
+   "sell_at_or_below_099_usd": 4.8,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "eth",
+   "epoch": 1789153200,
+   "winner": "Up",
+   "late_trades": 42,
+   "winner_taker_buy_usd": 486.42,
+   "winner_taker_sell_usd": 15.78,
+   "sell_at_or_below_099_usd": 15.78,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "eth",
+   "epoch": 1789153500,
+   "winner": "Up",
+   "late_trades": 1,
+   "winner_taker_buy_usd": 0,
+   "winner_taker_sell_usd": 0,
+   "sell_at_or_below_099_usd": 0,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "eth",
+   "epoch": 1789153800,
+   "winner": "Down",
+   "late_trades": 87,
+   "winner_taker_buy_usd": 871.99,
+   "winner_taker_sell_usd": 151.73,
+   "sell_at_or_below_099_usd": 151.73,
+   "sell_at_or_below_098_usd": 101.72
+  },
+  {
+   "asset": "eth",
+   "epoch": 1789154100,
+   "winner": "Down",
+   "late_trades": 24,
+   "winner_taker_buy_usd": 181.62,
+   "winner_taker_sell_usd": 801.09,
+   "sell_at_or_below_099_usd": 304.18,
+   "sell_at_or_below_098_usd": 267.35
+  },
+  {
+   "asset": "eth",
+   "epoch": 1789154400,
+   "winner": "Up",
+   "late_trades": 35,
+   "winner_taker_buy_usd": 741.48,
+   "winner_taker_sell_usd": 205.24,
+   "sell_at_or_below_099_usd": 205.24,
+   "sell_at_or_below_098_usd": 13.14
+  },
+  {
+   "asset": "eth",
+   "epoch": 1789154700,
+   "winner": "Up",
+   "late_trades": 21,
+   "winner_taker_buy_usd": 440.04,
+   "winner_taker_sell_usd": 79.8,
+   "sell_at_or_below_099_usd": 79.8,
+   "sell_at_or_below_098_usd": 65.53
+  },
+  {
+   "asset": "eth",
+   "epoch": 1789155000,
+   "winner": "Down",
+   "late_trades": 20,
+   "winner_taker_buy_usd": 466.29,
+   "winner_taker_sell_usd": 58.11,
+   "sell_at_or_below_099_usd": 58.11,
+   "sell_at_or_below_098_usd": 58.11
+  },
+  {
+   "asset": "eth",
+   "epoch": 1789155300,
+   "winner": "Down",
+   "late_trades": 1,
+   "winner_taker_buy_usd": 0,
+   "winner_taker_sell_usd": 30.94,
+   "sell_at_or_below_099_usd": 30.94,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "eth",
+   "epoch": 1789155600,
+   "winner": "Down",
+   "late_trades": 27,
+   "winner_taker_buy_usd": 514.02,
+   "winner_taker_sell_usd": 49.14,
+   "sell_at_or_below_099_usd": 49.14,
+   "sell_at_or_below_098_usd": 2.22
+  },
+  {
+   "asset": "eth",
+   "epoch": 1789155900,
+   "winner": "Down",
+   "late_trades": 25,
+   "winner_taker_buy_usd": 262.92,
+   "winner_taker_sell_usd": 176.78,
+   "sell_at_or_below_099_usd": 176.78,
+   "sell_at_or_below_098_usd": 54.06
+  },
+  {
+   "asset": "eth",
+   "epoch": 1789156200,
+   "winner": "Down",
+   "late_trades": 95,
+   "winner_taker_buy_usd": 910.99,
+   "winner_taker_sell_usd": 113.88,
+   "sell_at_or_below_099_usd": 113.88,
+   "sell_at_or_below_098_usd": 103.98
+  },
+  {
+   "asset": "eth",
+   "epoch": 1789156500,
+   "winner": "Down",
+   "late_trades": 61,
+   "winner_taker_buy_usd": 843.18,
+   "winner_taker_sell_usd": 112.83,
+   "sell_at_or_below_099_usd": 112.83,
+   "sell_at_or_below_098_usd": 87.47
+  },
+  {
+   "asset": "eth",
+   "epoch": 1789156800,
+   "winner": "Up",
+   "late_trades": 0,
+   "winner_taker_buy_usd": 0,
+   "winner_taker_sell_usd": 0,
+   "sell_at_or_below_099_usd": 0,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "eth",
+   "epoch": 1789157100,
+   "winner": "Down",
+   "late_trades": 43,
+   "winner_taker_buy_usd": 804.37,
+   "winner_taker_sell_usd": 114.12,
+   "sell_at_or_below_099_usd": 114.12,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "eth",
+   "epoch": 1789157400,
+   "winner": "Up",
+   "late_trades": 23,
+   "winner_taker_buy_usd": 597.07,
+   "winner_taker_sell_usd": 64.08,
+   "sell_at_or_below_099_usd": 64.08,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "eth",
+   "epoch": 1789157700,
+   "winner": "Down",
+   "late_trades": 1,
+   "winner_taker_buy_usd": 0,
+   "winner_taker_sell_usd": 15.98,
+   "sell_at_or_below_099_usd": 0,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "eth",
+   "epoch": 1789158000,
+   "winner": "Down",
+   "late_trades": 65,
+   "winner_taker_buy_usd": 863.1,
+   "winner_taker_sell_usd": 436.78,
+   "sell_at_or_below_099_usd": 436.78,
+   "sell_at_or_below_098_usd": 138.21
+  },
+  {
+   "asset": "eth",
+   "epoch": 1789158300,
+   "winner": "Down",
+   "late_trades": 23,
+   "winner_taker_buy_usd": 517.63,
+   "winner_taker_sell_usd": 111.38,
+   "sell_at_or_below_099_usd": 111.38,
+   "sell_at_or_below_098_usd": 1.83
+  },
+  {
+   "asset": "eth",
+   "epoch": 1789158600,
+   "winner": "Down",
+   "late_trades": 1,
+   "winner_taker_buy_usd": 0,
+   "winner_taker_sell_usd": 73.17,
+   "sell_at_or_below_099_usd": 73.17,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "eth",
+   "epoch": 1789158900,
+   "winner": "Up",
+   "late_trades": 0,
+   "winner_taker_buy_usd": 0,
+   "winner_taker_sell_usd": 0,
+   "sell_at_or_below_099_usd": 0,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "eth",
+   "epoch": 1789159200,
+   "winner": "Down",
+   "late_trades": 48,
+   "winner_taker_buy_usd": 751.51,
+   "winner_taker_sell_usd": 86.94,
+   "sell_at_or_below_099_usd": 86.94,
+   "sell_at_or_below_098_usd": 27.49
+  },
+  {
+   "asset": "eth",
+   "epoch": 1789159500,
+   "winner": "Down",
+   "late_trades": 1,
+   "winner_taker_buy_usd": 0,
+   "winner_taker_sell_usd": 75.48,
+   "sell_at_or_below_099_usd": 75.48,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "eth",
+   "epoch": 1789159800,
+   "winner": "Down",
+   "late_trades": 74,
+   "winner_taker_buy_usd": 720.59,
+   "winner_taker_sell_usd": 56.93,
+   "sell_at_or_below_099_usd": 56.93,
+   "sell_at_or_below_098_usd": 56.93
+  },
+  {
+   "asset": "eth",
+   "epoch": 1789160100,
+   "winner": "Up",
+   "late_trades": 10,
+   "winner_taker_buy_usd": 239.61,
+   "winner_taker_sell_usd": 23.77,
+   "sell_at_or_below_099_usd": 23.77,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "eth",
+   "epoch": 1789160400,
+   "winner": "Up",
+   "late_trades": 44,
+   "winner_taker_buy_usd": 586.83,
+   "winner_taker_sell_usd": 149.63,
+   "sell_at_or_below_099_usd": 149.63,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "eth",
+   "epoch": 1789160700,
+   "winner": "Up",
+   "late_trades": 1,
+   "winner_taker_buy_usd": 0,
+   "winner_taker_sell_usd": 14.98,
+   "sell_at_or_below_099_usd": 0,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "eth",
+   "epoch": 1789161000,
+   "winner": "Up",
+   "late_trades": 26,
+   "winner_taker_buy_usd": 509.23,
+   "winner_taker_sell_usd": 8.33,
+   "sell_at_or_below_099_usd": 8.33,
+   "sell_at_or_below_098_usd": 3.33
+  },
+  {
+   "asset": "eth",
+   "epoch": 1789161300,
+   "winner": "Up",
+   "late_trades": 25,
+   "winner_taker_buy_usd": 452.1,
+   "winner_taker_sell_usd": 0,
+   "sell_at_or_below_099_usd": 0,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "eth",
+   "epoch": 1789161600,
+   "winner": "Down",
+   "late_trades": 6,
+   "winner_taker_buy_usd": 108.17,
+   "winner_taker_sell_usd": 1.23,
+   "sell_at_or_below_099_usd": 1.23,
+   "sell_at_or_below_098_usd": 1.23
+  },
+  {
+   "asset": "eth",
+   "epoch": 1789161900,
+   "winner": "Down",
+   "late_trades": 18,
+   "winner_taker_buy_usd": 401.64,
+   "winner_taker_sell_usd": 10.59,
+   "sell_at_or_below_099_usd": 10.59,
+   "sell_at_or_below_098_usd": 10.59
+  },
+  {
+   "asset": "eth",
+   "epoch": 1789162200,
+   "winner": "Up",
+   "late_trades": 67,
+   "winner_taker_buy_usd": 1156.34,
+   "winner_taker_sell_usd": 67.48,
+   "sell_at_or_below_099_usd": 67.48,
+   "sell_at_or_below_098_usd": 65.33
+  },
+  {
+   "asset": "eth",
+   "epoch": 1789162500,
+   "winner": "Up",
+   "late_trades": 141,
+   "winner_taker_buy_usd": 1555.79,
+   "winner_taker_sell_usd": 41.55,
+   "sell_at_or_below_099_usd": 41.55,
+   "sell_at_or_below_098_usd": 38.77
+  },
+  {
+   "asset": "eth",
+   "epoch": 1789162800,
+   "winner": "Down",
+   "late_trades": 1,
+   "winner_taker_buy_usd": 54.06,
+   "winner_taker_sell_usd": 0,
+   "sell_at_or_below_099_usd": 0,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "eth",
+   "epoch": 1789163100,
+   "winner": "Down",
+   "late_trades": 3,
+   "winner_taker_buy_usd": 0,
+   "winner_taker_sell_usd": 15.36,
+   "sell_at_or_below_099_usd": 0,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "eth",
+   "epoch": 1789163400,
+   "winner": "Down",
+   "late_trades": 1,
+   "winner_taker_buy_usd": 0,
+   "winner_taker_sell_usd": 13.74,
+   "sell_at_or_below_099_usd": 13.74,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "eth",
+   "epoch": 1789163700,
+   "winner": "Down",
+   "late_trades": 2,
+   "winner_taker_buy_usd": 0,
+   "winner_taker_sell_usd": 447.2,
+   "sell_at_or_below_099_usd": 0,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "eth",
+   "epoch": 1789164000,
+   "winner": "Up",
+   "late_trades": 39,
+   "winner_taker_buy_usd": 667.31,
+   "winner_taker_sell_usd": 8.11,
+   "sell_at_or_below_099_usd": 8.11,
+   "sell_at_or_below_098_usd": 4.67
+  },
+  {
+   "asset": "eth",
+   "epoch": 1789164300,
+   "winner": "Down",
+   "late_trades": 1,
+   "winner_taker_buy_usd": 0,
+   "winner_taker_sell_usd": 9.99,
+   "sell_at_or_below_099_usd": 0,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "eth",
+   "epoch": 1789164600,
+   "winner": "Up",
+   "late_trades": 1,
+   "winner_taker_buy_usd": 0,
+   "winner_taker_sell_usd": 3.05,
+   "sell_at_or_below_099_usd": 0,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "eth",
+   "epoch": 1789164900,
+   "winner": "Up",
+   "late_trades": 64,
+   "winner_taker_buy_usd": 1072.55,
+   "winner_taker_sell_usd": 417.87,
+   "sell_at_or_below_099_usd": 417.87,
+   "sell_at_or_below_098_usd": 113.55
+  },
+  {
+   "asset": "eth",
+   "epoch": 1789165200,
+   "winner": "Up",
+   "late_trades": 22,
+   "winner_taker_buy_usd": 451.21,
+   "winner_taker_sell_usd": 108.28,
+   "sell_at_or_below_099_usd": 108.28,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "eth",
+   "epoch": 1789165500,
+   "winner": "Down",
+   "late_trades": 3,
+   "winner_taker_buy_usd": 0,
+   "winner_taker_sell_usd": 4.21,
+   "sell_at_or_below_099_usd": 4.21,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "eth",
+   "epoch": 1789165800,
+   "winner": "Down",
+   "late_trades": 1,
+   "winner_taker_buy_usd": 0,
+   "winner_taker_sell_usd": 5.49,
+   "sell_at_or_below_099_usd": 5.49,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "eth",
+   "epoch": 1789166100,
+   "winner": "Up",
+   "late_trades": 1,
+   "winner_taker_buy_usd": 0,
+   "winner_taker_sell_usd": 5.05,
+   "sell_at_or_below_099_usd": 0,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "eth",
+   "epoch": 1789166400,
+   "winner": "Down",
+   "late_trades": 152,
+   "winner_taker_buy_usd": 1259.22,
+   "winner_taker_sell_usd": 59.4,
+   "sell_at_or_below_099_usd": 59.4,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "eth",
+   "epoch": 1789166700,
+   "winner": "Down",
+   "late_trades": 0,
+   "winner_taker_buy_usd": 0,
+   "winner_taker_sell_usd": 0,
+   "sell_at_or_below_099_usd": 0,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "eth",
+   "epoch": 1789167000,
+   "winner": "Down",
+   "late_trades": 23,
+   "winner_taker_buy_usd": 648.24,
+   "winner_taker_sell_usd": 6.77,
+   "sell_at_or_below_099_usd": 6.77,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "eth",
+   "epoch": 1789167300,
+   "winner": "Down",
+   "late_trades": 81,
+   "winner_taker_buy_usd": 899.27,
+   "winner_taker_sell_usd": 35.87,
+   "sell_at_or_below_099_usd": 35.87,
+   "sell_at_or_below_098_usd": 29.57
+  },
+  {
+   "asset": "eth",
+   "epoch": 1789167600,
+   "winner": "Up",
+   "late_trades": 27,
+   "winner_taker_buy_usd": 468.27,
+   "winner_taker_sell_usd": 130.4,
+   "sell_at_or_below_099_usd": 130.4,
+   "sell_at_or_below_098_usd": 3.36
+  },
+  {
+   "asset": "eth",
+   "epoch": 1789167900,
+   "winner": "Down",
+   "late_trades": 27,
+   "winner_taker_buy_usd": 387.87,
+   "winner_taker_sell_usd": 40.71,
+   "sell_at_or_below_099_usd": 40.71,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "eth",
+   "epoch": 1789168200,
+   "winner": "Up",
+   "late_trades": 34,
+   "winner_taker_buy_usd": 675.21,
+   "winner_taker_sell_usd": 0,
+   "sell_at_or_below_099_usd": 0,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "eth",
+   "epoch": 1789168500,
+   "winner": "Up",
+   "late_trades": 72,
+   "winner_taker_buy_usd": 639.87,
+   "winner_taker_sell_usd": 113.75,
+   "sell_at_or_below_099_usd": 113.75,
+   "sell_at_or_below_098_usd": 97.79
+  },
+  {
+   "asset": "eth",
+   "epoch": 1789168800,
+   "winner": "Down",
+   "late_trades": 18,
+   "winner_taker_buy_usd": 316.83,
+   "winner_taker_sell_usd": 66.33,
+   "sell_at_or_below_099_usd": 66.33,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "eth",
+   "epoch": 1789169100,
+   "winner": "Up",
+   "late_trades": 8,
+   "winner_taker_buy_usd": 29.95,
+   "winner_taker_sell_usd": 69.4,
+   "sell_at_or_below_099_usd": 14.85,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "eth",
+   "epoch": 1789169400,
+   "winner": "Down",
+   "late_trades": 30,
+   "winner_taker_buy_usd": 589.73,
+   "winner_taker_sell_usd": 19.23,
+   "sell_at_or_below_099_usd": 19.23,
+   "sell_at_or_below_098_usd": 19.23
+  },
+  {
+   "asset": "eth",
+   "epoch": 1789169700,
+   "winner": "Up",
+   "late_trades": 3,
+   "winner_taker_buy_usd": 92.33,
+   "winner_taker_sell_usd": 0,
+   "sell_at_or_below_099_usd": 0,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "eth",
+   "epoch": 1789170000,
+   "winner": "Down",
+   "late_trades": 60,
+   "winner_taker_buy_usd": 1257.47,
+   "winner_taker_sell_usd": 57.2,
+   "sell_at_or_below_099_usd": 57.2,
+   "sell_at_or_below_098_usd": 52.25
+  },
+  {
+   "asset": "eth",
+   "epoch": 1789170300,
+   "winner": "Up",
+   "late_trades": 80,
+   "winner_taker_buy_usd": 851.36,
+   "winner_taker_sell_usd": 55.88,
+   "sell_at_or_below_099_usd": 55.88,
+   "sell_at_or_below_098_usd": 15.28
+  },
+  {
+   "asset": "eth",
+   "epoch": 1789170600,
+   "winner": "Up",
+   "late_trades": 14,
+   "winner_taker_buy_usd": 531.44,
+   "winner_taker_sell_usd": 1.98,
+   "sell_at_or_below_099_usd": 1.98,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "eth",
+   "epoch": 1789170900,
+   "winner": "Up",
+   "late_trades": 18,
+   "winner_taker_buy_usd": 364.56,
+   "winner_taker_sell_usd": 141.25,
+   "sell_at_or_below_099_usd": 141.25,
+   "sell_at_or_below_098_usd": 136.3
+  },
+  {
+   "asset": "eth",
+   "epoch": 1789171200,
+   "winner": "Up",
+   "late_trades": 118,
+   "winner_taker_buy_usd": 905.55,
+   "winner_taker_sell_usd": 206.55,
+   "sell_at_or_below_099_usd": 206.55,
+   "sell_at_or_below_098_usd": 202.45
+  },
+  {
+   "asset": "eth",
+   "epoch": 1789171500,
+   "winner": "Down",
+   "late_trades": 1,
+   "winner_taker_buy_usd": 0,
+   "winner_taker_sell_usd": 0,
+   "sell_at_or_below_099_usd": 0,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "eth",
+   "epoch": 1789171800,
+   "winner": "Up",
+   "late_trades": 0,
+   "winner_taker_buy_usd": 0,
+   "winner_taker_sell_usd": 0,
+   "sell_at_or_below_099_usd": 0,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "eth",
+   "epoch": 1789172100,
+   "winner": "Down",
+   "late_trades": 97,
+   "winner_taker_buy_usd": 717.65,
+   "winner_taker_sell_usd": 7.94,
+   "sell_at_or_below_099_usd": 7.94,
+   "sell_at_or_below_098_usd": 7.94
+  },
+  {
+   "asset": "eth",
+   "epoch": 1789172400,
+   "winner": "Down",
+   "late_trades": 119,
+   "winner_taker_buy_usd": 1065.99,
+   "winner_taker_sell_usd": 152.7,
+   "sell_at_or_below_099_usd": 152.7,
+   "sell_at_or_below_098_usd": 9.41
+  },
+  {
+   "asset": "eth",
+   "epoch": 1789172700,
+   "winner": "Down",
+   "late_trades": 81,
+   "winner_taker_buy_usd": 729.0,
+   "winner_taker_sell_usd": 104.8,
+   "sell_at_or_below_099_usd": 104.8,
+   "sell_at_or_below_098_usd": 12.05
+  },
+  {
+   "asset": "eth",
+   "epoch": 1789173000,
+   "winner": "Down",
+   "late_trades": 3,
+   "winner_taker_buy_usd": 49.45,
+   "winner_taker_sell_usd": 4.95,
+   "sell_at_or_below_099_usd": 4.95,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "eth",
+   "epoch": 1789173300,
+   "winner": "Down",
+   "late_trades": 0,
+   "winner_taker_buy_usd": 0,
+   "winner_taker_sell_usd": 0,
+   "sell_at_or_below_099_usd": 0,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "eth",
+   "epoch": 1789173600,
+   "winner": "Down",
+   "late_trades": 87,
+   "winner_taker_buy_usd": 892.86,
+   "winner_taker_sell_usd": 208.0,
+   "sell_at_or_below_099_usd": 208.0,
+   "sell_at_or_below_098_usd": 148.6
+  },
+  {
+   "asset": "eth",
+   "epoch": 1789173900,
+   "winner": "Down",
+   "late_trades": 0,
+   "winner_taker_buy_usd": 0,
+   "winner_taker_sell_usd": 0,
+   "sell_at_or_below_099_usd": 0,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "eth",
+   "epoch": 1789174200,
+   "winner": "Up",
+   "late_trades": 72,
+   "winner_taker_buy_usd": 796.19,
+   "winner_taker_sell_usd": 23.92,
+   "sell_at_or_below_099_usd": 23.92,
+   "sell_at_or_below_098_usd": 4.03
+  },
+  {
+   "asset": "eth",
+   "epoch": 1789174500,
+   "winner": "Down",
+   "late_trades": 18,
+   "winner_taker_buy_usd": 444.59,
+   "winner_taker_sell_usd": 2.11,
+   "sell_at_or_below_099_usd": 2.11,
+   "sell_at_or_below_098_usd": 2.11
+  },
+  {
+   "asset": "eth",
+   "epoch": 1789174800,
+   "winner": "Up",
+   "late_trades": 110,
+   "winner_taker_buy_usd": 745.45,
+   "winner_taker_sell_usd": 41.74,
+   "sell_at_or_below_099_usd": 41.74,
+   "sell_at_or_below_098_usd": 35.75
+  },
+  {
+   "asset": "eth",
+   "epoch": 1789175100,
+   "winner": "Up",
+   "late_trades": 0,
+   "winner_taker_buy_usd": 0,
+   "winner_taker_sell_usd": 0,
+   "sell_at_or_below_099_usd": 0,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "eth",
+   "epoch": 1789175400,
+   "winner": "Up",
+   "late_trades": 177,
+   "winner_taker_buy_usd": 784.04,
+   "winner_taker_sell_usd": 3.69,
+   "sell_at_or_below_099_usd": 3.69,
+   "sell_at_or_below_098_usd": 3.69
+  },
+  {
+   "asset": "eth",
+   "epoch": 1789175700,
+   "winner": "Up",
+   "late_trades": 2,
+   "winner_taker_buy_usd": 0,
+   "winner_taker_sell_usd": 0,
+   "sell_at_or_below_099_usd": 0,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "eth",
+   "epoch": 1789176000,
+   "winner": "Down",
+   "late_trades": 0,
+   "winner_taker_buy_usd": 0,
+   "winner_taker_sell_usd": 0,
+   "sell_at_or_below_099_usd": 0,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "eth",
+   "epoch": 1789176300,
+   "winner": "Down",
+   "late_trades": 44,
+   "winner_taker_buy_usd": 246.41,
+   "winner_taker_sell_usd": 72.82,
+   "sell_at_or_below_099_usd": 70.63,
+   "sell_at_or_below_098_usd": 65.63
+  },
+  {
+   "asset": "eth",
+   "epoch": 1789176600,
+   "winner": "Up",
+   "late_trades": 32,
+   "winner_taker_buy_usd": 858.26,
+   "winner_taker_sell_usd": 10.19,
+   "sell_at_or_below_099_usd": 10.19,
+   "sell_at_or_below_098_usd": 8.06
+  },
+  {
+   "asset": "eth",
+   "epoch": 1789176900,
+   "winner": "Down",
+   "late_trades": 2,
+   "winner_taker_buy_usd": 0,
+   "winner_taker_sell_usd": 2.02,
+   "sell_at_or_below_099_usd": 2.02,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "eth",
+   "epoch": 1789177200,
+   "winner": "Up",
+   "late_trades": 2,
+   "winner_taker_buy_usd": 0,
+   "winner_taker_sell_usd": 12.03,
+   "sell_at_or_below_099_usd": 12.03,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "eth",
+   "epoch": 1789177500,
+   "winner": "Up",
+   "late_trades": 2,
+   "winner_taker_buy_usd": 0,
+   "winner_taker_sell_usd": 5.09,
+   "sell_at_or_below_099_usd": 0,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "eth",
+   "epoch": 1789177800,
+   "winner": "Down",
+   "late_trades": 66,
+   "winner_taker_buy_usd": 1147.88,
+   "winner_taker_sell_usd": 9.35,
+   "sell_at_or_below_099_usd": 9.35,
+   "sell_at_or_below_098_usd": 9.35
+  },
+  {
+   "asset": "eth",
+   "epoch": 1789178100,
+   "winner": "Down",
+   "late_trades": 32,
+   "winner_taker_buy_usd": 713.36,
+   "winner_taker_sell_usd": 7.16,
+   "sell_at_or_below_099_usd": 7.16,
+   "sell_at_or_below_098_usd": 7.16
+  },
+  {
+   "asset": "eth",
+   "epoch": 1789178400,
+   "winner": "Down",
+   "late_trades": 6,
+   "winner_taker_buy_usd": 438.58,
+   "winner_taker_sell_usd": 0,
+   "sell_at_or_below_099_usd": 0,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "eth",
+   "epoch": 1789178700,
+   "winner": "Up",
+   "late_trades": 7,
+   "winner_taker_buy_usd": 51.34,
+   "winner_taker_sell_usd": 39.18,
+   "sell_at_or_below_099_usd": 39.18,
+   "sell_at_or_below_098_usd": 34.23
+  },
+  {
+   "asset": "eth",
+   "epoch": 1789179000,
+   "winner": "Down",
+   "late_trades": 68,
+   "winner_taker_buy_usd": 414.28,
+   "winner_taker_sell_usd": 13.18,
+   "sell_at_or_below_099_usd": 13.18,
+   "sell_at_or_below_098_usd": 12.07
+  },
+  {
+   "asset": "eth",
+   "epoch": 1789179300,
+   "winner": "Down",
+   "late_trades": 23,
+   "winner_taker_buy_usd": 538.7,
+   "winner_taker_sell_usd": 4.0,
+   "sell_at_or_below_099_usd": 4.0,
+   "sell_at_or_below_098_usd": 4.0
+  },
+  {
+   "asset": "eth",
+   "epoch": 1789179600,
+   "winner": "Up",
+   "late_trades": 0,
+   "winner_taker_buy_usd": 0,
+   "winner_taker_sell_usd": 0,
+   "sell_at_or_below_099_usd": 0,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "eth",
+   "epoch": 1789179900,
+   "winner": "Down",
+   "late_trades": 33,
+   "winner_taker_buy_usd": 673.55,
+   "winner_taker_sell_usd": 2.19,
+   "sell_at_or_below_099_usd": 2.19,
+   "sell_at_or_below_098_usd": 2.19
+  },
+  {
+   "asset": "eth",
+   "epoch": 1789180200,
+   "winner": "Down",
+   "late_trades": 98,
+   "winner_taker_buy_usd": 898.54,
+   "winner_taker_sell_usd": 124.49,
+   "sell_at_or_below_099_usd": 124.49,
+   "sell_at_or_below_098_usd": 50.59
+  },
+  {
+   "asset": "eth",
+   "epoch": 1789180500,
+   "winner": "Down",
+   "late_trades": 71,
+   "winner_taker_buy_usd": 655.2,
+   "winner_taker_sell_usd": 4.17,
+   "sell_at_or_below_099_usd": 4.17,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "eth",
+   "epoch": 1789180800,
+   "winner": "Up",
+   "late_trades": 65,
+   "winner_taker_buy_usd": 743.19,
+   "winner_taker_sell_usd": 34.15,
+   "sell_at_or_below_099_usd": 34.15,
+   "sell_at_or_below_098_usd": 29.36
+  },
+  {
+   "asset": "eth",
+   "epoch": 1789181100,
+   "winner": "Up",
+   "late_trades": 20,
+   "winner_taker_buy_usd": 574.33,
+   "winner_taker_sell_usd": 13.13,
+   "sell_at_or_below_099_usd": 13.13,
+   "sell_at_or_below_098_usd": 3.55
+  },
+  {
+   "asset": "eth",
+   "epoch": 1789181400,
+   "winner": "Down",
+   "late_trades": 36,
+   "winner_taker_buy_usd": 645.33,
+   "winner_taker_sell_usd": 3.74,
+   "sell_at_or_below_099_usd": 3.74,
+   "sell_at_or_below_098_usd": 3.74
+  },
+  {
+   "asset": "eth",
+   "epoch": 1789181700,
+   "winner": "Down",
+   "late_trades": 13,
+   "winner_taker_buy_usd": 438.7,
+   "winner_taker_sell_usd": 4.21,
+   "sell_at_or_below_099_usd": 4.21,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "eth",
+   "epoch": 1789182000,
+   "winner": "Up",
+   "late_trades": 6,
+   "winner_taker_buy_usd": 357.21,
+   "winner_taker_sell_usd": 0,
+   "sell_at_or_below_099_usd": 0,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "eth",
+   "epoch": 1789182300,
+   "winner": "Down",
+   "late_trades": 20,
+   "winner_taker_buy_usd": 538.0,
+   "winner_taker_sell_usd": 1.12,
+   "sell_at_or_below_099_usd": 1.12,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "eth",
+   "epoch": 1789182600,
+   "winner": "Down",
+   "late_trades": 108,
+   "winner_taker_buy_usd": 745.0,
+   "winner_taker_sell_usd": 2.04,
+   "sell_at_or_below_099_usd": 2.04,
+   "sell_at_or_below_098_usd": 2.04
+  },
+  {
+   "asset": "eth",
+   "epoch": 1789182900,
+   "winner": "Up",
+   "late_trades": 20,
+   "winner_taker_buy_usd": 496.61,
+   "winner_taker_sell_usd": 21.69,
+   "sell_at_or_below_099_usd": 21.69,
+   "sell_at_or_below_098_usd": 21.69
+  },
+  {
+   "asset": "eth",
+   "epoch": 1789183200,
+   "winner": "Down",
+   "late_trades": 4,
+   "winner_taker_buy_usd": 0,
+   "winner_taker_sell_usd": 25.14,
+   "sell_at_or_below_099_usd": 0,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "eth",
+   "epoch": 1789183500,
+   "winner": "Up",
+   "late_trades": 5,
+   "winner_taker_buy_usd": 398.28,
+   "winner_taker_sell_usd": 2.2,
+   "sell_at_or_below_099_usd": 2.2,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "eth",
+   "epoch": 1789183800,
+   "winner": "Down",
+   "late_trades": 117,
+   "winner_taker_buy_usd": 966.73,
+   "winner_taker_sell_usd": 97.34,
+   "sell_at_or_below_099_usd": 97.34,
+   "sell_at_or_below_098_usd": 31.91
+  },
+  {
+   "asset": "eth",
+   "epoch": 1789184100,
+   "winner": "Down",
+   "late_trades": 29,
+   "winner_taker_buy_usd": 483.42,
+   "winner_taker_sell_usd": 1.48,
+   "sell_at_or_below_099_usd": 1.48,
+   "sell_at_or_below_098_usd": 1.48
+  },
+  {
+   "asset": "eth",
+   "epoch": 1789184400,
+   "winner": "Down",
+   "late_trades": 31,
+   "winner_taker_buy_usd": 572.73,
+   "winner_taker_sell_usd": 3.35,
+   "sell_at_or_below_099_usd": 3.35,
+   "sell_at_or_below_098_usd": 3.03
+  },
+  {
+   "asset": "eth",
+   "epoch": 1789184700,
+   "winner": "Down",
+   "late_trades": 35,
+   "winner_taker_buy_usd": 675.81,
+   "winner_taker_sell_usd": 6.12,
+   "sell_at_or_below_099_usd": 6.12,
+   "sell_at_or_below_098_usd": 6.12
+  },
+  {
+   "asset": "eth",
+   "epoch": 1789185000,
+   "winner": "Up",
+   "late_trades": 5,
+   "winner_taker_buy_usd": 286.21,
+   "winner_taker_sell_usd": 0,
+   "sell_at_or_below_099_usd": 0,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "eth",
+   "epoch": 1789185300,
+   "winner": "Up",
+   "late_trades": 101,
+   "winner_taker_buy_usd": 1039.83,
+   "winner_taker_sell_usd": 21.58,
+   "sell_at_or_below_099_usd": 21.58,
+   "sell_at_or_below_098_usd": 4.08
+  },
+  {
+   "asset": "eth",
+   "epoch": 1789185600,
+   "winner": "Down",
+   "late_trades": 40,
+   "winner_taker_buy_usd": 799.51,
+   "winner_taker_sell_usd": 33.72,
+   "sell_at_or_below_099_usd": 12.74,
+   "sell_at_or_below_098_usd": 12.74
+  },
+  {
+   "asset": "eth",
+   "epoch": 1789185900,
+   "winner": "Up",
+   "late_trades": 95,
+   "winner_taker_buy_usd": 1446.72,
+   "winner_taker_sell_usd": 4.64,
+   "sell_at_or_below_099_usd": 4.64,
+   "sell_at_or_below_098_usd": 4.64
+  },
+  {
+   "asset": "eth",
+   "epoch": 1789186200,
+   "winner": "Down",
+   "late_trades": 155,
+   "winner_taker_buy_usd": 897.45,
+   "winner_taker_sell_usd": 6.55,
+   "sell_at_or_below_099_usd": 6.55,
+   "sell_at_or_below_098_usd": 6.55
+  },
+  {
+   "asset": "eth",
+   "epoch": 1789186500,
+   "winner": "Down",
+   "late_trades": 0,
+   "winner_taker_buy_usd": 0,
+   "winner_taker_sell_usd": 0,
+   "sell_at_or_below_099_usd": 0,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "eth",
+   "epoch": 1789186800,
+   "winner": "Up",
+   "late_trades": 89,
+   "winner_taker_buy_usd": 1089.72,
+   "winner_taker_sell_usd": 14.13,
+   "sell_at_or_below_099_usd": 14.13,
+   "sell_at_or_below_098_usd": 14.13
+  },
+  {
+   "asset": "eth",
+   "epoch": 1789187100,
+   "winner": "Up",
+   "late_trades": 25,
+   "winner_taker_buy_usd": 420.45,
+   "winner_taker_sell_usd": 19.82,
+   "sell_at_or_below_099_usd": 19.82,
+   "sell_at_or_below_098_usd": 18.49
+  },
+  {
+   "asset": "eth",
+   "epoch": 1789187400,
+   "winner": "Up",
+   "late_trades": 3,
+   "winner_taker_buy_usd": 14.98,
+   "winner_taker_sell_usd": 0,
+   "sell_at_or_below_099_usd": 0,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "eth",
+   "epoch": 1789187700,
+   "winner": "Up",
+   "late_trades": 1,
+   "winner_taker_buy_usd": 0,
+   "winner_taker_sell_usd": 1.52,
+   "sell_at_or_below_099_usd": 1.52,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "eth",
+   "epoch": 1789188000,
+   "winner": "Down",
+   "late_trades": 1,
+   "winner_taker_buy_usd": 0,
+   "winner_taker_sell_usd": 5.6,
+   "sell_at_or_below_099_usd": 5.6,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "eth",
+   "epoch": 1789188300,
+   "winner": "Up",
+   "late_trades": 62,
+   "winner_taker_buy_usd": 884.08,
+   "winner_taker_sell_usd": 34.04,
+   "sell_at_or_below_099_usd": 34.04,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "eth",
+   "epoch": 1789188600,
+   "winner": "Down",
+   "late_trades": 8,
+   "winner_taker_buy_usd": 361.21,
+   "winner_taker_sell_usd": 40.22,
+   "sell_at_or_below_099_usd": 40.22,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "eth",
+   "epoch": 1789188900,
+   "winner": "Up",
+   "late_trades": 45,
+   "winner_taker_buy_usd": 722.92,
+   "winner_taker_sell_usd": 4.49,
+   "sell_at_or_below_099_usd": 4.49,
+   "sell_at_or_below_098_usd": 4.49
+  },
+  {
+   "asset": "eth",
+   "epoch": 1789189200,
+   "winner": "Down",
+   "late_trades": 36,
+   "winner_taker_buy_usd": 621.03,
+   "winner_taker_sell_usd": 2.48,
+   "sell_at_or_below_099_usd": 2.48,
+   "sell_at_or_below_098_usd": 2.48
+  },
+  {
+   "asset": "eth",
+   "epoch": 1789189500,
+   "winner": "Down",
+   "late_trades": 37,
+   "winner_taker_buy_usd": 545.55,
+   "winner_taker_sell_usd": 50.68,
+   "sell_at_or_below_099_usd": 0,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "sol",
+   "epoch": 1789129800,
+   "winner": "Up",
+   "late_trades": 14,
+   "winner_taker_buy_usd": 168.82,
+   "winner_taker_sell_usd": 17.77,
+   "sell_at_or_below_099_usd": 17.77,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "sol",
+   "epoch": 1789130100,
+   "winner": "Up",
+   "late_trades": 0,
+   "winner_taker_buy_usd": 0,
+   "winner_taker_sell_usd": 0,
+   "sell_at_or_below_099_usd": 0,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "sol",
+   "epoch": 1789130400,
+   "winner": "Down",
+   "late_trades": 32,
+   "winner_taker_buy_usd": 335.08,
+   "winner_taker_sell_usd": 12.22,
+   "sell_at_or_below_099_usd": 12.22,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "sol",
+   "epoch": 1789130700,
+   "winner": "Up",
+   "late_trades": 0,
+   "winner_taker_buy_usd": 0,
+   "winner_taker_sell_usd": 0,
+   "sell_at_or_below_099_usd": 0,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "sol",
+   "epoch": 1789131000,
+   "winner": "Up",
+   "late_trades": 0,
+   "winner_taker_buy_usd": 0,
+   "winner_taker_sell_usd": 0,
+   "sell_at_or_below_099_usd": 0,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "sol",
+   "epoch": 1789131300,
+   "winner": "Down",
+   "late_trades": 34,
+   "winner_taker_buy_usd": 292.86,
+   "winner_taker_sell_usd": 0,
+   "sell_at_or_below_099_usd": 0,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "sol",
+   "epoch": 1789131600,
+   "winner": "Down",
+   "late_trades": 0,
+   "winner_taker_buy_usd": 0,
+   "winner_taker_sell_usd": 0,
+   "sell_at_or_below_099_usd": 0,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "sol",
+   "epoch": 1789131900,
+   "winner": "Down",
+   "late_trades": 54,
+   "winner_taker_buy_usd": 435.4,
+   "winner_taker_sell_usd": 43.29,
+   "sell_at_or_below_099_usd": 43.29,
+   "sell_at_or_below_098_usd": 6.23
+  },
+  {
+   "asset": "sol",
+   "epoch": 1789132200,
+   "winner": "Up",
+   "late_trades": 0,
+   "winner_taker_buy_usd": 0,
+   "winner_taker_sell_usd": 0,
+   "sell_at_or_below_099_usd": 0,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "sol",
+   "epoch": 1789132500,
+   "winner": "Down",
+   "late_trades": 21,
+   "winner_taker_buy_usd": 258.32,
+   "winner_taker_sell_usd": 0,
+   "sell_at_or_below_099_usd": 0,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "sol",
+   "epoch": 1789132800,
+   "winner": "Up",
+   "late_trades": 15,
+   "winner_taker_buy_usd": 195.82,
+   "winner_taker_sell_usd": 0,
+   "sell_at_or_below_099_usd": 0,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "sol",
+   "epoch": 1789133100,
+   "winner": "Down",
+   "late_trades": 0,
+   "winner_taker_buy_usd": 0,
+   "winner_taker_sell_usd": 0,
+   "sell_at_or_below_099_usd": 0,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "sol",
+   "epoch": 1789133400,
+   "winner": "Down",
+   "late_trades": 2,
+   "winner_taker_buy_usd": 0,
+   "winner_taker_sell_usd": 0,
+   "sell_at_or_below_099_usd": 0,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "sol",
+   "epoch": 1789133700,
+   "winner": "Up",
+   "late_trades": 21,
+   "winner_taker_buy_usd": 235.14,
+   "winner_taker_sell_usd": 69.92,
+   "sell_at_or_below_099_usd": 69.92,
+   "sell_at_or_below_098_usd": 62.33
+  },
+  {
+   "asset": "sol",
+   "epoch": 1789134000,
+   "winner": "Up",
+   "late_trades": 1,
+   "winner_taker_buy_usd": 0,
+   "winner_taker_sell_usd": 0,
+   "sell_at_or_below_099_usd": 0,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "sol",
+   "epoch": 1789134300,
+   "winner": "Up",
+   "late_trades": 1,
+   "winner_taker_buy_usd": 0,
+   "winner_taker_sell_usd": 0,
+   "sell_at_or_below_099_usd": 0,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "sol",
+   "epoch": 1789134600,
+   "winner": "Up",
+   "late_trades": 0,
+   "winner_taker_buy_usd": 0,
+   "winner_taker_sell_usd": 0,
+   "sell_at_or_below_099_usd": 0,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "sol",
+   "epoch": 1789134900,
+   "winner": "Up",
+   "late_trades": 0,
+   "winner_taker_buy_usd": 0,
+   "winner_taker_sell_usd": 0,
+   "sell_at_or_below_099_usd": 0,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "sol",
+   "epoch": 1789135200,
+   "winner": "Up",
+   "late_trades": 16,
+   "winner_taker_buy_usd": 71.81,
+   "winner_taker_sell_usd": 0,
+   "sell_at_or_below_099_usd": 0,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "sol",
+   "epoch": 1789135500,
+   "winner": "Down",
+   "late_trades": 0,
+   "winner_taker_buy_usd": 0,
+   "winner_taker_sell_usd": 0,
+   "sell_at_or_below_099_usd": 0,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "sol",
+   "epoch": 1789135800,
+   "winner": "Down",
+   "late_trades": 43,
+   "winner_taker_buy_usd": 270.09,
+   "winner_taker_sell_usd": 7.36,
+   "sell_at_or_below_099_usd": 7.36,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "sol",
+   "epoch": 1789136100,
+   "winner": "Down",
+   "late_trades": 19,
+   "winner_taker_buy_usd": 120.1,
+   "winner_taker_sell_usd": 4.95,
+   "sell_at_or_below_099_usd": 4.95,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "sol",
+   "epoch": 1789136400,
+   "winner": "Down",
+   "late_trades": 40,
+   "winner_taker_buy_usd": 226.0,
+   "winner_taker_sell_usd": 50.61,
+   "sell_at_or_below_099_usd": 50.61,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "sol",
+   "epoch": 1789136700,
+   "winner": "Up",
+   "late_trades": 37,
+   "winner_taker_buy_usd": 277.95,
+   "winner_taker_sell_usd": 0.24,
+   "sell_at_or_below_099_usd": 0.24,
+   "sell_at_or_below_098_usd": 0.24
+  },
+  {
+   "asset": "sol",
+   "epoch": 1789137000,
+   "winner": "Down",
+   "late_trades": 0,
+   "winner_taker_buy_usd": 0,
+   "winner_taker_sell_usd": 0,
+   "sell_at_or_below_099_usd": 0,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "sol",
+   "epoch": 1789137300,
+   "winner": "Down",
+   "late_trades": 23,
+   "winner_taker_buy_usd": 220.17,
+   "winner_taker_sell_usd": 60.11,
+   "sell_at_or_below_099_usd": 60.11,
+   "sell_at_or_below_098_usd": 60.11
+  },
+  {
+   "asset": "sol",
+   "epoch": 1789137600,
+   "winner": "Down",
+   "late_trades": 17,
+   "winner_taker_buy_usd": 302.0,
+   "winner_taker_sell_usd": 36.29,
+   "sell_at_or_below_099_usd": 36.29,
+   "sell_at_or_below_098_usd": 9.69
+  },
+  {
+   "asset": "sol",
+   "epoch": 1789137900,
+   "winner": "Down",
+   "late_trades": 16,
+   "winner_taker_buy_usd": 90.54,
+   "winner_taker_sell_usd": 33.28,
+   "sell_at_or_below_099_usd": 33.28,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "sol",
+   "epoch": 1789138200,
+   "winner": "Up",
+   "late_trades": 0,
+   "winner_taker_buy_usd": 0,
+   "winner_taker_sell_usd": 0,
+   "sell_at_or_below_099_usd": 0,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "sol",
+   "epoch": 1789138500,
+   "winner": "Down",
+   "late_trades": 17,
+   "winner_taker_buy_usd": 231.84,
+   "winner_taker_sell_usd": 9.26,
+   "sell_at_or_below_099_usd": 9.26,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "sol",
+   "epoch": 1789138800,
+   "winner": "Down",
+   "late_trades": 24,
+   "winner_taker_buy_usd": 300.46,
+   "winner_taker_sell_usd": 4.95,
+   "sell_at_or_below_099_usd": 4.95,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "sol",
+   "epoch": 1789139100,
+   "winner": "Down",
+   "late_trades": 36,
+   "winner_taker_buy_usd": 406.06,
+   "winner_taker_sell_usd": 45.92,
+   "sell_at_or_below_099_usd": 45.92,
+   "sell_at_or_below_098_usd": 20.68
+  },
+  {
+   "asset": "sol",
+   "epoch": 1789139400,
+   "winner": "Down",
+   "late_trades": 13,
+   "winner_taker_buy_usd": 173.66,
+   "winner_taker_sell_usd": 4.95,
+   "sell_at_or_below_099_usd": 4.95,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "sol",
+   "epoch": 1789139700,
+   "winner": "Up",
+   "late_trades": 30,
+   "winner_taker_buy_usd": 197.76,
+   "winner_taker_sell_usd": 87.28,
+   "sell_at_or_below_099_usd": 87.28,
+   "sell_at_or_below_098_usd": 40.16
+  },
+  {
+   "asset": "sol",
+   "epoch": 1789140000,
+   "winner": "Up",
+   "late_trades": 0,
+   "winner_taker_buy_usd": 0,
+   "winner_taker_sell_usd": 0,
+   "sell_at_or_below_099_usd": 0,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "sol",
+   "epoch": 1789140300,
+   "winner": "Up",
+   "late_trades": 25,
+   "winner_taker_buy_usd": 226.29,
+   "winner_taker_sell_usd": 1.54,
+   "sell_at_or_below_099_usd": 1.54,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "sol",
+   "epoch": 1789140600,
+   "winner": "Up",
+   "late_trades": 2,
+   "winner_taker_buy_usd": 0,
+   "winner_taker_sell_usd": 30.69,
+   "sell_at_or_below_099_usd": 30.69,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "sol",
+   "epoch": 1789140900,
+   "winner": "Down",
+   "late_trades": 17,
+   "winner_taker_buy_usd": 209.98,
+   "winner_taker_sell_usd": 0,
+   "sell_at_or_below_099_usd": 0,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "sol",
+   "epoch": 1789141200,
+   "winner": "Down",
+   "late_trades": 0,
+   "winner_taker_buy_usd": 0,
+   "winner_taker_sell_usd": 0,
+   "sell_at_or_below_099_usd": 0,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "sol",
+   "epoch": 1789141500,
+   "winner": "Down",
+   "late_trades": 18,
+   "winner_taker_buy_usd": 209.86,
+   "winner_taker_sell_usd": 15.84,
+   "sell_at_or_below_099_usd": 15.84,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "sol",
+   "epoch": 1789141800,
+   "winner": "Down",
+   "late_trades": 1,
+   "winner_taker_buy_usd": 0,
+   "winner_taker_sell_usd": 8.99,
+   "sell_at_or_below_099_usd": 0,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "sol",
+   "epoch": 1789142100,
+   "winner": "Down",
+   "late_trades": 14,
+   "winner_taker_buy_usd": 144.4,
+   "winner_taker_sell_usd": 6.65,
+   "sell_at_or_below_099_usd": 6.65,
+   "sell_at_or_below_098_usd": 2.0
+  },
+  {
+   "asset": "sol",
+   "epoch": 1789142400,
+   "winner": "Up",
+   "late_trades": 0,
+   "winner_taker_buy_usd": 0,
+   "winner_taker_sell_usd": 0,
+   "sell_at_or_below_099_usd": 0,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "sol",
+   "epoch": 1789142700,
+   "winner": "Up",
+   "late_trades": 11,
+   "winner_taker_buy_usd": 116.19,
+   "winner_taker_sell_usd": 0,
+   "sell_at_or_below_099_usd": 0,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "sol",
+   "epoch": 1789143000,
+   "winner": "Down",
+   "late_trades": 9,
+   "winner_taker_buy_usd": 187.84,
+   "winner_taker_sell_usd": 0,
+   "sell_at_or_below_099_usd": 0,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "sol",
+   "epoch": 1789143300,
+   "winner": "Down",
+   "late_trades": 5,
+   "winner_taker_buy_usd": 4.95,
+   "winner_taker_sell_usd": 0,
+   "sell_at_or_below_099_usd": 0,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "sol",
+   "epoch": 1789143600,
+   "winner": "Down",
+   "late_trades": 0,
+   "winner_taker_buy_usd": 0,
+   "winner_taker_sell_usd": 0,
+   "sell_at_or_below_099_usd": 0,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "sol",
+   "epoch": 1789143900,
+   "winner": "Up",
+   "late_trades": 0,
+   "winner_taker_buy_usd": 0,
+   "winner_taker_sell_usd": 0,
+   "sell_at_or_below_099_usd": 0,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "sol",
+   "epoch": 1789144200,
+   "winner": "Up",
+   "late_trades": 0,
+   "winner_taker_buy_usd": 0,
+   "winner_taker_sell_usd": 0,
+   "sell_at_or_below_099_usd": 0,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "sol",
+   "epoch": 1789144500,
+   "winner": "Down",
+   "late_trades": 0,
+   "winner_taker_buy_usd": 0,
+   "winner_taker_sell_usd": 0,
+   "sell_at_or_below_099_usd": 0,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "sol",
+   "epoch": 1789144800,
+   "winner": "Up",
+   "late_trades": 0,
+   "winner_taker_buy_usd": 0,
+   "winner_taker_sell_usd": 0,
+   "sell_at_or_below_099_usd": 0,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "sol",
+   "epoch": 1789145100,
+   "winner": "Up",
+   "late_trades": 0,
+   "winner_taker_buy_usd": 0,
+   "winner_taker_sell_usd": 0,
+   "sell_at_or_below_099_usd": 0,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "sol",
+   "epoch": 1789145400,
+   "winner": "Down",
+   "late_trades": 17,
+   "winner_taker_buy_usd": 169.79,
+   "winner_taker_sell_usd": 0,
+   "sell_at_or_below_099_usd": 0,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "sol",
+   "epoch": 1789145700,
+   "winner": "Up",
+   "late_trades": 1,
+   "winner_taker_buy_usd": 0,
+   "winner_taker_sell_usd": 1.07,
+   "sell_at_or_below_099_usd": 1.07,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "sol",
+   "epoch": 1789146000,
+   "winner": "Down",
+   "late_trades": 25,
+   "winner_taker_buy_usd": 265.75,
+   "winner_taker_sell_usd": 2.16,
+   "sell_at_or_below_099_usd": 2.16,
+   "sell_at_or_below_098_usd": 2.16
+  },
+  {
+   "asset": "sol",
+   "epoch": 1789146300,
+   "winner": "Down",
+   "late_trades": 72,
+   "winner_taker_buy_usd": 353.34,
+   "winner_taker_sell_usd": 16.99,
+   "sell_at_or_below_099_usd": 16.99,
+   "sell_at_or_below_098_usd": 16.99
+  },
+  {
+   "asset": "sol",
+   "epoch": 1789146600,
+   "winner": "Down",
+   "late_trades": 11,
+   "winner_taker_buy_usd": 98.72,
+   "winner_taker_sell_usd": 0,
+   "sell_at_or_below_099_usd": 0,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "sol",
+   "epoch": 1789146900,
+   "winner": "Up",
+   "late_trades": 16,
+   "winner_taker_buy_usd": 115.84,
+   "winner_taker_sell_usd": 43.5,
+   "sell_at_or_below_099_usd": 43.5,
+   "sell_at_or_below_098_usd": 36.61
+  },
+  {
+   "asset": "sol",
+   "epoch": 1789147200,
+   "winner": "Up",
+   "late_trades": 18,
+   "winner_taker_buy_usd": 243.22,
+   "winner_taker_sell_usd": 0,
+   "sell_at_or_below_099_usd": 0,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "sol",
+   "epoch": 1789147500,
+   "winner": "Up",
+   "late_trades": 59,
+   "winner_taker_buy_usd": 503.45,
+   "winner_taker_sell_usd": 11.52,
+   "sell_at_or_below_099_usd": 11.52,
+   "sell_at_or_below_098_usd": 11.52
+  },
+  {
+   "asset": "sol",
+   "epoch": 1789147800,
+   "winner": "Up",
+   "late_trades": 25,
+   "winner_taker_buy_usd": 217.84,
+   "winner_taker_sell_usd": 29.16,
+   "sell_at_or_below_099_usd": 29.16,
+   "sell_at_or_below_098_usd": 29.16
+  },
+  {
+   "asset": "sol",
+   "epoch": 1789148100,
+   "winner": "Down",
+   "late_trades": 0,
+   "winner_taker_buy_usd": 0,
+   "winner_taker_sell_usd": 0,
+   "sell_at_or_below_099_usd": 0,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "sol",
+   "epoch": 1789148400,
+   "winner": "Up",
+   "late_trades": 9,
+   "winner_taker_buy_usd": 47.41,
+   "winner_taker_sell_usd": 0,
+   "sell_at_or_below_099_usd": 0,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "sol",
+   "epoch": 1789148700,
+   "winner": "Down",
+   "late_trades": 32,
+   "winner_taker_buy_usd": 271.48,
+   "winner_taker_sell_usd": 24.69,
+   "sell_at_or_below_099_usd": 24.69,
+   "sell_at_or_below_098_usd": 24.69
+  },
+  {
+   "asset": "sol",
+   "epoch": 1789149000,
+   "winner": "Down",
+   "late_trades": 7,
+   "winner_taker_buy_usd": 49.48,
+   "winner_taker_sell_usd": 0,
+   "sell_at_or_below_099_usd": 0,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "sol",
+   "epoch": 1789149300,
+   "winner": "Down",
+   "late_trades": 30,
+   "winner_taker_buy_usd": 250.69,
+   "winner_taker_sell_usd": 4.89,
+   "sell_at_or_below_099_usd": 4.89,
+   "sell_at_or_below_098_usd": 4.89
+  },
+  {
+   "asset": "sol",
+   "epoch": 1789149600,
+   "winner": "Down",
+   "late_trades": 1,
+   "winner_taker_buy_usd": 0,
+   "winner_taker_sell_usd": 4.95,
+   "sell_at_or_below_099_usd": 4.95,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "sol",
+   "epoch": 1789149900,
+   "winner": "Down",
+   "late_trades": 0,
+   "winner_taker_buy_usd": 0,
+   "winner_taker_sell_usd": 0,
+   "sell_at_or_below_099_usd": 0,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "sol",
+   "epoch": 1789150200,
+   "winner": "Down",
+   "late_trades": 27,
+   "winner_taker_buy_usd": 356.56,
+   "winner_taker_sell_usd": 7.13,
+   "sell_at_or_below_099_usd": 7.13,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "sol",
+   "epoch": 1789150500,
+   "winner": "Up",
+   "late_trades": 0,
+   "winner_taker_buy_usd": 0,
+   "winner_taker_sell_usd": 0,
+   "sell_at_or_below_099_usd": 0,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "sol",
+   "epoch": 1789150800,
+   "winner": "Down",
+   "late_trades": 1,
+   "winner_taker_buy_usd": 0,
+   "winner_taker_sell_usd": 0,
+   "sell_at_or_below_099_usd": 0,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "sol",
+   "epoch": 1789151100,
+   "winner": "Up",
+   "late_trades": 12,
+   "winner_taker_buy_usd": 108.01,
+   "winner_taker_sell_usd": 28.25,
+   "sell_at_or_below_099_usd": 28.25,
+   "sell_at_or_below_098_usd": 2.03
+  },
+  {
+   "asset": "sol",
+   "epoch": 1789151400,
+   "winner": "Up",
+   "late_trades": 35,
+   "winner_taker_buy_usd": 165.56,
+   "winner_taker_sell_usd": 19.97,
+   "sell_at_or_below_099_usd": 19.97,
+   "sell_at_or_below_098_usd": 19.97
+  },
+  {
+   "asset": "sol",
+   "epoch": 1789151700,
+   "winner": "Down",
+   "late_trades": 3,
+   "winner_taker_buy_usd": 119.17,
+   "winner_taker_sell_usd": 0,
+   "sell_at_or_below_099_usd": 0,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "sol",
+   "epoch": 1789152000,
+   "winner": "Down",
+   "late_trades": 79,
+   "winner_taker_buy_usd": 594.15,
+   "winner_taker_sell_usd": 86.02,
+   "sell_at_or_below_099_usd": 86.02,
+   "sell_at_or_below_098_usd": 4.04
+  },
+  {
+   "asset": "sol",
+   "epoch": 1789152300,
+   "winner": "Down",
+   "late_trades": 1,
+   "winner_taker_buy_usd": 0,
+   "winner_taker_sell_usd": 4.95,
+   "sell_at_or_below_099_usd": 4.95,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "sol",
+   "epoch": 1789152600,
+   "winner": "Down",
+   "late_trades": 0,
+   "winner_taker_buy_usd": 0,
+   "winner_taker_sell_usd": 0,
+   "sell_at_or_below_099_usd": 0,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "sol",
+   "epoch": 1789152900,
+   "winner": "Up",
+   "late_trades": 1,
+   "winner_taker_buy_usd": 0,
+   "winner_taker_sell_usd": 0,
+   "sell_at_or_below_099_usd": 0,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "sol",
+   "epoch": 1789153200,
+   "winner": "Up",
+   "late_trades": 24,
+   "winner_taker_buy_usd": 200.16,
+   "winner_taker_sell_usd": 16.3,
+   "sell_at_or_below_099_usd": 16.3,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "sol",
+   "epoch": 1789153500,
+   "winner": "Up",
+   "late_trades": 2,
+   "winner_taker_buy_usd": 0,
+   "winner_taker_sell_usd": 0,
+   "sell_at_or_below_099_usd": 0,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "sol",
+   "epoch": 1789153800,
+   "winner": "Down",
+   "late_trades": 21,
+   "winner_taker_buy_usd": 172.02,
+   "winner_taker_sell_usd": 59.35,
+   "sell_at_or_below_099_usd": 59.35,
+   "sell_at_or_below_098_usd": 2.96
+  },
+  {
+   "asset": "sol",
+   "epoch": 1789154100,
+   "winner": "Down",
+   "late_trades": 19,
+   "winner_taker_buy_usd": 278.12,
+   "winner_taker_sell_usd": 0,
+   "sell_at_or_below_099_usd": 0,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "sol",
+   "epoch": 1789154400,
+   "winner": "Up",
+   "late_trades": 1,
+   "winner_taker_buy_usd": 0,
+   "winner_taker_sell_usd": 0,
+   "sell_at_or_below_099_usd": 0,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "sol",
+   "epoch": 1789154700,
+   "winner": "Up",
+   "late_trades": 0,
+   "winner_taker_buy_usd": 0,
+   "winner_taker_sell_usd": 0,
+   "sell_at_or_below_099_usd": 0,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "sol",
+   "epoch": 1789155000,
+   "winner": "Up",
+   "late_trades": 55,
+   "winner_taker_buy_usd": 354.32,
+   "winner_taker_sell_usd": 42.33,
+   "sell_at_or_below_099_usd": 42.33,
+   "sell_at_or_below_098_usd": 42.33
+  },
+  {
+   "asset": "sol",
+   "epoch": 1789155300,
+   "winner": "Up",
+   "late_trades": 67,
+   "winner_taker_buy_usd": 576.36,
+   "winner_taker_sell_usd": 34.86,
+   "sell_at_or_below_099_usd": 34.86,
+   "sell_at_or_below_098_usd": 34.86
+  },
+  {
+   "asset": "sol",
+   "epoch": 1789155600,
+   "winner": "Up",
+   "late_trades": 11,
+   "winner_taker_buy_usd": 223.06,
+   "winner_taker_sell_usd": 0,
+   "sell_at_or_below_099_usd": 0,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "sol",
+   "epoch": 1789155900,
+   "winner": "Up",
+   "late_trades": 30,
+   "winner_taker_buy_usd": 345.45,
+   "winner_taker_sell_usd": 17.46,
+   "sell_at_or_below_099_usd": 17.46,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "sol",
+   "epoch": 1789156200,
+   "winner": "Up",
+   "late_trades": 1,
+   "winner_taker_buy_usd": 0,
+   "winner_taker_sell_usd": 0,
+   "sell_at_or_below_099_usd": 0,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "sol",
+   "epoch": 1789156500,
+   "winner": "Up",
+   "late_trades": 9,
+   "winner_taker_buy_usd": 257.85,
+   "winner_taker_sell_usd": 0,
+   "sell_at_or_below_099_usd": 0,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "sol",
+   "epoch": 1789156800,
+   "winner": "Up",
+   "late_trades": 1,
+   "winner_taker_buy_usd": 0,
+   "winner_taker_sell_usd": 0,
+   "sell_at_or_below_099_usd": 0,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "sol",
+   "epoch": 1789157100,
+   "winner": "Up",
+   "late_trades": 1,
+   "winner_taker_buy_usd": 0,
+   "winner_taker_sell_usd": 0,
+   "sell_at_or_below_099_usd": 0,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "sol",
+   "epoch": 1789157400,
+   "winner": "Up",
+   "late_trades": 0,
+   "winner_taker_buy_usd": 0,
+   "winner_taker_sell_usd": 0,
+   "sell_at_or_below_099_usd": 0,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "sol",
+   "epoch": 1789157700,
+   "winner": "Down",
+   "late_trades": 4,
+   "winner_taker_buy_usd": 42.51,
+   "winner_taker_sell_usd": 45.84,
+   "sell_at_or_below_099_usd": 45.84,
+   "sell_at_or_below_098_usd": 45.84
+  },
+  {
+   "asset": "sol",
+   "epoch": 1789158000,
+   "winner": "Down",
+   "late_trades": 15,
+   "winner_taker_buy_usd": 166.76,
+   "winner_taker_sell_usd": 29.86,
+   "sell_at_or_below_099_usd": 29.86,
+   "sell_at_or_below_098_usd": 15.25
+  },
+  {
+   "asset": "sol",
+   "epoch": 1789158300,
+   "winner": "Down",
+   "late_trades": 31,
+   "winner_taker_buy_usd": 248.58,
+   "winner_taker_sell_usd": 1.1,
+   "sell_at_or_below_099_usd": 1.1,
+   "sell_at_or_below_098_usd": 1.1
+  },
+  {
+   "asset": "sol",
+   "epoch": 1789158600,
+   "winner": "Down",
+   "late_trades": 21,
+   "winner_taker_buy_usd": 307.86,
+   "winner_taker_sell_usd": 5.46,
+   "sell_at_or_below_099_usd": 5.46,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "sol",
+   "epoch": 1789158900,
+   "winner": "Up",
+   "late_trades": 0,
+   "winner_taker_buy_usd": 0,
+   "winner_taker_sell_usd": 0,
+   "sell_at_or_below_099_usd": 0,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "sol",
+   "epoch": 1789159200,
+   "winner": "Down",
+   "late_trades": 9,
+   "winner_taker_buy_usd": 208.29,
+   "winner_taker_sell_usd": 0,
+   "sell_at_or_below_099_usd": 0,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "sol",
+   "epoch": 1789159500,
+   "winner": "Down",
+   "late_trades": 0,
+   "winner_taker_buy_usd": 0,
+   "winner_taker_sell_usd": 0,
+   "sell_at_or_below_099_usd": 0,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "sol",
+   "epoch": 1789159800,
+   "winner": "Down",
+   "late_trades": 41,
+   "winner_taker_buy_usd": 287.96,
+   "winner_taker_sell_usd": 4.65,
+   "sell_at_or_below_099_usd": 4.65,
+   "sell_at_or_below_098_usd": 4.65
+  },
+  {
+   "asset": "sol",
+   "epoch": 1789160100,
+   "winner": "Up",
+   "late_trades": 0,
+   "winner_taker_buy_usd": 0,
+   "winner_taker_sell_usd": 0,
+   "sell_at_or_below_099_usd": 0,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "sol",
+   "epoch": 1789160400,
+   "winner": "Down",
+   "late_trades": 46,
+   "winner_taker_buy_usd": 239.98,
+   "winner_taker_sell_usd": 61.8,
+   "sell_at_or_below_099_usd": 61.8,
+   "sell_at_or_below_098_usd": 61.8
+  },
+  {
+   "asset": "sol",
+   "epoch": 1789160700,
+   "winner": "Up",
+   "late_trades": 0,
+   "winner_taker_buy_usd": 0,
+   "winner_taker_sell_usd": 0,
+   "sell_at_or_below_099_usd": 0,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "sol",
+   "epoch": 1789161000,
+   "winner": "Down",
+   "late_trades": 2,
+   "winner_taker_buy_usd": 0,
+   "winner_taker_sell_usd": 0,
+   "sell_at_or_below_099_usd": 0,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "sol",
+   "epoch": 1789161300,
+   "winner": "Up",
+   "late_trades": 0,
+   "winner_taker_buy_usd": 0,
+   "winner_taker_sell_usd": 0,
+   "sell_at_or_below_099_usd": 0,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "sol",
+   "epoch": 1789161600,
+   "winner": "Up",
+   "late_trades": 2,
+   "winner_taker_buy_usd": 0,
+   "winner_taker_sell_usd": 0,
+   "sell_at_or_below_099_usd": 0,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "sol",
+   "epoch": 1789161900,
+   "winner": "Down",
+   "late_trades": 10,
+   "winner_taker_buy_usd": 78.85,
+   "winner_taker_sell_usd": 151.28,
+   "sell_at_or_below_099_usd": 151.28,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "sol",
+   "epoch": 1789162200,
+   "winner": "Down",
+   "late_trades": 89,
+   "winner_taker_buy_usd": 725.06,
+   "winner_taker_sell_usd": 53.24,
+   "sell_at_or_below_099_usd": 53.24,
+   "sell_at_or_below_098_usd": 6.49
+  },
+  {
+   "asset": "sol",
+   "epoch": 1789162500,
+   "winner": "Down",
+   "late_trades": 77,
+   "winner_taker_buy_usd": 942.87,
+   "winner_taker_sell_usd": 72.67,
+   "sell_at_or_below_099_usd": 72.67,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "sol",
+   "epoch": 1789162800,
+   "winner": "Down",
+   "late_trades": 25,
+   "winner_taker_buy_usd": 354.26,
+   "winner_taker_sell_usd": 70.57,
+   "sell_at_or_below_099_usd": 70.57,
+   "sell_at_or_below_098_usd": 68.53
+  },
+  {
+   "asset": "sol",
+   "epoch": 1789163100,
+   "winner": "Down",
+   "late_trades": 1,
+   "winner_taker_buy_usd": 0,
+   "winner_taker_sell_usd": 0,
+   "sell_at_or_below_099_usd": 0,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "sol",
+   "epoch": 1789163400,
+   "winner": "Down",
+   "late_trades": 0,
+   "winner_taker_buy_usd": 0,
+   "winner_taker_sell_usd": 0,
+   "sell_at_or_below_099_usd": 0,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "sol",
+   "epoch": 1789163700,
+   "winner": "Down",
+   "late_trades": 1,
+   "winner_taker_buy_usd": 0,
+   "winner_taker_sell_usd": 0,
+   "sell_at_or_below_099_usd": 0,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "sol",
+   "epoch": 1789164000,
+   "winner": "Up",
+   "late_trades": 9,
+   "winner_taker_buy_usd": 132.73,
+   "winner_taker_sell_usd": 309.83,
+   "sell_at_or_below_099_usd": 309.83,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "sol",
+   "epoch": 1789164300,
+   "winner": "Down",
+   "late_trades": 0,
+   "winner_taker_buy_usd": 0,
+   "winner_taker_sell_usd": 0,
+   "sell_at_or_below_099_usd": 0,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "sol",
+   "epoch": 1789164600,
+   "winner": "Up",
+   "late_trades": 2,
+   "winner_taker_buy_usd": 0,
+   "winner_taker_sell_usd": 4.56,
+   "sell_at_or_below_099_usd": 4.56,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "sol",
+   "epoch": 1789164900,
+   "winner": "Down",
+   "late_trades": 1,
+   "winner_taker_buy_usd": 0,
+   "winner_taker_sell_usd": 0,
+   "sell_at_or_below_099_usd": 0,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "sol",
+   "epoch": 1789165200,
+   "winner": "Up",
+   "late_trades": 0,
+   "winner_taker_buy_usd": 0,
+   "winner_taker_sell_usd": 0,
+   "sell_at_or_below_099_usd": 0,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "sol",
+   "epoch": 1789165500,
+   "winner": "Down",
+   "late_trades": 1,
+   "winner_taker_buy_usd": 0,
+   "winner_taker_sell_usd": 10.89,
+   "sell_at_or_below_099_usd": 10.89,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "sol",
+   "epoch": 1789165800,
+   "winner": "Down",
+   "late_trades": 0,
+   "winner_taker_buy_usd": 0,
+   "winner_taker_sell_usd": 0,
+   "sell_at_or_below_099_usd": 0,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "sol",
+   "epoch": 1789166100,
+   "winner": "Up",
+   "late_trades": 1,
+   "winner_taker_buy_usd": 0,
+   "winner_taker_sell_usd": 0,
+   "sell_at_or_below_099_usd": 0,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "sol",
+   "epoch": 1789166400,
+   "winner": "Down",
+   "late_trades": 101,
+   "winner_taker_buy_usd": 683.67,
+   "winner_taker_sell_usd": 8.37,
+   "sell_at_or_below_099_usd": 8.37,
+   "sell_at_or_below_098_usd": 8.37
+  },
+  {
+   "asset": "sol",
+   "epoch": 1789166700,
+   "winner": "Down",
+   "late_trades": 0,
+   "winner_taker_buy_usd": 0,
+   "winner_taker_sell_usd": 0,
+   "sell_at_or_below_099_usd": 0,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "sol",
+   "epoch": 1789167000,
+   "winner": "Down",
+   "late_trades": 70,
+   "winner_taker_buy_usd": 270.93,
+   "winner_taker_sell_usd": 27.28,
+   "sell_at_or_below_099_usd": 27.28,
+   "sell_at_or_below_098_usd": 26.18
+  },
+  {
+   "asset": "sol",
+   "epoch": 1789167300,
+   "winner": "Up",
+   "late_trades": 44,
+   "winner_taker_buy_usd": 720.44,
+   "winner_taker_sell_usd": 43.64,
+   "sell_at_or_below_099_usd": 43.64,
+   "sell_at_or_below_098_usd": 41.39
+  },
+  {
+   "asset": "sol",
+   "epoch": 1789167600,
+   "winner": "Up",
+   "late_trades": 7,
+   "winner_taker_buy_usd": 101.94,
+   "winner_taker_sell_usd": 2.78,
+   "sell_at_or_below_099_usd": 2.78,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "sol",
+   "epoch": 1789167900,
+   "winner": "Up",
+   "late_trades": 33,
+   "winner_taker_buy_usd": 235.04,
+   "winner_taker_sell_usd": 1.64,
+   "sell_at_or_below_099_usd": 1.64,
+   "sell_at_or_below_098_usd": 1.64
+  },
+  {
+   "asset": "sol",
+   "epoch": 1789168200,
+   "winner": "Up",
+   "late_trades": 15,
+   "winner_taker_buy_usd": 175.59,
+   "winner_taker_sell_usd": 1.13,
+   "sell_at_or_below_099_usd": 1.13,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "sol",
+   "epoch": 1789168500,
+   "winner": "Up",
+   "late_trades": 0,
+   "winner_taker_buy_usd": 0,
+   "winner_taker_sell_usd": 0,
+   "sell_at_or_below_099_usd": 0,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "sol",
+   "epoch": 1789168800,
+   "winner": "Down",
+   "late_trades": 1,
+   "winner_taker_buy_usd": 0,
+   "winner_taker_sell_usd": 3.52,
+   "sell_at_or_below_099_usd": 3.52,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "sol",
+   "epoch": 1789169100,
+   "winner": "Up",
+   "late_trades": 0,
+   "winner_taker_buy_usd": 0,
+   "winner_taker_sell_usd": 0,
+   "sell_at_or_below_099_usd": 0,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "sol",
+   "epoch": 1789169400,
+   "winner": "Up",
+   "late_trades": 50,
+   "winner_taker_buy_usd": 1123.75,
+   "winner_taker_sell_usd": 3.01,
+   "sell_at_or_below_099_usd": 3.01,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "sol",
+   "epoch": 1789169700,
+   "winner": "Up",
+   "late_trades": 50,
+   "winner_taker_buy_usd": 1015.4,
+   "winner_taker_sell_usd": 12.15,
+   "sell_at_or_below_099_usd": 12.15,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "sol",
+   "epoch": 1789170000,
+   "winner": "Up",
+   "late_trades": 34,
+   "winner_taker_buy_usd": 429.14,
+   "winner_taker_sell_usd": 3.53,
+   "sell_at_or_below_099_usd": 3.53,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "sol",
+   "epoch": 1789170300,
+   "winner": "Up",
+   "late_trades": 4,
+   "winner_taker_buy_usd": 0,
+   "winner_taker_sell_usd": 0.57,
+   "sell_at_or_below_099_usd": 0.57,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "sol",
+   "epoch": 1789170600,
+   "winner": "Down",
+   "late_trades": 23,
+   "winner_taker_buy_usd": 319.62,
+   "winner_taker_sell_usd": 8.01,
+   "sell_at_or_below_099_usd": 8.01,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "sol",
+   "epoch": 1789170900,
+   "winner": "Up",
+   "late_trades": 26,
+   "winner_taker_buy_usd": 362.42,
+   "winner_taker_sell_usd": 39.95,
+   "sell_at_or_below_099_usd": 39.95,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "sol",
+   "epoch": 1789171200,
+   "winner": "Up",
+   "late_trades": 16,
+   "winner_taker_buy_usd": 259.48,
+   "winner_taker_sell_usd": 0,
+   "sell_at_or_below_099_usd": 0,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "sol",
+   "epoch": 1789171500,
+   "winner": "Down",
+   "late_trades": 0,
+   "winner_taker_buy_usd": 0,
+   "winner_taker_sell_usd": 0,
+   "sell_at_or_below_099_usd": 0,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "sol",
+   "epoch": 1789171800,
+   "winner": "Up",
+   "late_trades": 23,
+   "winner_taker_buy_usd": 227.08,
+   "winner_taker_sell_usd": 2.27,
+   "sell_at_or_below_099_usd": 2.27,
+   "sell_at_or_below_098_usd": 2.27
+  },
+  {
+   "asset": "sol",
+   "epoch": 1789172100,
+   "winner": "Up",
+   "late_trades": 36,
+   "winner_taker_buy_usd": 174.57,
+   "winner_taker_sell_usd": 9.45,
+   "sell_at_or_below_099_usd": 9.45,
+   "sell_at_or_below_098_usd": 9.45
+  },
+  {
+   "asset": "sol",
+   "epoch": 1789172400,
+   "winner": "Down",
+   "late_trades": 38,
+   "winner_taker_buy_usd": 829.22,
+   "winner_taker_sell_usd": 0,
+   "sell_at_or_below_099_usd": 0,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "sol",
+   "epoch": 1789172700,
+   "winner": "Down",
+   "late_trades": 1,
+   "winner_taker_buy_usd": 0,
+   "winner_taker_sell_usd": 0,
+   "sell_at_or_below_099_usd": 0,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "sol",
+   "epoch": 1789173000,
+   "winner": "Down",
+   "late_trades": 40,
+   "winner_taker_buy_usd": 75.82,
+   "winner_taker_sell_usd": 0.34,
+   "sell_at_or_below_099_usd": 0.34,
+   "sell_at_or_below_098_usd": 0.34
+  },
+  {
+   "asset": "sol",
+   "epoch": 1789173300,
+   "winner": "Down",
+   "late_trades": 18,
+   "winner_taker_buy_usd": 141.47,
+   "winner_taker_sell_usd": 0,
+   "sell_at_or_below_099_usd": 0,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "sol",
+   "epoch": 1789173600,
+   "winner": "Down",
+   "late_trades": 25,
+   "winner_taker_buy_usd": 259.23,
+   "winner_taker_sell_usd": 0,
+   "sell_at_or_below_099_usd": 0,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "sol",
+   "epoch": 1789173900,
+   "winner": "Down",
+   "late_trades": 0,
+   "winner_taker_buy_usd": 0,
+   "winner_taker_sell_usd": 0,
+   "sell_at_or_below_099_usd": 0,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "sol",
+   "epoch": 1789174200,
+   "winner": "Down",
+   "late_trades": 10,
+   "winner_taker_buy_usd": 210.94,
+   "winner_taker_sell_usd": 5.07,
+   "sell_at_or_below_099_usd": 0,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "sol",
+   "epoch": 1789174500,
+   "winner": "Down",
+   "late_trades": 59,
+   "winner_taker_buy_usd": 348.14,
+   "winner_taker_sell_usd": 61.16,
+   "sell_at_or_below_099_usd": 61.16,
+   "sell_at_or_below_098_usd": 5.08
+  },
+  {
+   "asset": "sol",
+   "epoch": 1789174800,
+   "winner": "Up",
+   "late_trades": 62,
+   "winner_taker_buy_usd": 283.52,
+   "winner_taker_sell_usd": 65.19,
+   "sell_at_or_below_099_usd": 65.19,
+   "sell_at_or_below_098_usd": 11.01
+  },
+  {
+   "asset": "sol",
+   "epoch": 1789175100,
+   "winner": "Up",
+   "late_trades": 0,
+   "winner_taker_buy_usd": 0,
+   "winner_taker_sell_usd": 0,
+   "sell_at_or_below_099_usd": 0,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "sol",
+   "epoch": 1789175400,
+   "winner": "Up",
+   "late_trades": 73,
+   "winner_taker_buy_usd": 437.55,
+   "winner_taker_sell_usd": 45.11,
+   "sell_at_or_below_099_usd": 45.11,
+   "sell_at_or_below_098_usd": 8.04
+  },
+  {
+   "asset": "sol",
+   "epoch": 1789175700,
+   "winner": "Up",
+   "late_trades": 30,
+   "winner_taker_buy_usd": 389.33,
+   "winner_taker_sell_usd": 6.82,
+   "sell_at_or_below_099_usd": 6.82,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "sol",
+   "epoch": 1789176000,
+   "winner": "Down",
+   "late_trades": 1,
+   "winner_taker_buy_usd": 0,
+   "winner_taker_sell_usd": 12.14,
+   "sell_at_or_below_099_usd": 12.14,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "sol",
+   "epoch": 1789176300,
+   "winner": "Up",
+   "late_trades": 30,
+   "winner_taker_buy_usd": 189.29,
+   "winner_taker_sell_usd": 62.09,
+   "sell_at_or_below_099_usd": 62.09,
+   "sell_at_or_below_098_usd": 57.14
+  },
+  {
+   "asset": "sol",
+   "epoch": 1789176600,
+   "winner": "Down",
+   "late_trades": 30,
+   "winner_taker_buy_usd": 349.69,
+   "winner_taker_sell_usd": 0,
+   "sell_at_or_below_099_usd": 0,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "sol",
+   "epoch": 1789176900,
+   "winner": "Down",
+   "late_trades": 1,
+   "winner_taker_buy_usd": 0,
+   "winner_taker_sell_usd": 5.12,
+   "sell_at_or_below_099_usd": 0,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "sol",
+   "epoch": 1789177200,
+   "winner": "Up",
+   "late_trades": 1,
+   "winner_taker_buy_usd": 0,
+   "winner_taker_sell_usd": 0,
+   "sell_at_or_below_099_usd": 0,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "sol",
+   "epoch": 1789177500,
+   "winner": "Up",
+   "late_trades": 2,
+   "winner_taker_buy_usd": 0,
+   "winner_taker_sell_usd": 5.18,
+   "sell_at_or_below_099_usd": 0,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "sol",
+   "epoch": 1789177800,
+   "winner": "Down",
+   "late_trades": 8,
+   "winner_taker_buy_usd": 106.29,
+   "winner_taker_sell_usd": 0,
+   "sell_at_or_below_099_usd": 0,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "sol",
+   "epoch": 1789178100,
+   "winner": "Down",
+   "late_trades": 2,
+   "winner_taker_buy_usd": 0,
+   "winner_taker_sell_usd": 70.2,
+   "sell_at_or_below_099_usd": 70.2,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "sol",
+   "epoch": 1789178400,
+   "winner": "Down",
+   "late_trades": 0,
+   "winner_taker_buy_usd": 0,
+   "winner_taker_sell_usd": 0,
+   "sell_at_or_below_099_usd": 0,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "sol",
+   "epoch": 1789178700,
+   "winner": "Up",
+   "late_trades": 24,
+   "winner_taker_buy_usd": 180.89,
+   "winner_taker_sell_usd": 0,
+   "sell_at_or_below_099_usd": 0,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "sol",
+   "epoch": 1789179000,
+   "winner": "Down",
+   "late_trades": 24,
+   "winner_taker_buy_usd": 325.73,
+   "winner_taker_sell_usd": 105.69,
+   "sell_at_or_below_099_usd": 105.69,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "sol",
+   "epoch": 1789179300,
+   "winner": "Down",
+   "late_trades": 10,
+   "winner_taker_buy_usd": 94.38,
+   "winner_taker_sell_usd": 0,
+   "sell_at_or_below_099_usd": 0,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "sol",
+   "epoch": 1789179600,
+   "winner": "Up",
+   "late_trades": 25,
+   "winner_taker_buy_usd": 289.78,
+   "winner_taker_sell_usd": 10.41,
+   "sell_at_or_below_099_usd": 10.41,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "sol",
+   "epoch": 1789179900,
+   "winner": "Down",
+   "late_trades": 13,
+   "winner_taker_buy_usd": 138.57,
+   "winner_taker_sell_usd": 0,
+   "sell_at_or_below_099_usd": 0,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "sol",
+   "epoch": 1789180200,
+   "winner": "Down",
+   "late_trades": 7,
+   "winner_taker_buy_usd": 150.9,
+   "winner_taker_sell_usd": 114.09,
+   "sell_at_or_below_099_usd": 114.09,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "sol",
+   "epoch": 1789180500,
+   "winner": "Up",
+   "late_trades": 37,
+   "winner_taker_buy_usd": 216.41,
+   "winner_taker_sell_usd": 53.93,
+   "sell_at_or_below_099_usd": 53.93,
+   "sell_at_or_below_098_usd": 4.11
+  },
+  {
+   "asset": "sol",
+   "epoch": 1789180800,
+   "winner": "Down",
+   "late_trades": 9,
+   "winner_taker_buy_usd": 200.58,
+   "winner_taker_sell_usd": 0,
+   "sell_at_or_below_099_usd": 0,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "sol",
+   "epoch": 1789181100,
+   "winner": "Up",
+   "late_trades": 2,
+   "winner_taker_buy_usd": 9.99,
+   "winner_taker_sell_usd": 5.12,
+   "sell_at_or_below_099_usd": 0,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "sol",
+   "epoch": 1789181400,
+   "winner": "Down",
+   "late_trades": 5,
+   "winner_taker_buy_usd": 45.21,
+   "winner_taker_sell_usd": 0,
+   "sell_at_or_below_099_usd": 0,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "sol",
+   "epoch": 1789181700,
+   "winner": "Down",
+   "late_trades": 6,
+   "winner_taker_buy_usd": 0,
+   "winner_taker_sell_usd": 0,
+   "sell_at_or_below_099_usd": 0,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "sol",
+   "epoch": 1789182000,
+   "winner": "Up",
+   "late_trades": 3,
+   "winner_taker_buy_usd": 0,
+   "winner_taker_sell_usd": 1.74,
+   "sell_at_or_below_099_usd": 1.74,
+   "sell_at_or_below_098_usd": 1.74
+  },
+  {
+   "asset": "sol",
+   "epoch": 1789182300,
+   "winner": "Down",
+   "late_trades": 1,
+   "winner_taker_buy_usd": 0,
+   "winner_taker_sell_usd": 0,
+   "sell_at_or_below_099_usd": 0,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "sol",
+   "epoch": 1789182600,
+   "winner": "Up",
+   "late_trades": 18,
+   "winner_taker_buy_usd": 199.69,
+   "winner_taker_sell_usd": 0,
+   "sell_at_or_below_099_usd": 0,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "sol",
+   "epoch": 1789182900,
+   "winner": "Up",
+   "late_trades": 10,
+   "winner_taker_buy_usd": 226.43,
+   "winner_taker_sell_usd": 15.4,
+   "sell_at_or_below_099_usd": 15.4,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "sol",
+   "epoch": 1789183200,
+   "winner": "Down",
+   "late_trades": 0,
+   "winner_taker_buy_usd": 0,
+   "winner_taker_sell_usd": 0,
+   "sell_at_or_below_099_usd": 0,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "sol",
+   "epoch": 1789183500,
+   "winner": "Up",
+   "late_trades": 0,
+   "winner_taker_buy_usd": 0,
+   "winner_taker_sell_usd": 0,
+   "sell_at_or_below_099_usd": 0,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "sol",
+   "epoch": 1789183800,
+   "winner": "Down",
+   "late_trades": 7,
+   "winner_taker_buy_usd": 144.69,
+   "winner_taker_sell_usd": 0,
+   "sell_at_or_below_099_usd": 0,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "sol",
+   "epoch": 1789184100,
+   "winner": "Down",
+   "late_trades": 7,
+   "winner_taker_buy_usd": 112.38,
+   "winner_taker_sell_usd": 0,
+   "sell_at_or_below_099_usd": 0,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "sol",
+   "epoch": 1789184400,
+   "winner": "Down",
+   "late_trades": 3,
+   "winner_taker_buy_usd": 52.3,
+   "winner_taker_sell_usd": 9.9,
+   "sell_at_or_below_099_usd": 9.9,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "sol",
+   "epoch": 1789184700,
+   "winner": "Down",
+   "late_trades": 1,
+   "winner_taker_buy_usd": 0,
+   "winner_taker_sell_usd": 0.32,
+   "sell_at_or_below_099_usd": 0.32,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "sol",
+   "epoch": 1789185000,
+   "winner": "Up",
+   "late_trades": 19,
+   "winner_taker_buy_usd": 327.38,
+   "winner_taker_sell_usd": 0,
+   "sell_at_or_below_099_usd": 0,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "sol",
+   "epoch": 1789185300,
+   "winner": "Up",
+   "late_trades": 0,
+   "winner_taker_buy_usd": 0,
+   "winner_taker_sell_usd": 0,
+   "sell_at_or_below_099_usd": 0,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "sol",
+   "epoch": 1789185600,
+   "winner": "Up",
+   "late_trades": 1,
+   "winner_taker_buy_usd": 0,
+   "winner_taker_sell_usd": 0,
+   "sell_at_or_below_099_usd": 0,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "sol",
+   "epoch": 1789185900,
+   "winner": "Down",
+   "late_trades": 9,
+   "winner_taker_buy_usd": 144.7,
+   "winner_taker_sell_usd": 0,
+   "sell_at_or_below_099_usd": 0,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "sol",
+   "epoch": 1789186200,
+   "winner": "Up",
+   "late_trades": 20,
+   "winner_taker_buy_usd": 211.35,
+   "winner_taker_sell_usd": 0,
+   "sell_at_or_below_099_usd": 0,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "sol",
+   "epoch": 1789186500,
+   "winner": "Down",
+   "late_trades": 0,
+   "winner_taker_buy_usd": 0,
+   "winner_taker_sell_usd": 0,
+   "sell_at_or_below_099_usd": 0,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "sol",
+   "epoch": 1789186800,
+   "winner": "Up",
+   "late_trades": 3,
+   "winner_taker_buy_usd": 91.4,
+   "winner_taker_sell_usd": 124.64,
+   "sell_at_or_below_099_usd": 124.64,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "sol",
+   "epoch": 1789187100,
+   "winner": "Up",
+   "late_trades": 1,
+   "winner_taker_buy_usd": 0,
+   "winner_taker_sell_usd": 141.39,
+   "sell_at_or_below_099_usd": 141.39,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "sol",
+   "epoch": 1789187400,
+   "winner": "Up",
+   "late_trades": 1,
+   "winner_taker_buy_usd": 0,
+   "winner_taker_sell_usd": 133.07,
+   "sell_at_or_below_099_usd": 133.07,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "sol",
+   "epoch": 1789187700,
+   "winner": "Up",
+   "late_trades": 0,
+   "winner_taker_buy_usd": 0,
+   "winner_taker_sell_usd": 0,
+   "sell_at_or_below_099_usd": 0,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "sol",
+   "epoch": 1789188000,
+   "winner": "Down",
+   "late_trades": 0,
+   "winner_taker_buy_usd": 0,
+   "winner_taker_sell_usd": 0,
+   "sell_at_or_below_099_usd": 0,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "sol",
+   "epoch": 1789188300,
+   "winner": "Down",
+   "late_trades": 37,
+   "winner_taker_buy_usd": 261.74,
+   "winner_taker_sell_usd": 5.07,
+   "sell_at_or_below_099_usd": 0,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "sol",
+   "epoch": 1789188600,
+   "winner": "Down",
+   "late_trades": 0,
+   "winner_taker_buy_usd": 0,
+   "winner_taker_sell_usd": 0,
+   "sell_at_or_below_099_usd": 0,
+   "sell_at_or_below_098_usd": 0
+  },
+  {
+   "asset": "sol",
+   "epoch": 1789188900,
+   "winner": "Down",
+   "late_trades": 26,
+   "winner_taker_buy_usd": 287.6,
+   "winner_taker_sell_usd": 3.2,
+   "sell_at_or_below_099_usd": 3.2,
+   "sell_at_or_below_098_usd": 3.2
+  },
+  {
+   "asset": "sol",
+   "epoch": 1789189200,
+   "winner": "Up",
+   "late_trades": 25,
+   "winner_taker_buy_usd": 106.42,
+   "winner_taker_sell_usd": 15.9,
+   "sell_at_or_below_099_usd": 15.9,
+   "sell_at_or_below_098_usd": 15.9
+  },
+  {
+   "asset": "sol",
+   "epoch": 1789189500,
+   "winner": "Down",
+   "late_trades": 3,
+   "winner_taker_buy_usd": 0,
+   "winner_taker_sell_usd": 5.12,
+   "sell_at_or_below_099_usd": 0,
+   "sell_at_or_below_098_usd": 0
+  }
+ ]
+}

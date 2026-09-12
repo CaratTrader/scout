@@ -522,7 +522,8 @@ class Arena:
                     pass
             self.tick_fh = (TICKS / f"{day}.jsonl").open("a")
             self.tick_day = day
-        self.tick_fh.write(json.dumps([round(now, 1), s.asset, s.mins, s.epoch, round(s.spot_raw, 2), round(s.spot_twap, 2), round(s.open_px, 2), s.yes_ask, s.yes_bid, s.no_ask, s.no_bid, round(s.yes_ask_size or 0, 1), round(s.sigma, 5),
+        # full precision for prices: 2 decimals made DOGE (~$0.08) and XRP (~$1.4) ticks meaningless
+        self.tick_fh.write(json.dumps([round(now, 1), s.asset, s.mins, s.epoch, float(f"{s.spot_raw:.8g}"), float(f"{s.spot_twap:.8g}"), float(f"{s.open_px:.8g}"), s.yes_ask, s.yes_bid, s.no_ask, s.no_bid, round(s.yes_ask_size or 0, 1), round(s.sigma, 6),
                                         round(s.cb_price, 2) if s.cb_fresh() else None, round(s.cb_bid_size or 0, 4) if s.cb_fresh() else None, round(s.cb_ask_size or 0, 4) if s.cb_fresh() else None]) + "\n")
 
     # ---- main loop

@@ -167,7 +167,8 @@ def veto(
 
     if time.time() < float(ledger.get("entry_pause_until") or 0):
         return "reconciling"
-    if len(ledger.get("positions") or []) >= settings.max_positions:
+    # resting (unfilled) orders occupy a slot too: a fill later must always be recordable
+    if len(ledger.get("positions") or []) + len(ledger.get("orders") or []) >= settings.max_positions:
         return "max_positions"
     held = occupied if occupied is not None else occupied_ids(ledger)
     if candidate["id"] in held:
@@ -187,6 +188,7 @@ def veto(
         elif not crypto_side_ok(price, fair):
             return "no_underdog"
         crypto_open = sum(1 for p in ledger.get("positions") or [] if is_crypto_updown(p))
+        crypto_open += sum(1 for o in ledger.get("orders") or [] if is_crypto_updown(o))
         if crypto_open >= settings.max_crypto_positions:
             return "crypto_slot"
         asset = str(candidate.get("asset") or "") or _position_asset(candidate)
