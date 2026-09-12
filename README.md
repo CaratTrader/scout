@@ -1,4 +1,12 @@
-# Scout — local Grok 4.6 Polymarket agent
+# Scout — Polymarket crypto up/down bot, strategy lab and research
+
+**For collaborators (Sep 2026):** the live edge we trade and how it was found is in
+[docs/STRATEGY_RESEARCH.md](docs/STRATEGY_RESEARCH.md) (sections 9–12 are the real-book
+work); the strategy lab that tests ideas on recorded order books is described in
+[lab/README.md](lab/README.md) (`python -m lab.replay_ticks --only <strategy>`); recorded
+1-second books for BTC/ETH/SOL/XRP/DOGE/BNB/HYPE 5m/15m/4h windows are in `data/lab/ticks/`.
+Add a strategy to `lab/strategies.py`, replay it, and open a PR with the numbers. Never commit
+`.env` or anything under `data/` except those recordings.
 
 **Start here: [QUICKSTART.md](QUICKSTART.md)** — paper loop in ~5 minutes.
 
