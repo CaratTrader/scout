@@ -123,6 +123,11 @@ def record_order(
         "mode": mode,
         "yes_token": market.get("yes_token", ""),
         "no_token": market.get("no_token", ""),
+        "slug": market.get("slug") or market.get("event_slug") or "",
+        "event_slug": market.get("event_slug") or market.get("slug") or "",
+        "asset": market.get("asset") or "",
+        "edge_type": str(market.get("edge_type") or ""),
+        "window_end": market.get("window_end"),
         "venue_id": "",
     }
     if isinstance(raw, dict):
@@ -156,6 +161,10 @@ def fill_order(
         "question": order["question"],
         "yes_token": order.get("yes_token", ""),
         "no_token": order.get("no_token", ""),
+        "slug": order.get("slug", ""),
+        "event_slug": order.get("event_slug", ""),
+        "asset": order.get("asset", ""),
+        "edge_type": order.get("edge_type", ""),
     }
     ledger["orders"] = [o for o in ledger.get("orders") or [] if o is not order]
     ledger["cash"] = round(float(ledger["cash"]) + stake, 4)

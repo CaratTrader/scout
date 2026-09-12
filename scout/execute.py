@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from decimal import Decimal, ROUND_FLOOR
+import os
 import time
 from typing import Any
 
@@ -365,6 +366,84 @@ def live_sell(pos: dict[str, Any], price: float, settings: Settings) -> Any:
         raise LiveDisabled("missing token id on position")
     _ = price
     return _order_payload(_fok_sell(client, token, float(pos["shares"])))
+
+
+def rest_at_cap_enabled() -> bool:
+    """LOCK_REST_AT_CAP=1: when a lock candidate's offer is gone before our taker order lands,
+    rest a post-only GTC bid at the price ceiling instead of giving up. Fee 0; the venue cancels
+    it when the market closes; a fill is held to settlement like any lock trade."""
+    return (os.getenv("LOCK_REST_AT_CAP") or "0").strip().lower() in {"1", "true", "on", "yes"}
+
+
+REST_FALLBACK_REASONS = ("no orders found to match", "no resting asks", "book moved/value gone")
+
+
+def rest_fallback_applies(candidate: dict[str, Any], exc: Exception) -> bool:
+    if candidate.get("edge_type") != "twap_lock" or not rest_at_cap_enabled():
+        return False
+    text = str(exc).lower()
+    return any(r in text for r in REST_FALLBACK_REASONS)
+
+
+def _rest_price(candidate: dict[str, Any], settings: Settings, tick: Decimal) -> Decimal:
+    """Highest tick-valid price that still keeps crypto_min_edge after TAKER fees (a resting
+    bid pays none, so this is conservative), never above the snapshot plus the slip cap."""
+    snapshot = Decimal(str(candidate.get("limit_price") or candidate["price"]))
+    fair = Decimal(str(candidate.get("fair") or 0))
+    min_edge = Decimal(str(settings.crypto_min_edge))
+    raw_cap = min(Decimal("1") - tick, snapshot + Decimal(str(settings.crypto_max_slip)), fair - min_edge)
+    ceiling = (raw_cap / tick).to_integral_value(rounding=ROUND_FLOOR) * tick
+    fee_rate = Decimal(str(settings.taker_fee_rate))
+    while ceiling >= tick and fair - ceiling - fee_rate * ceiling * (Decimal("1") - ceiling) < min_edge:
+        ceiling -= tick
+    return ceiling
+
+
+def live_rest_buy(candidate: dict[str, Any], settings: Settings) -> dict[str, Any]:
+    """Rest a post-only GTC bid for the lock candidate at its price ceiling."""
+    client = trading_client(settings)
+    token = token_for_side(candidate, candidate["side"])
+    if not token:
+        raise LiveDisabled("missing token id")
+    _validate_crypto_execution(candidate, settings)
+    tick = Decimal(str(candidate.get("tick_size") or "0.01"))
+    price = _rest_price(candidate, settings, tick)
+    if price < tick:
+        raise LiveDisabled("no resting price with edge")
+    stake = Decimal(str(candidate["stake"]))
+    size = (stake / price).quantize(Decimal("0.01"), rounding=ROUND_FLOOR)
+    min_size = max(Decimal(str(candidate.get("min_order_size") or 0)), Decimal("5"))
+    if size < min_size:
+        raise LiveDisabled(f"rest size {size} below venue minimum {min_size}")
+    try:
+        response = client.place_limit_order(token_id=token, price=price, size=size, side="BUY", post_only=True)
+    except Exception as exc:
+        raise LiveDisabled(f"rest rejected: {exc}") from exc
+    if not getattr(response, "ok", False):
+        raise LiveDisabled(f"rest rejected: {getattr(response, 'code', '')} {getattr(response, 'message', response)}")
+    payload = _order_payload(response)
+    payload.update({"rest_price": str(price), "rest_size": str(size), "tick_size": str(tick)})
+    return payload
+
+
+def live_order_state(order_id: str, settings: Settings) -> tuple[str, float, float]:
+    """(status, size_matched, price) of a resting order."""
+    try:
+        order = trading_client(settings).get_order(order_id=order_id)
+    except Exception as exc:
+        raise LiveDisabled(f"order status failed: {exc}") from exc
+    return (
+        str(getattr(order, "status", "") or ""),
+        float(getattr(order, "size_matched", 0) or 0),
+        float(getattr(order, "price", 0) or 0),
+    )
+
+
+def live_cancel(order_id: str, settings: Settings) -> None:
+    try:
+        trading_client(settings).cancel_order(order_id=order_id)
+    except Exception as exc:
+        raise LiveDisabled(f"cancel failed: {exc}") from exc
 
 
 def live_redeem(pos: dict[str, Any], settings: Settings) -> dict[str, Any]:

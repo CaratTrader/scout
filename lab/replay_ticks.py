@@ -35,6 +35,9 @@ TICKS = ROOT / "data" / "lab" / "ticks"
 OUTCOMES_PATH = ROOT / "lab" / "cache" / "outcomes.json"
 LEADERBOARD_OUT = ROOT / "data" / "lab" / "tick_leaderboard.json"
 FIXED = 5.0
+# REPLAY_LATENCY=<seconds>: taker fills require the offer to still be there that long after the
+# decision (0 = the old next-print assumption). Live median signal->order is 0.6 s; use 1-2.
+LATENCY_S = float(__import__("os").getenv("REPLAY_LATENCY") or 0)
 
 
 def load_rows() -> dict[tuple[str, int, int], list[list]]:
@@ -202,6 +205,20 @@ def _fill_leg(strat, P, s, o, states, i, epoch, end, up, asset, mins) -> bool:
                     if (s.yes_ask_size or 0) < FIXED / o.price:
                         P["skipped_size"] += 1
                         return False
+                    if LATENCY_S > 0:
+                        # Our order reaches the venue LATENCY_S after the decision (live median
+                        # signal->order 0.6 s plus the 0.3 s watch tick). Fill only if the offer
+                        # is still there then, at that later price if it is better.
+                        later = next((s2 for s2 in states[i + 1:] if s2.t - s.t >= LATENCY_S), None)
+                        if later is None:
+                            P["unfilled"] += 1
+                            return False
+                        ask_later = later.yes_ask if o.side == "YES" else later.no_ask
+                        if not (0 < ask_later <= o.price + 1e-9):
+                            P["unfilled"] += 1
+                            return False
+                        o = Order(o.side, ask_later, o.fair, o.fair - ask_later - taker_fee_per_share(ask_later, FEE_RATE), kind=o.kind, note=o.note)
+                        s = later
                     price, fee, fill_t = o.price, taker_fee_per_share(o.price, FEE_RATE), s.t
                 won = up if o.side == "YES" else (not up)
                 shares5 = FIXED / price

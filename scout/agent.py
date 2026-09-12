@@ -13,9 +13,13 @@ from .execute import (
     LiveDisabled,
     ReconcileRequired,
     execute,
+    live_cancel,
+    live_order_state,
     live_position_balance,
     live_redeem,
+    live_rest_buy,
     live_sell,
+    rest_fallback_applies,
 )
 from .crypto_lag import (
     crypto_settle_price,
@@ -43,6 +47,7 @@ from .ledger import (
     mark_to_market,
     maybe_halt,
     paper_maker_fillable,
+    record_order,
     save_ledger,
 )
 from .intel import attach_intel, cached_intel, intel_brief, kalshi_prior
@@ -635,6 +640,29 @@ def _execute_candidate_batch(
                     **common,
                 }
             )
+            if settings.live and rest_fallback_applies(cand, exc):
+                # The offer was gone before our taker order landed: rest a bid at the
+                # ceiling instead (fee 0). Tracked in ledger["orders"]; _working fills it.
+                try:
+                    raw = live_rest_buy(cand, settings)
+                    order = record_order(
+                        ledger,
+                        market=cand,
+                        side=cand["side"],
+                        stake=round(float(raw["rest_size"]) * float(raw["rest_price"]), 4),
+                        price=float(raw["rest_price"]),
+                        shares=float(raw["rest_size"]),
+                        reason=f"lock rest edge={cand.get('edge')}",
+                        mode="live",
+                        settings=settings,
+                        raw=raw,
+                    )
+                    held.add(cand["id"])
+                    print(f"  REST {cand['side']:4} {order['shares']} sh @ {order['price']}  {str(cand.get('question'))[:60]}")
+                    journal({"ts": time.time(), "event": "post", "price": order["price"], "shares": order["shares"], "venue_id": order.get("venue_id"), **common})
+                except (LiveDisabled, RuntimeError, ValueError) as rest_exc:
+                    errors.append(f"{cand['id']}: rest: {rest_exc}")
+                    journal({"ts": time.time(), "event": "rest_reject", "reason": str(rest_exc), **common})
             if isinstance(exc, ReconcileRequired):
                 ledger["entry_pause_until"] = time.time() + 10.0
                 break
@@ -934,6 +962,10 @@ def _working(ledger: dict[str, Any], by_id: dict[str, dict[str, Any]], settings:
     filled: list[dict[str, Any]] = []
     mode = "live" if settings.live else "paper"
     for order in list(ledger.get("orders") or []):
+        if settings.live:
+            if order.get("mode") == "live" and order.get("venue_id"):
+                filled.extend(_working_live(ledger, order, settings))
+            continue
         market = by_id.get(order["market_id"])
         if not market:
             continue
@@ -944,6 +976,36 @@ def _working(ledger: dict[str, Any], by_id: dict[str, dict[str, Any]], settings:
         if ask and ask > float(order["price"]) + 0.05:
             filled.append(cancel_order(ledger, order, reason="price_away"))
     return filled
+
+
+def _working_live(ledger: dict[str, Any], order: dict[str, Any], settings: Settings) -> list[dict[str, Any]]:
+    """Poll one resting live order: fill what matched, cancel what the window outlived."""
+    try:
+        status, matched, px = live_order_state(str(order["venue_id"]), settings)
+    except LiveDisabled as exc:
+        print("order status:", str(exc)[:120])
+        return []
+    win = parse_window(order)
+    ended = bool(win and time.time() >= float(win["end"]))
+    shares = float(order["shares"])
+    done = status.upper() in {"MATCHED", "FILLED"} or matched >= shares - 1e-6
+    if matched > 0 and (done or ended):
+        if matched < shares - 1e-6:
+            unfilled = shares - matched
+            refund = round(unfilled * float(order["price"]), 4)
+            ledger["cash"] = round(float(ledger["cash"]) + refund, 4)
+            order["shares"] = round(matched, 4)
+            order["stake"] = round(float(order["stake"]) - refund, 4)
+        return [fill_order(ledger, order, fill_price=px or float(order["price"]), mode="live", settings=settings,
+                           raw={"order_id": order["venue_id"], "status": status, "size_matched": matched})]
+    if ended or status.upper() in {"CANCELED", "CANCELLED", "EXPIRED"}:
+        if ended and status.upper() not in {"CANCELED", "CANCELLED", "EXPIRED"}:
+            try:
+                live_cancel(str(order["venue_id"]), settings)  # best effort; the venue cancels at close anyway
+            except LiveDisabled:
+                pass
+        return [cancel_order(ledger, order, reason="window_end" if ended else status.lower())]
+    return []
 
 
 def _exits(ledger: dict[str, Any], by_id: dict[str, dict[str, Any]], settings: Settings) -> list[dict[str, Any]]:

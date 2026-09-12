@@ -69,6 +69,10 @@
              window are lifted within seconds (first live attempt got "no orders found to match") -->
         <key>LOCK_HUNT_SECONDS</key>
         <string>8</string>
+        <!-- when the offer is gone before our order lands (most attempts), rest a post-only bid at the
+             price ceiling instead of giving up: fee 0, cancelled by the venue at window close -->
+        <key>LOCK_REST_AT_CAP</key>
+        <string>1</string>
         <key>CRYPTO_EVENT_CACHE_SECONDS</key>
         <string>20</string>
         <key>QUIET_CYCLES</key>

@@ -27,3 +27,7 @@ lab/results/*.tmp
 # Windows leftovers with local paths
 Start Dashboard.bat
 supervisor.ps1
+
+# third-party reference repos (cloned read-only, not ours to redistribute)
+tools/*
+!tools/README.md
