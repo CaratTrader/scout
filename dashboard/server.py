@@ -1,6 +1,6 @@
 """Scout dashboard v2 — analytics, live signal engine, indicators, settlement audit.
 
-Stdlib HTTP server on 127.0.0.1:8787 (override with DASH_PORT). Read-only toward the
+Stdlib HTTP server on 127.0.0.1:8787 (override with DASH_PORT / DASH_HOST). Read-only toward the
 bot: it never writes ledger/journal. Its own files live in data/:
   windows_audit.jsonl  per-window oracle boundary values + resolved outcome
   features.jsonl       external indicator snapshots (for later backtests)
@@ -37,6 +37,9 @@ if str(ROOT) not in sys.path:
 DATA = ROOT / "data"
 HERE = Path(__file__).resolve().parent
 PORT = int(os.getenv("DASH_PORT") or 8787)
+# 127.0.0.1 = this Mac only (default). DASH_HOST=0.0.0.0 also serves phones/laptops on the same
+# network at http://<this Mac's LAN IP>:8787 — there is no login, so only do that on a private LAN.
+HOST = os.getenv("DASH_HOST") or "127.0.0.1"
 ET = ZoneInfo("America/New_York")
 UA = "scout-dashboard/2.0"
 AUDIT_PATH = DATA / "windows_audit.jsonl"
@@ -1654,7 +1657,7 @@ def main() -> None:
     INDICATORS.start()
     RESOLVER.start()
     print(f"scout dashboard v2: http://localhost:{PORT}")
-    ThreadingHTTPServer(("127.0.0.1", PORT), Handler).serve_forever()
+    ThreadingHTTPServer((HOST, PORT), Handler).serve_forever()
 
 
 if __name__ == "__main__":
