@@ -616,3 +616,48 @@ tight lock for this bankroll.
 < 0.985 fills, ~24 signals/day on paper, live capture 5–10 % at taker speed; resting bids are an
 unmeasured upside. At $44 this is cents per fill. The 2026-09-17 goal is not reachable from
 returns at this bankroll; the machine is correct, the capital is small.
+
+### 13a. "Just buy anything above 95.5 %?" — tested (2026-09-12 evening)
+
+* **Daily price-threshold markets** ("Will the price of Bitcoin be above $X on <date>?", 506
+  active, resolving 12:00 ET on the Binance 1-min close, same 7 % taker fee): over 262 resolved
+  BTC/ETH/SOL markets from Sep 5–12, the eventual winner traded at 0.955–0.98 inside the last ten
+  minutes in **3 of 262** (total $576, and those were strikes 0.4–1.6 % from spot, i.e. genuinely
+  uncertain, not locks). Winners sit at 0.99+ and losers at ≈0 well before the close: no pocket,
+  no second lock family there.
+* **Price-only favourite buying on our own books** (any side asked 0.955–0.99 with 8–55 s left, no
+  arithmetic): see the table below; the lock's arithmetic, not the price, is the edge.
+
+| price-only favourite buying on our books (8-55 s left, ask 0.955-0.99, one trade per window, Sep 5-12 ex 09-07 and ex doge/xrp) | n | losses | win % | ret/$ |
+|---|---|---|---|---|
+| any favourite, no arithmetic | 3,728 | 122 | 96.7 | −0.0108 |
+| ask ≤ 0.98, no arithmetic | 2,666 | 105 | 96.1 | −0.0125 |
+| ask = 0.99, no arithmetic | 1,062 | 17 | 98.4 | −0.0068 |
+| lock arithmetic |z| ≥ 3.5 | 111 | 0 | 100.0 | +0.0188 |
+
+The book is calibrated to about one fee; only a computable certainty the book has not priced pays.
+
+### 13b. Weather observed-max lock (2026-09-12 night) — the one new family with data behind it
+
+Polymarket lists ~60 daily "highest temperature in <city>" events (11 buckets, $10k–170k
+liquidity, taker fee 0.05·p(1−p)). **Every one except Hong Kong resolves on NOAA's WRH timeseries
+for a named airport station — the station's METAR readings — which are public in real time
+(aviationweather.gov).** After the afternoon maximum the bucket containing the running maximum is
+near-certain, yet it keeps trading well under $1.
+
+Backtest (`scratchpad/weather_backtest.py`, 16 cities × Sep 1–11, winners from Gamma, buy-prints
+from data-api, hourly METAR from the Iowa Mesonet archive; late-maximum days scored −1/$): at 18h
+local, 0 late-maximum days in 14 of 16 cities; winner buy-print VWAPs 0.54–0.92; EV per $ from
++0.15 (Toronto) to +0.82 (Karachi), typically +0.2–0.5; $100–900 of winner prints per hour.
+Station/rounding match between the METAR archive and the resolved bucket: 88–100 % for
+Singapore, Tokyo, Sao Paulo, Karachi, Toronto, Atlanta, Austin, Chicago, LA, Miami; the misses
+(NYC, Houston, Dallas, Seoul, London, HK) were my station guesses — the live bot reads the exact
+station from each market's resolution URL, so that error class disappears (HK is skipped).
+
+Built: `scout/weather_lock.py` (paper by default, `WEATHER_LIVE=1` for real orders), tests, launchd
+job `com.tradeinc.weather` (paper). Rule: after 17:00 local, latest reading ≥ 2 °F / 1 °C below the
+running max, max ≥ 60 min old, buy the running-max bucket at best ask if 0.05 ≤ ask ≤ 0.90, $10,
+hold to resolution. Tonight's first scan (22:30 local in the Americas) found 15 locked cities all
+already at 0.999 — the pocket is the 17:00–19:00 local window, which the loop will catch from
+tomorrow's Asian afternoon onward. Risks: late spikes (seen at 15–16h, none at 17–18h in the
+sample), NOAA page revisions, thin asks above 0.9, capital locked until next-day resolution.
