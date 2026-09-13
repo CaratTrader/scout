@@ -263,7 +263,9 @@ def scan(ledger: dict[str, Any], *, live: bool, client: Any, trading: Any, ua: s
             journal({"event": "metar_error", "city": info["city"], "station": info["station"], "error": str(exc)[:120]})
             continue
         readings = day_readings(obs, info["tz"], info["date"], info["unit"])
-        margin = 2 if info["unit"] == "F" else 1
+        # WEATHER_MARGIN units below the running max (1 in the station's unit by default: the
+        # refined backtest's best cells; 2 waits so long the bucket is already at 0.99)
+        margin = int(_f("WEATHER_MARGIN", 1))
         verdict = decide(readings, now_local, lock_hour=lock_hour, margin=margin, min_gap_min=min_gap)
         row = {"event": "decision", "city": info["city"], "station": info["station"], "unit": info["unit"], "local": now_local.strftime("%H:%M"), **verdict}
         if verdict["buy"] is None:

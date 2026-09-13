@@ -661,3 +661,15 @@ hold to resolution. Tonight's first scan (22:30 local in the Americas) found 15 
 already at 0.999 — the pocket is the 17:00–19:00 local window, which the loop will catch from
 tomorrow's Asian afternoon onward. Risks: late spikes (seen at 15–16h, none at 17–18h in the
 sample), NOAA page revisions, thin asks above 0.9, capital locked until next-day resolution.
+
+**Refined (2026-09-13, `scratchpad/weather_backtest2.py`, 159 usable city-days):** triggering
+on the first *confirmed fall* (latest ≥ 1 unit below the running max, ≥ 30–90 min after it) is
+what a bot can actually do, and it shows the crowd reads the same METAR: the winner's buy-print
+VWAP in the 30 min after the trigger is **0.93–0.98**, not 0.6–0.9 (the first pass averaged whole
+hours that included pre-lock prints). Results: from 15:00 local, 139 triggers, 97.8 % win, avg fill
+0.952, **+8.5 % per $ (mean, skewed by a few cheap fills; median ≈ +2 %)**; from 16:00, 141
+triggers, 100 % win, avg fill 0.981, +9.1 % mean. Waiting for a 2-unit fall costs the pocket
+(fills 0.97–0.995, EV ≈ 0). Loss cases at 13–14h: Dallas, Chicago, Miami, Madrid, Austin, LA
+(late maxima). Verdict: real, small (a few % per trade, ~10 triggers/day, capital locked
+overnight) — comparable to the crypto lock, not a multiple of it. Paper job re-parameterised
+(lock hour 15, margin 1, max ask 0.97); live only after a clean paper week.
