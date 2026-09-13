@@ -754,6 +754,14 @@ def hunt_locks(
                     last_try[cand["id"]] = now
                 if cands:
                     _execute_candidate_batch(cands, ledger, settings, held=held, taken=taken, vetoes=vetoes, errors=errors)
+                # locks with no offer inside the band produce no candidate at all: rest instead
+                by_id = {m["id"]: m for m in markets}
+                with_cand = {c["id"] for c in cands}
+                for mid, score in scores.items():
+                    if mid in with_cand or mid in held or mid in by_id and _entry_paused(ledger):
+                        continue
+                    if mid in by_id:
+                        _rest_on_no_offer(by_id[mid], score, ledger, settings, held=held, vetoes=vetoes, errors=errors)
             time.sleep(0.3)
     finally:
         crypto_lag_module.VERBOSE = was_verbose
@@ -1088,6 +1096,88 @@ def _cap_lock_stake(cand: dict[str, Any], ledger: dict[str, Any], settings: Sett
 
 def _entry_paused(ledger: dict[str, Any]) -> bool:
     return time.time() < float(ledger.get("entry_pause_until") or 0)
+
+
+def _rest_on_no_offer(
+    market: dict[str, Any],
+    score: dict[str, Any],
+    ledger: dict[str, Any],
+    settings: Settings,
+    *,
+    held: set[str],
+    vetoes: list[dict[str, str]],
+    errors: list[str],
+) -> bool:
+    """The normal endgame: the lock is decisive and nobody offers the favourite inside the band
+    (99 % of live lock observations). The taker path can never fire there, so with
+    LOCK_REST_AT_CAP rest the small post-only bid directly, at the same ceiling, provided the
+    book agrees with the arithmetic (favourite bid at or above the band floor)."""
+    from .execute import rest_at_cap_enabled
+    from .twap_lock import ASK_CAP, ASK_FLOOR
+
+    if not (settings.live and rest_at_cap_enabled()) or market["id"] in held:
+        return False
+    if any(o.get("market_id") == market["id"] for o in ledger.get("orders") or []):
+        return False
+    p = float(score.get("p_yes") or 0)
+    side = "YES" if p >= 0.5 else "NO"
+    fair = p if side == "YES" else 1.0 - p
+    ask = float(market.get("yes_ask" if side == "YES" else "no_ask") or 0)
+    bid = float(market.get("yes_bid" if side == "YES" else "no_bid") or 0)
+    if 0 < ask <= ASK_CAP:
+        return False  # a real offer exists; the taker path handles it
+    if bid < ASK_FLOOR:
+        return False  # the book disagrees with the arithmetic: never rest into a disagreement
+    cash = float(ledger.get("cash") or 0)
+    stake = round(min(settings.max_crypto_stake, cash * settings.crypto_bankroll_frac), 2)
+    cand = dict(
+        market,
+        kind="crypto_lag",
+        edge_type="twap_lock",
+        side=side,
+        price=ASK_CAP,          # the bid we intend to rest; the band check and _rest_price see this
+        limit_price=ASK_CAP,
+        fair=fair,
+        edge=round(fair - ASK_CAP, 4),
+        stake=stake,
+        shares=round(stake / ASK_CAP, 4),
+        signal_ts=float(score.get("signal_ts") or time.time()),
+        asset=score.get("asset") or market.get("asset") or "",
+        window_start=score.get("window_start"),
+        window_end=score.get("window_end"),
+        thesis=score.get("thesis") or "",
+        taker=False,
+    )
+    reason = veto(cand, ledger, settings, occupied=held) or _cap_lock_stake(cand, ledger, settings)
+    common = {"id": cand["id"], "kind": "crypto_lag", "side": side, "price": ASK_CAP, "fair": fair, "edge": cand["edge"],
+              "signal_ts": cand["signal_ts"], "window_end": cand.get("window_end"), "thesis": cand["thesis"]}
+    if reason:
+        vetoes.append({"id": cand["id"], "reason": reason, "kind": "crypto_lag"})
+        journal({"ts": time.time(), "event": "veto", "reason": reason, **common})
+        return False
+    try:
+        raw = live_rest_buy(cand, settings)
+    except (LiveDisabled, RuntimeError, ValueError) as exc:
+        errors.append(f"{cand['id']}: rest: {exc}")
+        journal({"ts": time.time(), "event": "rest_reject", "reason": str(exc), **common})
+        return False
+    order = record_order(
+        ledger,
+        market=cand,
+        side=side,
+        stake=round(float(raw["rest_size"]) * float(raw["rest_price"]), 4),
+        price=float(raw["rest_price"]),
+        shares=float(raw["rest_size"]),
+        reason=f"lock rest (no offer) edge={cand['edge']}",
+        mode="live",
+        settings=settings,
+        raw=raw,
+    )
+    held.add(cand["id"])
+    save_ledger(ledger)
+    print(f"  REST {side:4} {order['shares']} sh @ {order['price']} (no offer)  {str(market.get('question'))[:60]}")
+    journal({"ts": time.time(), "event": "post", "price": order["price"], "shares": order["shares"], "venue_id": order.get("venue_id"), "no_offer": True, **common})
+    return True
 
 
 def _exits(ledger: dict[str, Any], by_id: dict[str, dict[str, Any]], settings: Settings) -> list[dict[str, Any]]:
