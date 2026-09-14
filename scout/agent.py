@@ -1098,6 +1098,9 @@ def _entry_paused(ledger: dict[str, Any]) -> bool:
     return time.time() < float(ledger.get("entry_pause_until") or 0)
 
 
+_REST_BACKOFF: dict[str, float] = {}  # market id -> do not retry a resting bid before this time
+
+
 def _rest_on_no_offer(
     market: dict[str, Any],
     score: dict[str, Any],
@@ -1148,16 +1151,27 @@ def _rest_on_no_offer(
         thesis=score.get("thesis") or "",
         taker=False,
     )
+    if time.time() < _REST_BACKOFF.get(market["id"], 0.0):
+        return False  # a recent attempt on this market failed; do not retry every 0.3 s tick
     reason = veto(cand, ledger, settings, occupied=held) or _cap_lock_stake(cand, ledger, settings)
     common = {"id": cand["id"], "kind": "crypto_lag", "side": side, "price": ASK_CAP, "fair": fair, "edge": cand["edge"],
               "signal_ts": cand["signal_ts"], "window_end": cand.get("window_end"), "thesis": cand["thesis"]}
     if reason:
+        _REST_BACKOFF[market["id"]] = time.time() + 30.0
         vetoes.append({"id": cand["id"], "reason": reason, "kind": "crypto_lag"})
         journal({"ts": time.time(), "event": "veto", "reason": reason, **common})
+        return False
+    # the exposure cap can leave less than the venue minimum (5 shares): skip quietly, once
+    rest_cap = _f_env("LOCK_REST_MAX_USD", 5.0)
+    min_shares = max(float(market.get("min_order_size") or 0), 5.0)
+    if min(float(cand["stake"]), rest_cap) / ASK_CAP < min_shares - 1e-9:
+        _REST_BACKOFF[market["id"]] = time.time() + 60.0
+        journal({"ts": time.time(), "event": "rest_skip", "reason": f"stake {min(float(cand['stake']), rest_cap):.2f} below {min_shares:g} shares at {ASK_CAP}", **common})
         return False
     try:
         raw = live_rest_buy(cand, settings)
     except (LiveDisabled, RuntimeError, ValueError) as exc:
+        _REST_BACKOFF[market["id"]] = time.time() + 60.0
         errors.append(f"{cand['id']}: rest: {exc}")
         journal({"ts": time.time(), "event": "rest_reject", "reason": str(exc), **common})
         return False

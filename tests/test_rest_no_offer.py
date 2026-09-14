@@ -77,3 +77,22 @@ def test_vetoed_rest_is_reported_not_posted(monkeypatch):
     vetoes = []
     assert agent._rest_on_no_offer(_market(), _score(0), {"cash": 44.0, "positions": [], "orders": []}, s, held=set(), vetoes=vetoes, errors=[]) is False
     assert vetoes and vetoes[0]["reason"] == "loss_cooldown" and posted == []
+
+
+def test_rest_skips_below_venue_minimum_and_backs_off(monkeypatch):
+    s = _settings(monkeypatch)
+    posted = _wire(monkeypatch)
+    agent._REST_BACKOFF.clear()
+    monkeypatch.setenv("LOCK_MAX_EXPOSURE_FRAC", "0.30")
+    # 30% of $45 = $13.5, $10 already resting -> $3.5 left -> 3.57 shares at 0.98: below the 5-share minimum
+    ledger = {"cash": 45.0, "positions": [], "fills": [], "orders": [{"market_id": "other", "edge_type": "twap_lock", "stake": 10.0}], "halted": False}
+    m = _market()
+    assert agent._rest_on_no_offer(m, _score(0), ledger, s, held=set(), vetoes=[], errors=[]) is False
+    assert posted == [] and agent._REST_BACKOFF.get("m1", 0) > time.time()
+    # while backed off, nothing is attempted even if the budget is now there
+    ledger["orders"].clear()
+    assert agent._rest_on_no_offer(m, _score(0), ledger, s, held=set(), vetoes=[], errors=[]) is False
+    assert posted == []
+    agent._REST_BACKOFF.clear()
+    assert agent._rest_on_no_offer(m, _score(0), ledger, s, held=set(), vetoes=[], errors=[]) is True
+    assert len(posted) == 1
