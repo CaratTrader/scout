@@ -109,16 +109,17 @@
         <string>0.01</string>
         <!-- sizing: the built-in half-Kelly sizer puts ~27% of cash on a 99.5%/0.975 trade
              (about $10 at $38, growing with the bankroll); MAX_CRYPTO_STAKE is only the ceiling -->
+        <!-- 2026-09-14 user instruction: flat $10 per lock trade (floor = cap = 10 pins the sizer) -->
         <key>MIN_CRYPTO_STAKE</key>
-        <string>2</string>
+        <string>10</string>
         <key>MAX_CRYPTO_STAKE</key>
-        <string>20</string>
+        <string>10</string>
         <!-- 2026-09-12 review: size for a loss rate near the confidence bound, not the 0.995 clamp;
              all lock dollars across the seven coins count as one bet (LOCK_MAX_EXPOSURE_FRAC) -->
         <key>CRYPTO_KELLY_MULT</key>
         <string>0.35</string>
         <key>LOCK_MAX_EXPOSURE_FRAC</key>
-        <string>0.30</string>
+        <string>0.35</string>
         <key>LOCK_REST_MAX_USD</key>
         <string>5</string>
         <key>MAX_CRYPTO_POSITIONS</key>
