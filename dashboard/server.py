@@ -226,6 +226,7 @@ class Journal:
         self.mtime = -1.0
         self.size = -1
         self.events: list[dict[str, Any]] = []
+        self.offset = 0  # bytes of the file already parsed (complete lines only)
         self.lock = threading.Lock()
 
     def load(self) -> list[dict[str, Any]]:
@@ -236,18 +237,33 @@ class Journal:
         with self.lock:
             if st.st_mtime == self.mtime and st.st_size == self.size:
                 return self.events
-            events: list[dict[str, Any]] = []
-            with self.path.open("r", encoding="utf-8", errors="replace") as fh:
-                for line in fh:
-                    line = line.strip()
-                    if not line:
-                        continue
-                    try:
-                        events.append(json.loads(line))
-                    except Exception:
-                        continue
+            # Both bots append to the journal every second, so the mtime check above almost never
+            # hits. Re-reading the whole file (25 MB / 100k lines, ~1 s under the GIL) on every
+            # dashboard poll is what made /api/state take 3-4 s and queue up. Parse only the bytes
+            # appended since the last call; a shrink (rotation) falls back to a full parse.
+            if self.events and 0 < self.offset <= st.st_size:
+                events = list(self.events)
+                start = self.offset
+            else:
+                events = []
+                start = 0
+            with self.path.open("rb") as fh:
+                fh.seek(start)
+                buf = fh.read()
+            end = buf.rfind(b"\n") + 1  # keep a torn last line (writer mid-append) for the next call
+            for raw in buf[:end].splitlines():
+                raw = raw.strip()
+                if not raw:
+                    continue
+                try:
+                    events.append(json.loads(raw.decode("utf-8", errors="replace")))
+                except Exception:
+                    continue
             self.events = events
-            self.mtime, self.size = st.st_mtime, st.st_size
+            self.offset = start + end
+            self.mtime = st.st_mtime
+            # a torn tail leaves size != st_size so the next call re-reads just that tail
+            self.size = st.st_size if end == len(buf) else self.offset
             return events
 
 
@@ -1234,24 +1250,37 @@ def parse_funnel(log_lines: list[str]) -> dict[str, Any]:
 
 
 # --------------------------------------------------------------------------- state
-_STATE_CACHE: dict[str, Any] = {"key": None, "ts": 0.0, "data": None}
+_STATE_CACHE: dict[str, dict[str, Any]] = {}  # per view ("live" / "paper"): {"ts", "data"}
 _STATE_LOCK = threading.Lock()
+STATE_TTL_S = float(os.getenv("DASH_STATE_TTL") or 5.0)
 
 
 def build_state() -> dict[str, Any]:
+    """Analytics for the current view (thread-local, set from ?ledger=).
+
+    The old cache was keyed on the journal mtime, which changes every second, and held one
+    entry for both views, so every poll (and every paper/live switch) recomputed under a
+    non-fair lock: 3-4 s each, requests starved behind each other and the stats panel stayed
+    blank. Now each view keeps its own snapshot for STATE_TTL_S, and a request that finds
+    another thread computing returns the previous snapshot instead of queueing."""
     now = time.time()
-    ledger_path = ledger_file()
+    view = "live" if is_live() else "paper"
+    hit = _STATE_CACHE.get(view)
+    if hit and now - hit["ts"] < STATE_TTL_S:
+        return hit["data"]
+    if not _STATE_LOCK.acquire(timeout=0.5 if hit else 30.0):
+        if hit:
+            return hit["data"]
+        raise RuntimeError("analytics still computing; retry")
     try:
-        key = (ledger_path.stat().st_mtime, (DATA / "journal.jsonl").stat().st_mtime, RESOLVER.stats.get("resolved"))
-    except FileNotFoundError:
-        key = None
-    key = (key, is_live())
-    with _STATE_LOCK:
-        if _STATE_CACHE["data"] is not None and _STATE_CACHE["key"] == key and now - _STATE_CACHE["ts"] < 10:
-            return _STATE_CACHE["data"]
-        data = _compute_state(now)
-        _STATE_CACHE.update({"key": key, "ts": now, "data": data})
+        hit = _STATE_CACHE.get(view)
+        if hit and time.time() - hit["ts"] < STATE_TTL_S:
+            return hit["data"]
+        data = _compute_state(time.time())
+        _STATE_CACHE[view] = {"ts": time.time(), "data": data}
         return data
+    finally:
+        _STATE_LOCK.release()
 
 
 def _compute_state(now: float) -> dict[str, Any]:
