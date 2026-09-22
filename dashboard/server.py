@@ -1250,6 +1250,36 @@ def parse_funnel(log_lines: list[str]) -> dict[str, Any]:
 
 
 # --------------------------------------------------------------------------- state
+def us_temp_summary(now: float) -> dict[str, Any]:
+    """Polymarket US temperature-ladder paper trader (scout/us_temp_paper.py): ledger + today's journal."""
+    led = read_json_stable(DATA / "ledger_us_temp.json", {}) or {}
+    fills = led.get("fills") or []
+    out: dict[str, Any] = {"cash": led.get("cash"), "start_cash": led.get("start_cash"), "created": led.get("created"), "updated": led.get("updated"),
+                           "n_fills": len(fills), "positions": led.get("positions") or [], "fills": fills[-30:][::-1]}
+    if fills:
+        pnl = sum(float(f.get("pnl") or 0) for f in fills); stake = sum(float(f.get("stake") or 0) for f in fills)
+        out.update({"pnl": round(pnl, 2), "win_rate": round(sum(1 for f in fills if f.get("won")) / len(fills), 4), "per_dollar": round(pnl / stake, 4) if stake else None})
+        by: dict[str, dict[str, float]] = {}
+        for f in fills:
+            b = by.setdefault(str(f.get("rule")), {"n": 0, "wins": 0, "pnl": 0.0})
+            b["n"] += 1; b["wins"] += 1 if f.get("won") else 0; b["pnl"] += float(f.get("pnl") or 0)
+        out["by_rule"] = by
+    sig = []; today0 = now - 86400
+    for line in tail_lines(DATA / "us_temp_journal.jsonl", 400):
+        try:
+            e = json.loads(line)
+        except Exception:
+            continue
+        if e.get("event") in ("signal", "fill", "skip", "settle") and float(e.get("ts") or 0) >= today0:
+            sig.append({k: e.get(k) for k in ("ts", "event", "city", "rule", "slug", "side", "px", "size", "why", "reason", "shares", "pnl")})
+    out["recent_events"] = sig[-40:][::-1]
+    try:
+        out["log_age_s"] = round(now - (DATA / "us_temp.log").stat().st_mtime, 1)
+    except FileNotFoundError:
+        out["log_age_s"] = None
+    return out
+
+
 _STATE_CACHE: dict[str, dict[str, Any]] = {}  # per view ("live" / "paper"): {"ts", "data"}
 _STATE_LOCK = threading.Lock()
 STATE_TTL_S = float(os.getenv("DASH_STATE_TTL") or 5.0)
@@ -1575,6 +1605,7 @@ def _compute_state(now: float) -> dict[str, Any]:
             "lessons": lessons,
             "monte_carlo": mc,
             "lab": {"paper": lab_paper, "backtest": lab_bt, "ticks": lab_ticks},
+            "us_temp": us_temp_summary(now),
             "health": {
                 "last_cycle_age_s": round(now - last_cycle_ts, 1) if last_cycle_ts else None,
                 "cycle_gap_median_s": round(statistics.median(gaps), 1) if gaps else None,

@@ -187,6 +187,13 @@
     <div class="empty" id="lab-note" style="padding-top:8px"></div>
   </section>
 
+  <section class="card span-12" id="ustemp-card">
+    <h2>Polymarket US · temperature ladders <span class="sub" id="ustemp-sub">paper trader · observed-max lock (R0 certain · R1x after the 00Z max · R2 fade)</span><span class="tools"><span class="chip info">US-legal venue · paper only</span></span></h2>
+    <div class="tiles" id="ustemp-tiles"></div>
+    <div class="scroll" id="ustemp-table"></div>
+    <div class="empty" id="ustemp-note" style="padding-top:8px"></div>
+  </section>
+
   <!-- PERFORMANCE -->
   <section class="card span-8" id="equity-card">
     <h2>Realized bankroll <span class="sub">after each settled trade · drawdown below</span><span class="tools"><button class="btn" data-table="equity-card">table</button></span></h2>
@@ -782,6 +789,23 @@ function renderMC(s) {
 }
 
 // ------------------------------------------------------------------ strategy lab
+function renderUsTemp(s) {
+  const U = s.us_temp || {};
+  const money = v => v == null ? "—" : fmt.money(v);
+  const pnl = U.pnl == null ? "—" : `<span class="${U.pnl >= 0 ? "up" : "down"}">${fmt.signed(U.pnl)}</span>`;
+  $("ustemp-tiles").innerHTML = [
+    tile("Paper cash", money(U.cash), `start ${money(U.start_cash)} · since ${U.created ? fmt.dt(new Date(U.created).getTime() / 1000) : "—"}`),
+    tile("Settled P&L", pnl, `${U.n_fills || 0} fills · win ${U.win_rate == null ? "—" : (U.win_rate * 100).toFixed(0) + "%"} · ${U.per_dollar == null ? "—" : (U.per_dollar * 100).toFixed(0) + "% per $"}`),
+    tile("Open positions", String((U.positions || []).length), (U.positions || []).slice(0, 3).map(p => `${p.city} ${p.slug.split("-").pop()} ${p.side} @${(+p.px).toFixed(2)}`).join(" · ") || "none"),
+    tile("Bot", U.log_age_s == null ? "no log" : U.log_age_s < 180 ? "polling" : "stale", U.log_age_s == null ? "" : `last poll ${Math.round(U.log_age_s)} s ago`),
+  ].join("");
+  const rows = (U.recent_events || []);
+  $("ustemp-table").innerHTML = rows.length ? `<table><tr><th>Time (ET)</th><th>Event</th><th>City</th><th>Bucket</th><th>Rule</th><th>Side</th><th class="num">Price</th><th class="num">Size</th><th>Why</th></tr>` +
+    rows.map(e => `<tr><td>${fmt.dt(e.ts)}</td><td>${esc(e.event)}</td><td>${esc(e.city || "")}</td><td>${esc((e.slug || "").split("-").pop())}</td><td>${esc(e.rule || "")}</td><td>${esc(e.side || "")}</td><td class="num">${e.px == null ? "—" : (+e.px).toFixed(2)}</td><td class="num">${e.shares != null ? (+e.shares).toFixed(0) : e.size != null ? (+e.size).toFixed(0) : "—"}</td><td>${esc(e.why || e.reason || (e.pnl != null ? "pnl " + fmt.signed(e.pnl) : ""))}</td></tr>`).join("") + "</table>" : "";
+  const by = U.by_rule || {};
+  $("ustemp-note").textContent = Object.keys(by).length ? Object.entries(by).map(([r, b]) => `${r}: ${b.n} fills · win ${(b.wins / b.n * 100).toFixed(0)}% · ${fmt.signed(b.pnl)}`).join(" · ") : "No settled fills yet. Signals fire when observed temperatures kill a bucket (R0), after the 00Z report (R1x: 5 pm PT · 7 pm CT · 8 pm ET), or when the peak has passed (R2). A quote must survive two polls before a paper fill.";
+}
+
 function renderLab(s) {
   const L = s.lab || {}, P = L.paper, B = L.backtest, K = L.ticks;
   const bt = {}, tk = {};
@@ -817,7 +841,7 @@ async function pollState() {
     STATE = s;
     renderStatus(s); renderKpis(s); renderEquity(s); renderGate(s); renderDaily(s); renderPerTrade(s); renderRolling(s);
     renderBands(s); renderHours(s); renderQuality(s); renderCalibration(s); renderVetoes(s); renderAudit(s);
-    renderTrades(s); renderLessons(s); renderFeed(s); renderHealth(s); renderMC(s); renderLab(s);
+    renderTrades(s); renderLessons(s); renderFeed(s); renderHealth(s); renderMC(s); renderLab(s); renderUsTemp(s);
     const st = s.settings || {};
     $("foot-settings").textContent = `min ask ${st.CRYPTO_MIN_ASK ?? "—"} · min edge ${st.CRYPTO_MIN_EDGE ?? "—"} · max stake $${st.MAX_CRYPTO_STAKE ?? "—"} · session DD rail $${st.MAX_SESSION_DRAWDOWN ?? "—"} · target $${st.CAMPAIGN_TARGET_USD ?? "—"} · fee ${st.TAKER_FEE_RATE ?? "—"}`;
     $("notice").style.display = "none";
