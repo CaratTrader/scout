@@ -98,3 +98,22 @@ def test_six_hour_group_far_above_hourly_readings_is_ignored():
     rows.append({"reportTime": "2026-08-27T23:51:00Z", "rawOb": "KNYC 272351Z AUTO 6SM BR 22/22 A2997 RMK AO2 T02220217 10272 20211 $"})  # 00Z group 81F: artefact
     ob = U.observed("KNYC", tz, now, fetch=lambda: rows)
     assert round(ob["max"], 1) == 77.0 and ob["has_00z"] is False
+
+
+def test_evaluate_explains_every_bucket():
+    tz = zoneinfo.ZoneInfo("America/Los_Angeles")
+    ob = {"max": 68.0, "latest": 64.9, "t_max": dt.datetime(2026, 9, 22, 12, 56, tzinfo=tz), "has_00z": False}
+    buckets = [
+        {"slug": "x-lt68f", "bid": None, "ask": 0.01, "bid_sz": 0, "ask_sz": 900},
+        {"slug": "x-gte68lt69f", "bid": 0.40, "ask": 0.55, "bid_sz": 900, "ask_sz": 700},
+        {"slug": "x-gte70lt71f", "bid": 0.30, "ask": 0.35, "bid_sz": 500, "ask_sz": 500},
+        {"slug": "x-gte72lt73f", "bid": 0.05, "ask": 0.08, "bid_sz": 400, "ask_sz": 500},
+    ]
+    ev = U.evaluate(buckets, ob, dt.datetime(2026, 9, 22, 15, 30, tzinfo=tz), city="sfo")
+    by = {r["slug"]: r for r in ev["rows"]}
+    assert ev["flags"]["peak_passed"] and ev["flags"]["after_00z"] is False
+    assert by["x-lt68f"]["status"].startswith("dead") and by["x-lt68f"]["blocker"] == "R0: no bid to sell into"
+    assert by["x-gte68lt69f"]["status"] == "holds the max" and "00Z" in by["x-gte68lt69f"]["blocker"]
+    assert by["x-gte70lt71f"]["blocker"].startswith("above the max by only 2F")
+    assert by["x-gte72lt73f"]["status"] == "above the max by 4F" and by["x-gte72lt73f"]["blocker"].startswith("R2: bid 0.05")
+    assert not any(r["candidate"] for r in ev["rows"])

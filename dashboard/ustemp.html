@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Scout · Polymarket US temperature paper</title>
+<style>
+:root{--bg:#0f1115;--card:#171a21;--line:#262b36;--text:#e6e8ee;--muted:#8a93a6;--up:#36c48f;--down:#ff6b6b;--warn:#f0b35a;--info:#5aa9ff;--mono:ui-monospace,SFMono-Regular,Menlo,monospace}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:14px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;padding:16px 18px 40px}
+h1{font-size:18px;margin:0 0 4px}h2{font-size:15px;margin:0 0 8px}.sub{color:var(--muted);font-weight:400;font-size:12px;margin-left:8px}
+a{color:var(--info)}.grid{display:grid;grid-template-columns:repeat(12,1fr);gap:12px}.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:12px 14px}
+.span-12{grid-column:span 12}.span-6{grid-column:span 6}.span-4{grid-column:span 4}@media(max-width:1100px){.span-6,.span-4{grid-column:span 12}}
+.tiles{display:flex;flex-wrap:wrap;gap:10px;margin:6px 0 10px}.tile{flex:1 1 150px;background:#11141a;border:1px solid var(--line);border-radius:8px;padding:8px 10px}
+.tile .k{color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.04em}.tile .v{font-size:20px;font-weight:600;margin-top:2px}.tile .s{color:var(--muted);font-size:11px}
+table{border-collapse:collapse;width:100%;font-size:12.5px}th,td{padding:4px 8px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}th{color:var(--muted);font-weight:500}
+td.num,th.num{text-align:right;font-family:var(--mono)}.up{color:var(--up)}.down{color:var(--down)}.warn{color:var(--warn)}.muted{color:var(--muted)}
+.chip{display:inline-block;border-radius:999px;padding:1px 8px;font-size:11px;border:1px solid var(--line);color:var(--muted);margin-right:4px}.chip.on{color:var(--up);border-color:var(--up)}.chip.off{color:var(--muted)}
+.chip.cand{color:#111;background:var(--up);border-color:var(--up);font-weight:600}.readings{font-family:var(--mono);font-size:11.5px;color:var(--muted);line-height:1.7}.readings b{color:var(--text)}
+.dead td{color:var(--muted)}.foot{color:var(--muted);font-size:11px;margin-top:14px}
+</style></head><body>
+<h1>Polymarket US · daily-high temperature ladders <span class="sub">paper trader decision view · refreshes every 15 s · <a href="/">main dashboard</a></span></h1>
+<div class="tiles" id="top"></div>
+<div id="cfg" class="foot"></div>
+<div class="grid" id="cities"></div>
+<div class="grid" style="margin-top:12px">
+  <section class="card span-6"><h2>Open paper positions</h2><div id="positions"></div></section>
+  <section class="card span-6"><h2>Pending confirmations <span class="sub">a quote must survive two polls</span></h2><div id="pending"></div></section>
+  <section class="card span-12"><h2>Recent events <span class="sub">signals · fills · skips · settlements (last 24 h)</span></h2><div id="events"></div></section>
+  <section class="card span-12"><h2>Settled fills</h2><div id="fills"></div></section>
+</div>
+<div class="foot">Rules: <b>R0</b> a bucket whose top is below the observed max is dead → buy NO; the open top bucket is certain once the max reaches its floor → buy YES. <b>R1x</b> after the 00Z METAR (its 6-hour maximum group is the true afternoon high): buy the bucket that holds it, buy NO on every other bucket still bid. <b>R2</b> after the peak (≥ peak hour, temperature ≥ 1F below the max for ≥ 45 min): buy NO on buckets ≥ max + 3F. Data guards: climate day starts 01:00 local; 6-hour groups only for windows inside the day and not > 3F above the hourly readings; a lone reading > 2.5F above every neighbour within 90 min is ignored.</div>
+<script>
+const $=id=>document.getElementById(id); const esc=s=>String(s??"").replace(/[&<>]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]));
+const money=v=>v==null?"—":"$"+Number(v).toFixed(2); const px=v=>v==null?"—":Number(v).toFixed(2); const sz=v=>v==null?"—":Math.round(Number(v)).toLocaleString();
+const fmtTs=t=>t?new Date(t*1000).toLocaleTimeString("en-US",{timeZone:"America/New_York",hour:"numeric",minute:"2-digit"})+" ET":"—";
+const tile=(k,v,s)=>`<div class="tile"><div class="k">${k}</div><div class="v">${v}</div><div class="s">${s||""}</div></div>`;
+const chip=(on,label)=>`<span class="chip ${on?"on":"off"}">${on?"✓":"·"} ${label}</span>`;
+async function load(){
+  let d; try{ d=await (await fetch("/api/ustemp",{cache:"no-store"})).json(); }catch(e){ $("top").innerHTML=tile("dashboard","unreachable",""); return; }
+  const S=d.state||{}, U=d.summary||{}, age=S.ts?Math.round(d.now-S.ts):null;
+  $("top").innerHTML=[tile("Paper cash",money(U.cash),`start ${money(U.start_cash)}`),tile("Settled P&L",U.pnl==null?"—":`<span class="${U.pnl>=0?"up":"down"}">${(U.pnl>=0?"+":"")+Number(U.pnl).toFixed(2)}</span>`,`${U.n_fills||0} fills · win ${U.win_rate==null?"—":Math.round(U.win_rate*100)+"%"}`),
+    tile("Open positions",(U.positions||[]).length,""),tile("Snapshot age",age==null?"no snapshot":age+" s",age==null?"trader has not written a state file yet":age<150?"trader polling":"stale — check data/us_temp.log"),
+    tile("Last poll (ET)",S.ts?fmtTs(S.ts):"—","")].join("");
+  const c=S.config||{}; $("cfg").textContent=c.stake?`stake $${c.stake} per trade · confirm ${c.confirm} polls · R0 max ask ${c.r0_max_ask} · R1x max ask ${c.r1x_max_ask}, min bid ${c.r1x_min_bid} · R2 margin ${c.r2_margin}F, min bid ${c.r2_min_bid} · peak: hour ≥ ${c.peak_hour}, fall ≥ ${c.peak_fall}F, ≥ ${c.peak_min_since} min since max · R1 ${c.r1?"on":"off"}`:"";
+  const names={sfo:"San Francisco (KSFO)",lax:"Los Angeles (KLAX)",mdw:"Chicago Midway (KMDW)",nyc:"New York Central Park (KNYC)",mia:"Miami (KMIA)"};
+  $("cities").innerHTML=Object.entries(S.cities||{}).map(([city,C])=>{
+    const o=C.observed||{}, head=`<h2>${names[city]||city} <span class="sub">${C.day||""} · local ${C.local_time||"—"} · 00Z report at ${o.z00_local_hour??"—"}:00 local</span></h2>`;
+    if(!C.active) return `<section class="card span-12">${head}<div class="muted">${esc(C.note||"inactive")}</div></section>`;
+    const flags=[chip(o.has_00z,"00Z 6-hour max received"),chip(o.after_00z,"R1x window open"),chip(o.peak_hour_ok,`hour ≥ ${c.peak_hour}`),chip(o.fall_ok,`fall ≥ ${c.peak_fall}F (now ${o.fall_f}F)`),chip(o.since_ok,`≥ ${c.peak_min_since} min since max (now ${o.since_max_min})`),chip(o.peak_passed,"peak passed → R2 armed")].join("");
+    const tiles=[tile("Observed max",`${o.max} F`,`official rounds to ${o.r_max} · set ${o.t_max}`),tile("Latest reading",`${o.latest} F`,`${o.n_readings} readings today`),tile("Candidates now",C.candidates||0,`${C.n_buckets_open} buckets open`)].join("");
+    const rd=(C.readings||[]).slice(-14).map(r=>`${r.time} <b>${r.f}</b>${r.src==="6hr max"?" ⁶ʰ":""}${r.used?"":" (ignored)"}`).join(" · ");
+    const rows=(C.buckets||[]).map(b=>`<tr class="${b.status.startsWith("dead")?"dead":""}"><td>${esc(b.label)}</td><td class="num">${px(b.bid)} × ${sz(b.bid_sz)}</td><td class="num">${px(b.ask)} × ${sz(b.ask_sz)}</td><td>${esc(b.status)}</td><td>${b.candidate?`<span class="chip cand">${b.rule} ${b.side} @ ${px(b.px)} × ${sz(b.size)}</span> ${esc(b.why)}`:`<span class="muted">${esc(b.blocker||"—")}</span>`}</td></tr>`).join("");
+    return `<section class="card span-12">${head}<div class="tiles">${tiles}</div><div>${flags}</div><div class="readings" style="margin:8px 0 10px">${rd||"no readings"}</div><table><tr><th>Bucket (F)</th><th class="num">YES bid × size</th><th class="num">YES ask × size</th><th>Status vs observed max</th><th>Decision</th></tr>${rows}</table></section>`;
+  }).join("");
+  const P=U.positions||[]; $("positions").innerHTML=P.length?`<table><tr><th>City</th><th>Bucket</th><th>Side</th><th class="num">Price</th><th class="num">Shares</th><th>Rule</th><th>Why</th><th>Opened (ET)</th></tr>${P.map(p=>`<tr><td>${esc(p.city)}</td><td>${esc((p.slug||"").split("-").pop())}</td><td>${esc(p.side)}</td><td class="num">${px(p.px)}</td><td class="num">${sz(p.shares)}</td><td>${esc(p.rule)}</td><td>${esc(p.why)}</td><td>${p.opened?fmtTs(new Date(p.opened).getTime()/1000):"—"}</td></tr>`).join("")}</table>`:`<div class="muted">none</div>`;
+  const pend=Object.entries(S.pending||{}); $("pending").innerHTML=pend.length?`<table><tr><th>Market</th><th>Side</th><th>Rule</th><th class="num">Price seen</th><th class="num">Polls</th></tr>${pend.map(([k,v])=>`<tr><td>${esc(k.split("|")[0].split("-").slice(2).join("-"))}</td><td>${esc(k.split("|")[1])}</td><td>${esc(v.rule)}</td><td class="num">${px(v.px)}</td><td class="num">${v.n}/${c.confirm||2}</td></tr>`).join("")}</table>`:`<div class="muted">none</div>`;
+  const E=U.recent_events||[]; $("events").innerHTML=E.length?`<table><tr><th>Time (ET)</th><th>Event</th><th>City</th><th>Bucket</th><th>Rule</th><th>Side</th><th class="num">Price</th><th class="num">Size</th><th>Why</th></tr>${E.map(e=>`<tr><td>${fmtTs(e.ts)}</td><td>${esc(e.event)}</td><td>${esc(e.city||"")}</td><td>${esc((e.slug||"").split("-").pop())}</td><td>${esc(e.rule||"")}</td><td>${esc(e.side||"")}</td><td class="num">${px(e.px)}</td><td class="num">${e.shares!=null?sz(e.shares):sz(e.size)}</td><td>${esc(e.why||e.reason||(e.pnl!=null?"pnl "+Number(e.pnl).toFixed(2):""))}</td></tr>`).join("")}</table>`:`<div class="muted">no signals or fills in the last 24 h</div>`;
+  const F=U.fills||[]; $("fills").innerHTML=F.length?`<table><tr><th>Settled (ET)</th><th>City</th><th>Bucket</th><th>Side</th><th class="num">Price</th><th class="num">Shares</th><th>Rule</th><th class="num">P&L</th></tr>${F.map(f=>`<tr><td>${f.settled?fmtTs(new Date(f.settled).getTime()/1000):"—"}</td><td>${esc(f.city)}</td><td>${esc((f.slug||"").split("-").pop())}</td><td>${esc(f.side)}</td><td class="num">${px(f.px)}</td><td class="num">${sz(f.shares)}</td><td>${esc(f.rule)}</td><td class="num ${f.pnl>=0?"up":"down"}">${(f.pnl>=0?"+":"")+Number(f.pnl).toFixed(2)}</td></tr>`).join("")}</table>`:`<div class="muted">nothing settled yet</div>`;
+}
+load(); setInterval(load,15000);
+</script></body></html>

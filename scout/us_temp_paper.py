@@ -31,6 +31,7 @@ CITIES = {"sfo": ("KSFO", "America/Los_Angeles"), "lax": ("KLAX", "America/Los_A
           "nyc": ("KNYC", "America/New_York"), "mia": ("KMIA", "America/New_York")}
 LEDGER = Path(os.getenv("USTEMP_LEDGER") or "data/ledger_us_temp.json")
 JOURNAL = Path(os.getenv("USTEMP_JOURNAL") or "data/us_temp_journal.jsonl")
+STATE = Path(os.getenv("USTEMP_STATE") or "data/us_temp_state.json")  # decision snapshot for the detail dashboard
 FEE = 0.0695
 
 
@@ -103,7 +104,7 @@ def metar_temps_f(raw: str) -> list[float]:
 
 def observed(station: str, tz: zoneinfo.ZoneInfo, now: dt.datetime, fetch=None) -> dict[str, Any] | None:
     """Today's (climate-day) running max, latest temperature and time of the max, from aviationweather.gov."""
-    fetch = fetch or (lambda: get(f"{AWC}?ids={station}&format=json&hours=30"))
+    fetch = fetch or (lambda: get(f"{AWC}?ids={station}&format=json&hours=30", timeout=40))
     rows = fetch() or []
     obs: list[tuple[dt.datetime, float]] = []; has_00z = False
     day_start = now.astimezone(tz).replace(hour=1, minute=0, second=0, microsecond=0)
@@ -142,35 +143,83 @@ def observed(station: str, tz: zoneinfo.ZoneInfo, now: dt.datetime, fetch=None) 
     good = [(lt, f) for lt, f, tr in obs if ok(lt, f, tr)] or [(obs[-1][0], obs[-1][1])]
     mx = max(f for _, f in good); t_max = max(lt for lt, f in good if f == mx)
     latest = [f for lt, f, tr in obs if lt == obs[-1][0] and not tr] or [obs[-1][1]]
-    return {"max": mx, "t_max": t_max, "latest": min(latest), "n": len(obs), "last_obs": obs[-1][0], "has_00z": has_00z}
+    readings = [{"time": lt.strftime("%H:%M"), "f": round(f, 1), "src": "6hr max" if tr else "hourly", "used": (lt, f) in good} for lt, f, tr in obs]
+    return {"max": mx, "t_max": t_max, "latest": min(latest), "n": len(obs), "last_obs": obs[-1][0], "has_00z": has_00z, "readings": readings}
 
 
 # ------------------------------------------------------------------ signals
-def signals(buckets: list[dict[str, Any]], ob: dict[str, Any], now_local: dt.datetime, cfg=CFG, city: str = "") -> list[dict[str, Any]]:
-    """buckets: [{slug, bid, ask, bid_sz, ask_sz}] (YES prices). Returns candidate trades.
+def evaluate(buckets: list[dict[str, Any]], ob: dict[str, Any], now_local: dt.datetime, cfg=CFG, city: str = "") -> dict[str, Any]:
+    """Explain every bucket: its position relative to the observed max, which rule applies, and what blocks it.
+    Returns {"flags": {...}, "rows": [...]}; rows with candidate=True are the trades (see signals()).
     R1x: once the 00Z six-hour maximum has been received (ob["has_00z"]), the day's high is known on ~98% of days
     (backtest: 722/735 station-days exact); buy the bucket holding it and fade every other bucket."""
-    M = ob["max"]; T = ob["latest"]; r_m = int(M + 0.5)  # official report rounds to whole F
+    M = ob["max"]; T = ob["latest"]; r_m = int(M + 0.5)  # the official report rounds to whole F
     since = (now_local - ob["t_max"]).total_seconds() / 60
-    peak_passed = now_local.hour >= cfg["peak_hour"] and (M - T) >= cfg["peak_fall"] and since >= cfg["peak_min_since"]
-    after_00z = bool(ob.get("has_00z")) and now_local.hour >= Z00_LOCAL_HOUR.get(city, 20)
-    out = []
+    fall = M - T
+    hour_ok = now_local.hour >= cfg["peak_hour"]; fall_ok = fall >= cfg["peak_fall"]; since_ok = since >= cfg["peak_min_since"]
+    peak_passed = hour_ok and fall_ok and since_ok
+    z00 = Z00_LOCAL_HOUR.get(city, 20)
+    after_00z = bool(ob.get("has_00z")) and now_local.hour >= z00
+    flags = {"max": round(M, 1), "r_max": r_m, "latest": round(T, 1), "fall_f": round(fall, 1), "since_max_min": round(since), "peak_passed": peak_passed,
+             "peak_hour_ok": hour_ok, "fall_ok": fall_ok, "since_ok": since_ok, "has_00z": bool(ob.get("has_00z")), "after_00z": after_00z, "z00_local_hour": z00}
+    rows = []
     for b in buckets:
         lo, hi = bounds(b["slug"]); bid, ask = b.get("bid"), b.get("ask")
         no_ask = (1 - bid) if bid else None
-        if cfg["r1x"] and after_00z and lo <= r_m <= hi and ask and 0.02 <= ask <= cfg["r1x_max_ask"]:
-            out.append({"rule": "R1x", "slug": b["slug"], "side": "YES", "px": round(ask, 3), "size": b.get("ask_sz") or 0, "why": f"00Z max {r_m} in bucket"})
-        elif cfg["r1x"] and after_00z and not (lo <= r_m <= hi) and bid and bid >= cfg["r1x_min_bid"] and no_ask and 0.02 <= no_ask <= cfg["r0_max_ask"]:
-            out.append({"rule": "R1x", "slug": b["slug"], "side": "NO", "px": round(no_ask, 3), "size": b.get("bid_sz") or 0, "why": f"00Z max {r_m} outside bucket"})
-        elif hi + 0.5 <= M and no_ask and 0.02 <= no_ask <= cfg["r0_max_ask"]:
-            out.append({"rule": "R0", "slug": b["slug"], "side": "NO", "px": round(no_ask, 3), "size": b.get("bid_sz") or 0, "why": f"top {hi:.0f} < max {M:.1f}"})
-        elif hi >= 1e8 and M >= lo - 0.45 and ask and 0.02 <= ask <= cfg["r0_max_ask"]:
-            out.append({"rule": "R0", "slug": b["slug"], "side": "YES", "px": round(ask, 3), "size": b.get("ask_sz") or 0, "why": f"max {M:.1f} >= floor {lo:.0f}"})
-        elif peak_passed and lo >= r_m + cfg["r2_margin"] and bid and bid >= cfg["r2_min_bid"] and no_ask and no_ask >= 0.02:
-            out.append({"rule": "R2", "slug": b["slug"], "side": "NO", "px": round(no_ask, 3), "size": b.get("bid_sz") or 0, "why": f"floor {lo:.0f} >= max {r_m}+{cfg['r2_margin']:.0f}, peak passed"})
-        elif cfg["r1"] and peak_passed and lo <= r_m and r_m + 1 <= hi and ask and 0.02 <= ask <= cfg["r1_max_ask"]:
-            out.append({"rule": "R1", "slug": b["slug"], "side": "YES", "px": round(ask, 3), "size": b.get("ask_sz") or 0, "why": f"bucket holds max {r_m} and {r_m+1}, peak passed"})
-    return out
+        label = f"<= {hi:.0f}" if lo < -1e8 else f">= {lo:.0f}" if hi > 1e8 else f"{lo:.0f}-{hi:.0f}"
+        row = {"slug": b["slug"], "label": label, "lo": None if lo < -1e8 else lo, "hi": None if hi > 1e8 else hi, "bid": bid, "ask": ask,
+               "bid_sz": b.get("bid_sz"), "ask_sz": b.get("ask_sz"), "candidate": False, "rule": None, "side": None, "px": None, "size": 0, "why": "", "blocker": ""}
+        holds = lo <= r_m <= hi
+        dead = hi + 0.5 <= M
+        top_certain = hi >= 1e8 and M >= lo - 0.45
+        row["status"] = "dead (top below observed max)" if dead else "certain YES (max reached its floor)" if top_certain else "holds the max" if holds else f"above the max by {lo - r_m:.0f}F" if lo > r_m else "below the max"
+        def cand(rule, side, px, size, why):
+            row.update({"candidate": True, "rule": rule, "side": side, "px": round(px, 3), "size": size or 0, "why": why, "blocker": ""})
+        if cfg["r1x"] and after_00z and holds:
+            if ask and 0.02 <= ask <= cfg["r1x_max_ask"]:
+                cand("R1x", "YES", ask, b.get("ask_sz"), f"00Z max {r_m} in bucket")
+            else:
+                row["blocker"] = f"R1x YES: ask {ask if ask is not None else 'none'} not within 0.02-{cfg['r1x_max_ask']:.2f}"
+        elif cfg["r1x"] and after_00z and not holds:
+            if bid and bid >= cfg["r1x_min_bid"] and no_ask and 0.02 <= no_ask <= cfg["r0_max_ask"]:
+                cand("R1x", "NO", no_ask, b.get("bid_sz"), f"00Z max {r_m} outside bucket")
+            else:
+                row["blocker"] = f"R1x NO: bid {bid if bid is not None else 'none'} < {cfg['r1x_min_bid']:.2f} (nothing worth selling into)"
+        elif dead:
+            if no_ask and 0.02 <= no_ask <= cfg["r0_max_ask"]:
+                cand("R0", "NO", no_ask, b.get("bid_sz"), f"top {hi:.0f} < max {M:.1f}")
+            else:
+                row["blocker"] = "R0: no bid to sell into" if not bid else f"R0: NO ask {no_ask:.2f} > cap {cfg['r0_max_ask']:.2f}"
+        elif top_certain:
+            if ask and 0.02 <= ask <= cfg["r0_max_ask"]:
+                cand("R0", "YES", ask, b.get("ask_sz"), f"max {M:.1f} >= floor {lo:.0f}")
+            else:
+                row["blocker"] = f"R0 YES: ask {ask if ask is not None else 'none'} > cap {cfg['r0_max_ask']:.2f}"
+        elif lo >= r_m + cfg["r2_margin"]:
+            if not peak_passed:
+                why_not = [] if hour_ok else [f"before {cfg['peak_hour']:.0f}:00 local"]
+                if not fall_ok: why_not.append(f"fall {fall:.1f}F < {cfg['peak_fall']:.0f}F")
+                if not since_ok: why_not.append(f"{since:.0f} min since max < {cfg['peak_min_since']:.0f}")
+                row["blocker"] = "R2 waits for the peak: " + ", ".join(why_not)
+            elif bid and bid >= cfg["r2_min_bid"] and no_ask and no_ask >= 0.02:
+                cand("R2", "NO", no_ask, b.get("bid_sz"), f"floor {lo:.0f} >= max {r_m}+{cfg['r2_margin']:.0f}, peak passed")
+            else:
+                row["blocker"] = f"R2: bid {bid if bid is not None else 'none'} < {cfg['r2_min_bid']:.2f}"
+        elif holds:
+            row["blocker"] = (f"holds the max; R1x waits for the 00Z report ({z00}:00 local)" if not after_00z else "")
+            if cfg["r1"] and peak_passed and r_m + 1 <= hi and ask and 0.02 <= ask <= cfg["r1_max_ask"]:
+                cand("R1", "YES", ask, b.get("ask_sz"), f"bucket holds max {r_m} and {r_m+1}, peak passed")
+        elif lo > r_m:
+            row["blocker"] = f"above the max by only {lo - r_m:.0f}F (< R2 margin {cfg['r2_margin']:.0f}F); waits for the 00Z report"
+        else:
+            row["blocker"] = "below the max but not yet dead by 0.5F"
+        rows.append(row)
+    return {"flags": flags, "rows": rows}
+
+
+def signals(buckets: list[dict[str, Any]], ob: dict[str, Any], now_local: dt.datetime, cfg=CFG, city: str = "") -> list[dict[str, Any]]:
+    """Candidate trades: [{rule, slug, side, px, size, why}] (see evaluate() for the full reasoning)."""
+    return [{k: r[k] for k in ("rule", "slug", "side", "px", "size", "why")} for r in evaluate(buckets, ob, now_local, cfg, city)["rows"] if r["candidate"]]
 
 
 # ------------------------------------------------------------------ ledger
@@ -269,21 +318,26 @@ def ladder(city: str, day: str) -> list[dict[str, Any]]:
 def poll(led: dict[str, Any], now: dt.datetime | None = None) -> str:
     now = now or dt.datetime.now(dt.timezone.utc)
     n_c = n_f = 0; notes = []
+    snap: dict[str, Any] = {"ts": now.timestamp(), "updated": now.isoformat(), "config": {**CFG, "z00_local_hour": Z00_LOCAL_HOUR}, "cities": {}}
     for city, (station, tzname) in CITIES.items():
         tz = zoneinfo.ZoneInfo(tzname); now_local = now.astimezone(tz); day = now_local.date().isoformat()
+        cs = snap["cities"][city] = {"station": station, "tz": tzname, "local_time": now_local.strftime("%H:%M"), "day": day, "active": False, "note": ""}
         if now_local.hour < 9:
-            continue
+            cs["note"] = "waits until 09:00 local"; continue
         mk = ladder(city, day)
         if not mk:
-            continue
+            cs["note"] = "no ladder listed for today"; continue
         ob = observed(station, tz, now)
         if not ob:
-            continue
+            cs["note"] = "no METAR observations yet today"; continue
         buckets = []
         for m in mk:
             q = bbo(m["slug"])
             if q and q.get("state", "").endswith("OPEN"):
                 buckets.append(q)
+        ev = evaluate(buckets, ob, now_local, city=city)
+        cs.update({"active": True, "observed": {**ev["flags"], "t_max": ob["t_max"].strftime("%H:%M"), "n_readings": ob["n"]}, "readings": ob.get("readings", []), "buckets": ev["rows"],
+                   "n_buckets_open": len(buckets), "candidates": sum(1 for r in ev["rows"] if r["candidate"])})
         cands = signals(buckets, ob, now_local, city=city)
         for c in cands:
             journal({"event": "signal", "city": city, **c, "max": round(ob["max"], 1), "latest": round(ob["latest"], 1)})
@@ -295,6 +349,11 @@ def poll(led: dict[str, Any], now: dt.datetime | None = None) -> str:
         notes.append(f"{city} max={ob['max']:.0f} now={ob['latest']:.0f} cands={len(cands)}")
     settled = settle(led)
     led["updated"] = now.isoformat(); save_ledger(led)
+    snap.update({"cash": led["cash"], "positions": led["positions"], "pending": led.get("pending", {}), "n_fills": len(led.get("fills", []))})
+    try:
+        tmp = STATE.with_suffix(".tmp"); tmp.write_text(json.dumps(snap, default=str)); tmp.replace(STATE)
+    except Exception as exc:
+        journal({"event": "error", "url": "state-file", "err": str(exc)[:120]})
     return f"us-temp paper cash={led['cash']:.2f} pos={len(led['positions'])} cands={n_c} fills={n_f} settled={len(settled)} | " + " ".join(notes)
 
 

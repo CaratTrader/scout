@@ -1701,6 +1701,11 @@ class Handler(BaseHTTPRequestHandler):
                 self._send(json.dumps(clean({"launchd": launchd_status(), "engine_ok": ENGINE.snapshot.get("ok"), "indicators": INDICATORS.errors})).encode(), "application/json")
             elif path in {"/", "/index.html"}:
                 self._send((HERE / "index.html").read_bytes(), "text/html; charset=utf-8")
+            elif path in {"/ustemp", "/ustemp.html"}:
+                self._send((HERE / "ustemp.html").read_bytes(), "text/html; charset=utf-8")
+            elif path == "/api/ustemp":
+                now_ = time.time()
+                self._send(json.dumps(clean({"state": read_json_stable(DATA / "us_temp_state.json", {}), "summary": us_temp_summary(now_), "now": now_})).encode(), "application/json")
             else:
                 self._send(b"not found", "text/plain", 404)
         except BrokenPipeError:
