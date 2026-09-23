@@ -24,6 +24,13 @@
         <key>USTEMP_R2_MIN_BID</key><string>0.15</string>
         <key>USTEMP_CONFIRM_POLLS</key><string>2</string>
         <key>USTEMP_R1</key><string>0</string>
+        <!-- 2026-09-23: NWS intraday climate report (~16:25 EDT Miami, ~16:35 NYC/Chicago local) as trusted max, and as an
+             early R1x trigger once the METAR peak has passed (fall >= 2F, >= 60 min since max, >= 15:00 local):
+             backtest 467 city-days, report max == final high 98/97/93% under that gate, 40/44 simulated trades. -->
+        <key>USTEMP_CLI_OBS</key><string>1</string>
+        <key>USTEMP_CLI_TRIGGER</key><string>1</string>
+        <key>USTEMP_CLI_FALL</key><string>2</string>
+        <key>USTEMP_CLI_MIN_SINCE</key><string>60</string>
     </dict>
     <key>RunAtLoad</key><true/>
     <key>KeepAlive</key><true/>

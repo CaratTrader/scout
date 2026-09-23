@@ -121,3 +121,20 @@ Those minutes are display artefacts (last trade or one-sided books), not offers,
 * `com.tradeinc.ustemp` (paper): `scout/us_temp_paper.py` polls the five METARs and the five open ladders every 60 s, applies R0 / R1x / R2 with the data-quality rules above, requires a quote to survive two polls before a paper fill (size-capped), settles from the venue. Ledger `data/ledger_us_temp.json`, log `data/us_temp.log`.
 * The bar before real money: two weeks of paper fills with the catchable rule, win rate ≥ 90% and realised edge ≥ +20% per $ on ≥ 30 fills, then a KYC'd Polymarket US account, API key, and a small live stake ($50–100 per trade).
 
+## 5. Data sources for the temperature trader (2026-09-23)
+| source | what | latency / resolution | use |
+|---|---|---|---|
+| aviationweather.gov METAR API | hourly + special reports, T-group tenths, 6-hour max groups at 00/06/12/18Z | ~5 min; hourly | primary observation; 00Z group = true afternoon max (98% exact) |
+| Iowa State ASOS archive (`asos.py`) | same METARs, raw text | minutes | fallback when AWC returns 502/504 |
+| **NWS Daily Climate Report (CLI), intraday issuance** via api.weather.gov `products?type=CLI&location=<MIA|NYC|MDW|SFO|LAX>` | "VALID TODAY AS OF 0400 PM … TODAY MAXIMUM 93 2:57 PM": the resolution product's own max-so-far, from 1-minute data | Miami ~16:25 EDT, NYC ~16:35 EDT, Chicago ~16:35 CDT; SF ~17:25 PDT and LA ~18:35 PDT (after their 00Z) | trusted observation (raises the max like a 6-hour group); candidate early R1x trigger 2–3.5 h before 00Z in the three eastern/central cities (`USTEMP_CLI_TRIGGER`, backtest `lab/us/cli_backtest.py` on the IEM AFOS archive) |
+| IEM `obhistory` 5-minute MADIS reports | whole-°C 5-minute observations | near real time | not used yet; would tighten the running max between hourly reports (1.8°F resolution) |
+| Forecasts (NWS hourly, HRRR) | prediction | n/a | deliberately not used: the edge is observational; a forecast model would be a separate, riskier strategy |
+
+### 5a. Intraday climate report as an early trigger — result (2026-09-23, 467 city-days)
+| city | issued (local) | report max == final high | same, when METAR says the peak has passed (fall ≥ 2F, ≥ 60 min since max, ≥ 15:00) |
+|---|---|---|---|
+| Miami | ~16:00–16:25 | 147/154 = 95% | 79/81 = 98% |
+| NYC | ~16:00–16:35 | 128/155 = 83% | 57/59 = 97% |
+| Chicago | ~16:00–16:35 | 124/155 = 80% | 38/41 = 93% |
+
+Simulated R1x triggered by the report + peak gate, fills 2 min after issuance: 44 trades, 91% win, avg price 0.56, +33.7c/share, +60% per $, t = 5.5 (Miami 16/16, NYC 15/17, Chicago 9/11). Same edge as the 00Z rule, 2–3.5 hours earlier. Enabled in the paper job on 2026-09-23 (`USTEMP_CLI_TRIGGER=1`, fall ≥ 2F, ≥ 60 min). SF and LA reports come after their 00Z, so nothing changes there.
