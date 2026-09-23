@@ -132,3 +132,35 @@ def test_iem_fallback_when_awc_fails(monkeypatch):
     monkeypatch.setattr(U, "journal", lambda ev: None)
     rows = U.fetch_metars("KMDW", tz)
     assert rows == [{"reportTime": "2026-09-23T14:53:00Z", "rawOb": "KMDW 231453Z 05013KT 10SM 17/09 A3027 RMK AO2 T01720094"}]
+
+
+CLI_TEXT = """CLIMATE REPORT
+NATIONAL WEATHER SERVICE MIAMI,FL
+428 PM EDT SAT AUG 15 2026
+
+...THE MIAMI CLIMATE SUMMARY FOR AUGUST 15 2026...
+VALID TODAY AS OF 0400 PM LOCAL TIME.
+
+TEMPERATURE (F)
+ TODAY
+  MAXIMUM         93   2:57 PM  98    2024  91      2       93
+  MINIMUM         80  12:32 AM  69    1920  78      2       81
+"""
+
+
+def test_parse_cli_intraday_report():
+    r = U.parse_cli(CLI_TEXT)
+    assert r == {"day": "2026-08-15", "asof_min": 16 * 60, "max": 93.0, "max_time": "2:57 PM"}
+    assert U.parse_cli(CLI_TEXT.replace("VALID TODAY", "VALID YESTERDAY")) is None   # the final report is not intraday
+
+
+def test_cli_report_raises_the_observed_max_and_can_open_the_window(monkeypatch):
+    tz = zoneinfo.ZoneInfo("America/New_York")
+    ob = {"max": 91.0, "latest": 88.0, "t_max": dt.datetime(2026, 8, 15, 14, 0, tzinfo=tz), "has_00z": False, "cli": {"day": "2026-08-15", "asof_min": 960, "max": 93.0}}
+    buckets = [{"slug": "x-gte93lt94f", "bid": 0.30, "ask": 0.35, "bid_sz": 500, "ask_sz": 500}, {"slug": "x-gte91lt92f", "bid": 0.55, "ask": 0.60, "bid_sz": 500, "ask_sz": 500}]
+    now_local = dt.datetime(2026, 8, 15, 16, 30, tzinfo=tz)
+    off = dict(U.CFG, cli_trigger=0); on = dict(U.CFG, cli_trigger=1)
+    assert not [c for c in U.signals(buckets, ob, now_local, cfg=off, city="mia") if c["rule"] == "R1x"]
+    ob2 = dict(ob, max=93.0)   # poll() lifts the max to the report's value before evaluate()
+    s = U.signals(buckets, ob2, now_local, cfg=on, city="mia")
+    assert [(c["rule"], c["slug"], c["side"]) for c in s] == [("R1x", "x-gte93lt94f", "YES"), ("R1x", "x-gte91lt92f", "NO")]

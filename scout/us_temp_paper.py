@@ -50,6 +50,12 @@ CFG = {
     "r1x": int(env_f("USTEMP_R1X", 1)), "r1x_max_ask": env_f("USTEMP_R1X_MAX_ASK", 0.90), "r1x_min_bid": env_f("USTEMP_R1X_MIN_BID", 0.10),
 }
 Z00_LOCAL_HOUR = {"sfo": 17, "lax": 17, "mdw": 19, "nyc": 20, "mia": 20}  # local hour of the 00Z report during daylight saving
+NWS = "https://api.weather.gov/products"
+CFG["cli_obs"] = int(env_f("USTEMP_CLI_OBS", 1))          # use the NWS intraday climate report's "today maximum" as a trusted observation
+CFG["cli_trigger"] = int(env_f("USTEMP_CLI_TRIGGER", 0))  # let it open the R1x window before 00Z when the peak has passed (off until backtested)
+CFG["cli_fall"] = env_f("USTEMP_CLI_FALL", 2); CFG["cli_min_since"] = env_f("USTEMP_CLI_MIN_SINCE", 60)
+_MON = {m: i for i, m in enumerate(["JANUARY", "FEBRUARY", "MARCH", "APRIL", "MAY", "JUNE", "JULY", "AUGUST", "SEPTEMBER", "OCTOBER", "NOVEMBER", "DECEMBER"], 1)}
+_CLI_CACHE: dict[str, tuple[float, dict[str, Any] | None]] = {}
 
 
 def get(url: str, timeout: float = 20) -> Any:
@@ -128,6 +134,42 @@ def fetch_metars(station: str, tz: zoneinfo.ZoneInfo) -> list[dict[str, Any]]:
     return out
 
 
+def parse_cli(text: str) -> dict[str, Any] | None:
+    """NWS Daily Climate Report: '...THE MIAMI CLIMATE SUMMARY FOR AUGUST 15 2026...', 'VALID TODAY AS OF 0400 PM
+    LOCAL TIME.', then under TEMPERATURE (F) / TODAY: 'MAXIMUM  93  2:57 PM ...'. Returns day, as-of minute, max."""
+    m = re.search(r"SUMMARY FOR (\w+) (\d{1,2}) (\d{4})", text)
+    v = re.search(r"VALID (TODAY|YESTERDAY)? ?AS OF (\d{3,4}) (AM|PM)", text)
+    mx = re.search(r"\n\s*MAXIMUM\s+(-?\d+)R?\s+(\d{1,2}:\d{2} [AP]M)?", text)
+    if not (m and mx and v and v.group(1) == "TODAY"):
+        return None
+    try:
+        day = dt.date(int(m.group(3)), _MON[m.group(1).upper()], int(m.group(2)))
+    except (KeyError, ValueError):
+        return None
+    hhmm = v.group(2).zfill(4); h = int(hhmm[:2]) % 12 + (12 if v.group(3) == "PM" else 0)
+    return {"day": day.isoformat(), "asof_min": h * 60 + int(hhmm[2:]), "max": float(mx.group(1)), "max_time": mx.group(2)}
+
+
+def cli_intraday(city: str, day: str, fetch=None) -> dict[str, Any] | None:
+    """Today's intraday NWS climate report for the city (cached 10 min). Location codes on api.weather.gov are the
+    station ids (MIA, NYC, MDW, SFO, LAX)."""
+    key = f"{city}:{day}"; hit = _CLI_CACHE.get(key)
+    if hit and time.time() - hit[0] < 600:
+        return hit[1]
+    def _fetch():
+        loc = city.upper()
+        lst = get(f"{NWS}?type=CLI&location={loc}&limit=6") or {}
+        for item in lst.get("@graph") or []:
+            prod = get(f"{NWS}/{item.get('id')}") or {}
+            rep = parse_cli(prod.get("productText") or "")
+            if rep and rep["day"] == day:
+                return rep
+        return None
+    rep = (fetch or _fetch)()
+    _CLI_CACHE[key] = (time.time(), rep)
+    return rep
+
+
 def observed(station: str, tz: zoneinfo.ZoneInfo, now: dt.datetime, fetch=None) -> dict[str, Any] | None:
     """Today's (climate-day) running max, latest temperature and time of the max, from METARs."""
     fetch = fetch or (lambda: fetch_metars(station, tz))
@@ -185,9 +227,12 @@ def evaluate(buckets: list[dict[str, Any]], ob: dict[str, Any], now_local: dt.da
     hour_ok = now_local.hour >= cfg["peak_hour"]; fall_ok = fall >= cfg["peak_fall"]; since_ok = since >= cfg["peak_min_since"]
     peak_passed = hour_ok and fall_ok and since_ok
     z00 = Z00_LOCAL_HOUR.get(city, 20)
-    after_00z = bool(ob.get("has_00z")) and now_local.hour >= z00
+    rep = ob.get("cli")
+    cli_ok = bool(cfg.get("cli_trigger")) and bool(rep) and now_local.hour >= cfg["peak_hour"] and fall >= cfg["cli_fall"] and since >= cfg["cli_min_since"]
+    after_00z = (bool(ob.get("has_00z")) and now_local.hour >= z00) or cli_ok
     flags = {"max": round(M, 1), "r_max": r_m, "latest": round(T, 1), "fall_f": round(fall, 1), "since_max_min": round(since), "peak_passed": peak_passed,
-             "peak_hour_ok": hour_ok, "fall_ok": fall_ok, "since_ok": since_ok, "has_00z": bool(ob.get("has_00z")), "after_00z": after_00z, "z00_local_hour": z00}
+             "peak_hour_ok": hour_ok, "fall_ok": fall_ok, "since_ok": since_ok, "has_00z": bool(ob.get("has_00z")), "after_00z": after_00z, "z00_local_hour": z00,
+             "cli_report": (f"{rep['max']:.0f}F as of {rep['asof_min']//60:02d}:{rep['asof_min']%60:02d}" if rep else None), "cli_window": cli_ok}
     rows = []
     for b in buckets:
         lo, hi = bounds(b["slug"]); bid, ask = b.get("bid"), b.get("ask")
@@ -356,6 +401,12 @@ def poll(led: dict[str, Any], now: dt.datetime | None = None) -> str:
         ob = observed(station, tz, now)
         if not ob:
             cs["note"] = "no METAR observations yet today"; continue
+        rep = cli_intraday(city, day) if CFG["cli_obs"] and now_local.hour >= 15 else None
+        ob["cli"] = rep
+        if rep and rep["max"] >= ob["max"] - 0.5:  # the official max-so-far is a floor for the day's high; treat like a 6-hour group
+            if rep["max"] > ob["max"]:
+                ob["max"] = rep["max"]; ob["t_max"] = now_local.replace(hour=rep["asof_min"] // 60, minute=rep["asof_min"] % 60, second=0, microsecond=0)
+            ob["readings"].append({"time": f"{rep['asof_min']//60:02d}:{rep['asof_min']%60:02d}", "f": rep["max"], "src": "NWS climate report", "used": True})
         buckets = []
         for m in mk:
             q = bbo(m["slug"])
