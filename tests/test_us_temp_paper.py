@@ -117,3 +117,18 @@ def test_evaluate_explains_every_bucket():
     assert by["x-gte70lt71f"]["blocker"].startswith("above the max by only 2F")
     assert by["x-gte72lt73f"]["status"] == "above the max by 4F" and by["x-gte72lt73f"]["blocker"].startswith("R2: bid 0.05")
     assert not any(r["candidate"] for r in ev["rows"])
+
+
+def test_iem_fallback_when_awc_fails(monkeypatch):
+    tz = zoneinfo.ZoneInfo("America/Chicago")
+    monkeypatch.setattr(U, "get", lambda url, timeout=20: None)   # aviationweather.gov down
+    csv_text = "station,valid,metar\nMDW,2026-09-23 14:53,KMDW 231453Z 05013KT 10SM 17/09 A3027 RMK AO2 T01720094\n"
+    class R:
+        def __init__(self, t): self.t = t
+        def read(self): return self.t.encode()
+        def __enter__(self): return self
+        def __exit__(self, *a): return False
+    monkeypatch.setattr(U.urllib.request, "urlopen", lambda req, timeout=40: R(csv_text))
+    monkeypatch.setattr(U, "journal", lambda ev: None)
+    rows = U.fetch_metars("KMDW", tz)
+    assert rows == [{"reportTime": "2026-09-23T14:53:00Z", "rawOb": "KMDW 231453Z 05013KT 10SM 17/09 A3027 RMK AO2 T01720094"}]

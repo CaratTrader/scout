@@ -102,9 +102,35 @@ def metar_temps_f(raw: str) -> list[float]:
     return out
 
 
+IEM = "https://mesonet.agron.iastate.edu/cgi-bin/request/asos.py"
+
+
+def fetch_metars(station: str, tz: zoneinfo.ZoneInfo) -> list[dict[str, Any]]:
+    """Last 30 h of METARs as [{reportTime, rawOb}]. aviationweather.gov first; when it times out or returns
+    502/504 (it does, several times a day) fall back to the Iowa State ASOS archive for the last two local days."""
+    rows = get(f"{AWC}?ids={station}&format=json&hours=30", timeout=40)
+    if rows:
+        return rows
+    import csv, io
+    today = dt.datetime.now(tz).date(); y = today - dt.timedelta(days=1)
+    url = (f"{IEM}?station={station[1:]}&data=metar&year1={y.year}&month1={y.month}&day1={y.day}&year2={today.year}&month2={today.month}&day2={today.day + 1 if today.day < 28 else today.day}"
+           f"&tz=Etc/UTC&format=onlycomma&latlon=no&elev=no&missing=M&trace=T&direct=no&report_type=3&report_type=4")
+    try:
+        with urllib.request.urlopen(urllib.request.Request(url, headers={"User-Agent": "scout-us-temp-paper"}), timeout=40) as r:
+            text = r.read().decode()
+    except Exception as exc:
+        journal({"event": "error", "url": "iem-fallback", "err": str(exc)[:120]}); return []
+    out = []
+    for rec in csv.DictReader(io.StringIO(text)):
+        if rec.get("metar"):
+            out.append({"reportTime": rec["valid"].replace(" ", "T") + ":00Z", "rawOb": rec["metar"]})
+    journal({"event": "fallback", "station": station, "rows": len(out)})
+    return out
+
+
 def observed(station: str, tz: zoneinfo.ZoneInfo, now: dt.datetime, fetch=None) -> dict[str, Any] | None:
-    """Today's (climate-day) running max, latest temperature and time of the max, from aviationweather.gov."""
-    fetch = fetch or (lambda: get(f"{AWC}?ids={station}&format=json&hours=30", timeout=40))
+    """Today's (climate-day) running max, latest temperature and time of the max, from METARs."""
+    fetch = fetch or (lambda: fetch_metars(station, tz))
     rows = fetch() or []
     obs: list[tuple[dt.datetime, float]] = []; has_00z = False
     day_start = now.astimezone(tz).replace(hour=1, minute=0, second=0, microsecond=0)
