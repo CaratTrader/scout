@@ -31,6 +31,9 @@
         <key>USTEMP_CLI_TRIGGER</key><string>1</string>
         <key>USTEMP_CLI_FALL</key><string>2</string>
         <key>USTEMP_CLI_MIN_SINCE</key><string>60</string>
+        <!-- 2026-09-25: after the 00Z group / report the max bucket is usually 0.93-0.99 with thin asks; backtest of
+             YES buys at 0.90-0.96 = 30/30 wins, +5-10% per $. Cap raised from 0.90 to 0.95. -->
+        <key>USTEMP_R1X_MAX_ASK</key><string>0.95</string>
     </dict>
     <key>RunAtLoad</key><true/>
     <key>KeepAlive</key><true/>
