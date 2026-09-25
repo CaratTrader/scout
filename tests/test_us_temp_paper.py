@@ -49,7 +49,7 @@ def test_confirmation_and_fill_and_settlement(monkeypatch, tmp_path):
     assert U.confirm_and_fill(led, [c], meta) == []                      # first sighting only pends
     fills = U.confirm_and_fill(led, [dict(c, px=0.89)], meta)            # second sighting, not worse -> fill at 0.89
     assert len(fills) == 1 and fills[0]["shares"] == 20 and abs(led["cash"] - (500 - 17.8 - U.fee(0.89, 20))) < 1e-6
-    monkeypatch.setattr(U, "get", lambda url, timeout=20: {"settlement": 0})   # YES settled 0 -> NO pays 1
+    monkeypatch.setattr(U, "get", lambda url, timeout=20, **kw: {"settlement": 0})   # YES settled 0 -> NO pays 1
     monkeypatch.setattr(U.dt, "datetime", type("D", (dt.datetime,), {"now": classmethod(lambda cls, tz=None: dt.datetime(2026, 9, 24, tzinfo=tz))}))
     done = U.settle(led)
     assert len(done) == 1 and done[0]["won"] and abs(done[0]["pnl"] - (20 - 17.8 - U.fee(0.89, 20))) < 1e-6 and not led["positions"]

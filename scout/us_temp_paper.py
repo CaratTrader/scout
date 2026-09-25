@@ -60,12 +60,13 @@ _MON = {m: i for i, m in enumerate(["JANUARY", "FEBRUARY", "MARCH", "APRIL", "MA
 _CLI_CACHE: dict[str, tuple[float, dict[str, Any] | None]] = {}
 
 
-def get(url: str, timeout: float = 20) -> Any:
+def get(url: str, timeout: float = 20, quiet: bool = False) -> Any:
     try:
         with urllib.request.urlopen(urllib.request.Request(url, headers={"User-Agent": "scout-us-temp-paper"}), timeout=timeout) as r:
             return json.loads(r.read())
     except Exception as exc:  # network blips are routine; the next poll retries
-        journal({"event": "error", "url": url[-80:], "err": str(exc)[:120]})
+        if not quiet:
+            journal({"event": "error", "url": url[-80:], "err": str(exc)[:120]})
         return None
 
 
@@ -351,11 +352,7 @@ def settle(led: dict[str, Any]) -> list[dict[str, Any]]:
         if time.time() < _SETTLE_NEXT.get(pos["slug"], 0):
             continue
         _SETTLE_NEXT[pos["slug"]] = time.time() + 600  # the venue posts the settlement hours after close; 404 until then
-        try:
-            with urllib.request.urlopen(urllib.request.Request(f"{US}/markets/{pos['slug']}/settlement", headers={"User-Agent": "scout-us-temp-paper"}), timeout=20) as r:
-                s = json.loads(r.read())
-        except Exception:
-            continue
+        s = get(f"{US}/markets/{pos['slug']}/settlement", quiet=True)
         val = s.get("settlement") if isinstance(s, dict) else None
         if val is None:
             continue
