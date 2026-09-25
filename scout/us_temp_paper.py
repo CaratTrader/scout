@@ -32,6 +32,8 @@ CITIES = {"sfo": ("KSFO", "America/Los_Angeles"), "lax": ("KLAX", "America/Los_A
 LEDGER = Path(os.getenv("USTEMP_LEDGER") or "data/ledger_us_temp.json")
 JOURNAL = Path(os.getenv("USTEMP_JOURNAL") or "data/us_temp_journal.jsonl")
 STATE = Path(os.getenv("USTEMP_STATE") or "data/us_temp_state.json")  # decision snapshot for the detail dashboard
+SNAPS = Path(os.getenv("USTEMP_SNAPS") or "data/us_temp_snapshots.jsonl")  # one compact line per city per poll (post-mortems)
+_SEEN: set[str] = set()
 FEE = 0.0695
 
 
@@ -337,13 +339,23 @@ def confirm_and_fill(led: dict[str, Any], cands: list[dict[str, Any]], meta: dic
     return fills
 
 
+_SETTLE_NEXT: dict[str, float] = {}
+
+
 def settle(led: dict[str, Any]) -> list[dict[str, Any]]:
     done = []
     for pos in list(led["positions"]):
         end = pos.get("end_date")
         if end and dt.datetime.fromisoformat(end.replace("Z", "+00:00")) > dt.datetime.now(dt.timezone.utc):
             continue
-        s = get(f"{US}/markets/{pos['slug']}/settlement")
+        if time.time() < _SETTLE_NEXT.get(pos["slug"], 0):
+            continue
+        _SETTLE_NEXT[pos["slug"]] = time.time() + 600  # the venue posts the settlement hours after close; 404 until then
+        try:
+            with urllib.request.urlopen(urllib.request.Request(f"{US}/markets/{pos['slug']}/settlement", headers={"User-Agent": "scout-us-temp-paper"}), timeout=20) as r:
+                s = json.loads(r.read())
+        except Exception:
+            continue
         val = s.get("settlement") if isinstance(s, dict) else None
         if val is None:
             continue
@@ -415,6 +427,20 @@ def poll(led: dict[str, Any], now: dt.datetime | None = None) -> str:
         ev = evaluate(buckets, ob, now_local, city=city)
         cs.update({"active": True, "observed": {**ev["flags"], "t_max": ob["t_max"].strftime("%H:%M"), "n_readings": ob["n"]}, "readings": ob.get("readings", []), "buckets": ev["rows"],
                    "n_buckets_open": len(buckets), "candidates": sum(1 for r in ev["rows"] if r["candidate"])})
+        fl = ev["flags"]
+        for tag, cond in (("cli_report", bool(fl.get("cli_report"))), ("early_window", bool(fl.get("cli_window"))), ("z00_window", bool(ob.get("has_00z")))):
+            k = f"{city}:{day}:{tag}"
+            if cond and k not in _SEEN:
+                _SEEN.add(k); journal({"event": tag, "city": city, "day": day, "max": fl["max"], "latest": fl["latest"], "report": fl.get("cli_report")})
+        holds = next((r for r in ev["rows"] if r["status"] == "holds the max"), None)
+        try:
+            with SNAPS.open("a") as fh:
+                fh.write(json.dumps({"ts": round(now.timestamp()), "city": city, "lt": now_local.strftime("%H:%M"), "max": fl["max"], "latest": fl["latest"], "fall": fl["fall_f"], "since": fl["since_max_min"],
+                                     "peak": fl["peak_passed"], "z00": bool(ob.get("has_00z")), "cli": fl.get("cli_report"), "early": fl.get("cli_window"), "cands": cs["candidates"],
+                                     "holds": holds and {"b": holds["label"], "bid": holds["bid"], "ask": holds["ask"]},
+                                     "book": [(r["label"], r["bid"], r["ask"]) for r in ev["rows"] if (r["bid"] or 0) >= 0.05]}) + "\n")
+        except Exception:
+            pass
         cands = signals(buckets, ob, now_local, city=city)
         for c in cands:
             journal({"event": "signal", "city": city, **c, "max": round(ob["max"], 1), "latest": round(ob["latest"], 1)})
