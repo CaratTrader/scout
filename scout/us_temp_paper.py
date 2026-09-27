@@ -439,7 +439,10 @@ def poll(led: dict[str, Any], now: dt.datetime | None = None) -> str:
         except Exception:
             pass
         cands = signals(buckets, ob, now_local, city=city)
+        held_keys = {(pth["slug"], pth["side"]) for pth in led["positions"]}
         for c in cands:
+            if (c["slug"], c["side"]) in held_keys:
+                continue  # already holding it; do not re-log the same signal every poll
             journal({"event": "signal", "city": city, **c, "max": round(ob["max"], 1), "latest": round(ob["latest"], 1)})
         meta = {"city": city, "day": day, "end_date": next((m["end_date"] for m in mk if m["slug"] == (cands[0]["slug"] if cands else "")), None)}
         for c in cands:
