@@ -164,3 +164,13 @@ def test_cli_report_raises_the_observed_max_and_can_open_the_window(monkeypatch)
     ob2 = dict(ob, max=93.0)   # poll() lifts the max to the report's value before evaluate()
     s = U.signals(buckets, ob2, now_local, cfg=on, city="mia")
     assert [(c["rule"], c["slug"], c["side"]) for c in s] == [("R1x", "x-gte93lt94f", "YES"), ("R1x", "x-gte91lt92f", "NO")]
+
+
+def test_climate_day_starts_at_midnight_where_there_is_no_daylight_saving():
+    tz = zoneinfo.ZoneInfo("America/Phoenix"); now = dt.datetime(2026, 9, 27, 20, 0, tzinfo=dt.timezone.utc)  # 13:00 MST
+    rows = [{"reportTime": "2026-09-27T07:30:00Z", "rawOb": "KPHX 270730Z 00000KT 10SM 33/10 A2990 RMK AO2 T03300100"},   # 00:30 MST: inside the Phoenix climate day
+            {"reportTime": "2026-09-27T18:51:00Z", "rawOb": "KPHX 271851Z 00000KT 10SM 31/10 A2990 RMK AO2 T03110100"}]
+    ob = U.observed("KPHX", tz, now, fetch=lambda: rows)
+    assert round(ob["max"], 1) == 91.4   # the 00:30 reading counts in Phoenix
+    ob2 = U.observed("KMDW", zoneinfo.ZoneInfo("America/Chicago"), now, fetch=lambda: rows)  # same rows, a DST zone: 00:30 excluded
+    assert round(ob2["max"], 1) == 88.0

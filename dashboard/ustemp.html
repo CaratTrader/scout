@@ -41,7 +41,7 @@ async function load(){
     tile("Open positions",(U.positions||[]).length,""),tile("Snapshot age",age==null?"no snapshot":age+" s",age==null?"trader has not written a state file yet":age<150?"trader polling":"stale — check data/us_temp.log"),
     tile("Last poll (ET)",S.ts?fmtTs(S.ts):"—","")].join("");
   const c=S.config||{}; $("cfg").textContent=c.stake?`stake $${c.stake} per trade · confirm ${c.confirm} polls · R0 max ask ${c.r0_max_ask} · R1x max ask ${c.r1x_max_ask}, min bid ${c.r1x_min_bid} · R2 margin ${c.r2_margin}F, min bid ${c.r2_min_bid} · peak: hour ≥ ${c.peak_hour}, fall ≥ ${c.peak_fall}F, ≥ ${c.peak_min_since} min since max · R1 ${c.r1?"on":"off"}`:"";
-  const names={sfo:"San Francisco (KSFO)",lax:"Los Angeles (KLAX)",mdw:"Chicago Midway (KMDW)",nyc:"New York Central Park (KNYC)",mia:"Miami (KMIA)",bos:"Boston Logan (KBOS)"};
+  const names={sfo:"San Francisco (KSFO)",lax:"Los Angeles (KLAX)",mdw:"Chicago Midway (KMDW)",nyc:"New York Central Park (KNYC)",mia:"Miami (KMIA)",bos:"Boston Logan (KBOS)",dca:"Washington Reagan (KDCA)",phl:"Philadelphia (KPHL)",atl:"Atlanta (KATL)",den:"Denver (KDEN)",aus:"Austin (KAUS)",dfw:"Dallas-Fort Worth (KDFW)",msp:"Minneapolis (KMSP)",phx:"Phoenix (KPHX)",sea:"Seattle (KSEA)",las:"Las Vegas (KLAS)",san:"San Diego (KSAN)"};
   $("cities").innerHTML=Object.entries(S.cities||{}).map(([city,C])=>{
     const o=C.observed||{}, head=`<h2>${names[city]||city} <span class="sub">${C.day||""} · local ${C.local_time||"—"} · 00Z report at ${o.z00_local_hour??"—"}:00 local</span></h2>`;
     if(!C.active) return `<section class="card span-12">${head}<div class="muted">${esc(C.note||"inactive")}</div></section>`;

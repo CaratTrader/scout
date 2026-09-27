@@ -51,8 +51,10 @@ CFG = {
     "confirm": int(env_f("USTEMP_CONFIRM_POLLS", 2)), "r1": int(env_f("USTEMP_R1", 0)), "r1_max_ask": env_f("USTEMP_R1_MAX_ASK", 0.80),
     "r1x": int(env_f("USTEMP_R1X", 1)), "r1x_max_ask": env_f("USTEMP_R1X_MAX_ASK", 0.90), "r1x_min_bid": env_f("USTEMP_R1X_MIN_BID", 0.10),
 }
-Z00_LOCAL_HOUR = {"sfo": 17, "lax": 17, "mdw": 19, "nyc": 20, "mia": 20}  # local hour of the 00Z report during daylight saving
+Z00_LOCAL_HOUR = {"sfo": 17, "lax": 17, "sea": 17, "las": 17, "san": 17, "phx": 17, "den": 18, "mdw": 19, "aus": 19, "dfw": 19, "msp": 19,
+                  "nyc": 20, "mia": 20, "bos": 20, "dca": 20, "phl": 20, "atl": 20}  # local hour of the 00Z report (daylight saving; Phoenix has none)
 NWS = "https://api.weather.gov/products"
+CFG["r2"] = int(env_f("USTEMP_R2", 1))                    # fade rule on/off (off for Kalshi: no edge there)
 CFG["cli_obs"] = int(env_f("USTEMP_CLI_OBS", 1))          # use the NWS intraday climate report's "today maximum" as a trusted observation
 CFG["cli_trigger"] = int(env_f("USTEMP_CLI_TRIGGER", 0))  # let it open the R1x window before 00Z when the peak has passed (off until backtested)
 CFG["cli_fall"] = env_f("USTEMP_CLI_FALL", 2); CFG["cli_min_since"] = env_f("USTEMP_CLI_MIN_SINCE", 60)
@@ -173,12 +175,16 @@ def cli_intraday(city: str, day: str, fetch=None) -> dict[str, Any] | None:
     return rep
 
 
-def observed(station: str, tz: zoneinfo.ZoneInfo, now: dt.datetime, fetch=None) -> dict[str, Any] | None:
-    """Today's (climate-day) running max, latest temperature and time of the max, from METARs."""
+def observed(station: str, tz: zoneinfo.ZoneInfo, now: dt.datetime, fetch=None, day_start_hour: int | None = None) -> dict[str, Any] | None:
+    """Today's (climate-day) running max, latest temperature and time of the max, from METARs. The climate day is
+    midnight-to-midnight local *standard* time: 01:00 local wherever daylight saving is in force, 00:00 where it is
+    not (Phoenix)."""
     fetch = fetch or (lambda: fetch_metars(station, tz))
     rows = fetch() or []
     obs: list[tuple[dt.datetime, float]] = []; has_00z = False
-    day_start = now.astimezone(tz).replace(hour=1, minute=0, second=0, microsecond=0)
+    if day_start_hour is None:
+        day_start_hour = 1 if now.astimezone(tz).dst() else 0
+    day_start = now.astimezone(tz).replace(hour=day_start_hour, minute=0, second=0, microsecond=0)
     for r in rows:
         raw = r.get("rawOb") or ""
         t = r.get("reportTime") or r.get("obsTime")
@@ -195,8 +201,9 @@ def observed(station: str, tz: zoneinfo.ZoneInfo, now: dt.datetime, fetch=None) 
         if temps:
             obs.append((lt, temps[0], False))
         if len(temps) > 1 and lt - dt.timedelta(hours=6) >= day_start:  # 6-hour window entirely inside today's climate day
-            window = [f for lt2, f, tr in obs if not tr and lt - dt.timedelta(hours=6) <= lt2 <= lt]
-            if window and temps[1] > max(window) + 3.0:  # far above every hourly reading in its window: sensor artefact (KNYC 2026-08-27)
+            hourly = [(lt2, f) for lt2, f, tr in obs if not tr and lt - dt.timedelta(hours=6) <= lt2 <= lt]
+            good = [f for lt2, f in hourly if (lambda neigh: not neigh or max(neigh) >= f - 2.5)([g for lt3, g in hourly if lt3 != lt2 and abs((lt3 - lt2).total_seconds()) <= 5400])]
+            if good and temps[1] > max(good) + 3.0:  # far above every corroborated hourly reading in its window: sensor artefact (KNYC 2026-08-27)
                 continue
             obs.append((lt, temps[1], True))                             # trusted: a computed maximum, not a sensor spike
             if ts.hour == 0 or ts.hour == 23:  # the 00Z report (23:5x-00:0xZ) carries the afternoon maximum
@@ -269,7 +276,7 @@ def evaluate(buckets: list[dict[str, Any]], ob: dict[str, Any], now_local: dt.da
                 cand("R0", "YES", ask, b.get("ask_sz"), f"max {M:.1f} >= floor {lo:.0f}")
             else:
                 row["blocker"] = f"R0 YES: ask {ask if ask is not None else 'none'} > cap {cfg['r0_max_ask']:.2f}"
-        elif lo >= r_m + cfg["r2_margin"]:
+        elif lo >= r_m + cfg["r2_margin"] and cfg.get("r2", 1):
             if not peak_passed:
                 why_not = [] if hour_ok else [f"before {cfg['peak_hour']:.0f}:00 local"]
                 if not fall_ok: why_not.append(f"fall {fall:.1f}F < {cfg['peak_fall']:.0f}F")

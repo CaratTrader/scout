@@ -25,8 +25,13 @@ K = "https://api.elections.kalshi.com/trade-api/v2"
 SERIES = {
     "KXHIGHNY": ("nyc", "KNYC", "America/New_York"), "KXHIGHCHI": ("mdw", "KMDW", "America/Chicago"), "KXHIGHMIA": ("mia", "KMIA", "America/New_York"),
     "KXHIGHLAX": ("lax", "KLAX", "America/Los_Angeles"), "KXHIGHTSFO": ("sfo", "KSFO", "America/Los_Angeles"), "KXHIGHTBOS": ("bos", "KBOS", "America/New_York"),
+    "KXHIGHTDC": ("dca", "KDCA", "America/New_York"), "KXHIGHPHIL": ("phl", "KPHL", "America/New_York"), "KXHIGHTATL": ("atl", "KATL", "America/New_York"),
+    "KXHIGHDEN": ("den", "KDEN", "America/Denver"), "KXHIGHAUS": ("aus", "KAUS", "America/Chicago"), "KXHIGHTDAL": ("dfw", "KDFW", "America/Chicago"),
+    "KXHIGHTMIN": ("msp", "KMSP", "America/Chicago"), "KXHIGHTPHX": ("phx", "KPHX", "America/Phoenix"), "KXHIGHTSEA": ("sea", "KSEA", "America/Los_Angeles"),
+    "KXHIGHTLV": ("las", "KLAS", "America/Los_Angeles"), "KXHIGHTSAN": ("san", "KSAN", "America/Los_Angeles"),
 }
-U.Z00_LOCAL_HOUR.setdefault("bos", 20)
+if os.getenv("KTEMP_SERIES"):
+    SERIES = {k: v for k, v in SERIES.items() if k in os.getenv("KTEMP_SERIES", "").split(",")}
 LEDGER = Path(os.getenv("KTEMP_LEDGER") or "data/ledger_kalshi_temp.json")
 JOURNAL = Path(os.getenv("KTEMP_JOURNAL") or "data/kalshi_temp_journal.jsonl")
 STATE = Path(os.getenv("KTEMP_STATE") or "data/kalshi_temp_state.json")

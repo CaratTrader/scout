@@ -4,7 +4,8 @@ data/lab/us/kalshi/markets.json and kalshi/<ticker>.json"""
 import datetime as dt, json, time, urllib.request
 from pathlib import Path
 K = "https://api.elections.kalshi.com/trade-api/v2"; OUT = Path("data/lab/us/kalshi"); OUT.mkdir(parents=True, exist_ok=True)
-SERIES = ["KXHIGHNY", "KXHIGHCHI", "KXHIGHMIA", "KXHIGHLAX", "KXHIGHTSFO", "KXHIGHTBOS"]
+import sys
+SERIES = sys.argv[1].split(",") if len(sys.argv) > 1 else ["KXHIGHNY", "KXHIGHCHI", "KXHIGHMIA", "KXHIGHLAX", "KXHIGHTSFO", "KXHIGHTBOS"]
 def get(u):
     for i in range(6):
         try:

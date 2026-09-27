@@ -61,8 +61,9 @@ def metar() -> dict[str, dict[str, list[tuple[int, float]]]]:
             out[st_][day].append((minute, float(r["tmpf"]), False))
             mx = _six_hour_max_f(r.get("metar") or "") if USE_6HR else None
             if mx is not None and minute >= 7 * 60 and mx >= float(r["tmpf"]) - 1:  # window (t-6h, t] inside the 01:00-01:00 climate day
-                window = [x for m_, x, tr in out[st_][day] if not tr and minute - 360 <= m_ <= minute]
-                if window and mx > max(window) + 3.0:   # a computed max far above every hourly reading in its window = sensor artefact
+                hourly = [(m_, x) for m_, x, tr in out[st_][day] if not tr and minute - 360 <= m_ <= minute]
+                good = [x for m_, x in hourly if (lambda neigh: not neigh or max(neigh) >= x - 2.5)([y for n_, y in hourly if n_ != m_ and abs(n_ - m_) <= 90])]
+                if good and mx > max(good) + 3.0:   # a computed max far above every *corroborated* hourly reading in its window = sensor artefact
                     continue
                 out[st_][day].append((minute, float(mx), True))
     for s in out:

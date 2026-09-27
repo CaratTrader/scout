@@ -57,6 +57,7 @@ def quote_at(ser, minute, max_age: int = 90):
 
 def main():
     delay = int(sys.argv[1]) if len(sys.argv) > 1 else 2
+    CAP = float(sys.argv[2]) if len(sys.argv) > 2 else 0.85
     B.STN["bos"] = "BOS"; B.TZ["bos"] = "America/New_York"
     M = json.load(open(KD / "markets.json")); MET = B.metar(); cli = json.load(open("data/lab/us/asos/cli_high.json"))
     REP = intraday_reports()  # (city, day) -> {asof_min, max}; cities keyed sfo/lax/mdw/nyc/mia (+bos when archived)
@@ -111,7 +112,7 @@ def main():
                     trades.append({"rule": rule, "stn": stn, "day": day, "side": side, "px": px, "pnl": (1 if won else 0) - px - fee(px), "won": won, "t": t, "ticker": key})
                 holds = b["lo"] <= rM <= b["hi"]
                 if cli_gate and not after00 and ("R1c", key) not in done:
-                    if holds and 0.02 <= ask <= 0.95:
+                    if holds and 0.02 <= ask <= CAP:
                         done.add(("R1c", key)); rec("R1c", "YES", ask, b["won"])
                     elif not holds and bid >= 0.10 and 0.02 <= no_ask <= 0.97:
                         done.add(("R1c", key)); rec("R1c", "NO", no_ask, not b["won"])
@@ -120,7 +121,7 @@ def main():
                     if (tag, key) not in done and t >= 15 * 60 and fall >= F and since >= S and holds and (rM + 1 <= b["hi"] or b["hi"] >= 1e8) and 0.02 <= ask <= 0.90:
                         done.add((tag, key)); rec(tag, "YES", ask, b["won"])
                 if after00 and ("R1x", key) not in done:
-                    if b["lo"] <= rM <= b["hi"] and 0.02 <= ask <= 0.95:
+                    if b["lo"] <= rM <= b["hi"] and 0.02 <= ask <= CAP:
                         done.add(("R1x", key)); rec("R1x", "YES", ask, b["won"])
                     elif not (b["lo"] <= rM <= b["hi"]) and bid >= 0.10 and 0.02 <= no_ask <= 0.97:
                         done.add(("R1x", key)); rec("R1x", "NO", no_ask, not b["won"])

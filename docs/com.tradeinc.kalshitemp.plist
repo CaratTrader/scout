@@ -21,8 +21,9 @@
         <key>USTEMP_STAKE_USD</key><string>25</string>
         <key>USTEMP_CASH</key><string>500</string>
         <key>USTEMP_MAX_ASK_R0</key><string>0.97</string>
-        <key>USTEMP_R1X_MAX_ASK</key><string>0.95</string>
+        <key>USTEMP_R1X_MAX_ASK</key><string>0.85</string>
         <key>USTEMP_R1X_MIN_BID</key><string>0.10</string>
+        <key>USTEMP_R2</key><string>0</string>
         <key>USTEMP_R2_MARGIN</key><string>3</string>
         <key>USTEMP_R2_MIN_BID</key><string>0.15</string>
         <key>USTEMP_CONFIRM_POLLS</key><string>2</string>
