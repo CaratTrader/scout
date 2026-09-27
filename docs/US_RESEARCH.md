@@ -157,23 +157,24 @@ Simulated R1x triggered by the report + peak gate, fills 2 min after issuance: 4
 * Paper trader `scout/kalshi_temp_paper.py` (launchd `com.tradeinc.kalshitemp`, six cities to start); dashboard
   `/ustemp?venue=kalshi`. Polymarket paper jobs retired the same day.
 
-### 6a. Kalshi backtest — results (2026-09-27; 396 station-days Jul 14–Sep 26, six cities, 1-minute bid/ask, 7% taker fee, fills 2 min after the decision)
-| rule | n | win | avg price | P&L per contract | per $ |
-|---|---|---|---|---|---|
-| R0 dead buckets | 13 | 85% | 0.51 | +32.8c | +65% |
-| R1c report + peak gate (cap 0.85) | 29 | 79% | 0.54 | +24.8c | +46% |
-| R1x after 00Z (cap 0.85) | 5 | 60% | 0.51 | +8.0c | +16% |
-| R2 fade ≥ max+3 | 13 | 69% | 0.67 | +0.9c | ≈0 |
-| combined engine, one trade per market | **36** | **83%** | 0.59 | **+23.0c** | **+39%** |
+### 6a. Kalshi backtest — results (2026-09-27; 17 cities, 1,056 station-days Jul 14–Sep 26, 1-minute bid/ask, 7% taker fee, fills 2 min after the decision)
+Rules after the data-quality fixes (certain rule on METAR-only max with a full-degree margin; the afternoon climate report used only
+for offices that issue one: NYC, Miami, Chicago, DC, Philadelphia, Boston, Atlanta, Dallas, Minneapolis):
 
-By station (combined): NYC 26 trades, 92%, +54% per $ (all rules: +80% per $); Chicago 7/7; Boston 18 trades, 78%, −3% per $;
-Miami, LA and SF produced almost nothing (their markets are efficient by the time the high is known, and LA/SF reports come
-after 00Z). By month: July +72% per $ (11/11), August +10% (17 trades, 65%), September +53% (8/8). The 0.85–0.95 price band
-(22 trades) netted +0.7c, so the Kalshi job buys only up to 0.85 and the fade rule is off.
+| rule | n | win | avg price | P&L per contract | per $ | t |
+|---|---|---|---|---|---|---|
+| R0 dead buckets (METAR only) | 4 | 100% | 0.93 | +6.5c | +7% | – |
+| R1c report + peak gate | 89 | 78% | 0.66 | +11.0c | +17% | 2.4 |
+| R1x 00Z only | 40 | 70% | 0.68 | +0.9c | +1% | 0.2 |
+| R2 fade ≥ max+3 after the peak | 55 | 78% | 0.65 | +12.4c | +19% | 2.8 |
+| **combined R0 + R1c + R2, YES cap 0.80, one trade per market** | **134** | **78%** | 0.64 | **+13.2c** | **+21%** | 3.9 |
 
-Pace: 0.48 trades/day across six cities → about **$37/day at $200 per trade**. The two "certain" losses were the KNYC
-sensor-fault day (fixed: a 6-hour group is now checked against corroborated hourly readings only) and one Boston day where
-the official high came in 1°F below the METAR maximum. Kalshi's settlement equalled the NWS climate high on 370 of 371 days.
+Pace 1.8 trades/day across 17 cities → about **$74/day at $200 per trade**. By month: July +40% per $ (87% win), August +5% (72%),
+September +34% (82%). By city the edge is concentrated: NYC 17 trades 88% +106% per $, DC 7/7 +83%, Chicago 6/6, Phoenix, Seattle,
+Austin and Dallas positive on small samples; Atlanta (35 trades) and Boston flat to negative; Miami, LA, SF, Las Vegas rarely
+tradable. Core NYC+DC+Chicago alone: 30 trades, 93% win, +76% per $, 0.4 trades/day (~$61/day at $200).
+Kalshi's settlement equalled the NWS climate high on 1,088 of 1,089 station-days. Denver, Austin and Phoenix have no afternoon
+report (their only issuance is the previous day's final at 06:00–07:00 local), which had produced 46 bad Denver trades before the fix.
 
-Next lever: eleven more US cities (DC, Philadelphia, Atlanta, Denver, Austin, Dallas, Minneapolis, Phoenix, Seattle, Las Vegas,
-San Diego; Houston has no settled markets) — added to the paper trader on 2026-09-27 (17 cities), backtest data downloading.
+Paper job configuration from this run: R0 + report-triggered R1x + R2, YES cap 0.80, the 00Z-only trigger off (Kalshi is efficient by
+then), all 17 cities kept in paper so the weak ones can prove or disprove themselves.

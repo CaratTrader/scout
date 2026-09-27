@@ -54,7 +54,8 @@ CFG = {
 Z00_LOCAL_HOUR = {"sfo": 17, "lax": 17, "sea": 17, "las": 17, "san": 17, "phx": 17, "den": 18, "mdw": 19, "aus": 19, "dfw": 19, "msp": 19,
                   "nyc": 20, "mia": 20, "bos": 20, "dca": 20, "phl": 20, "atl": 20}  # local hour of the 00Z report (daylight saving; Phoenix has none)
 NWS = "https://api.weather.gov/products"
-CFG["r2"] = int(env_f("USTEMP_R2", 1))                    # fade rule on/off (off for Kalshi: no edge there)
+CFG["r2"] = int(env_f("USTEMP_R2", 1))                    # fade rule on/off
+CFG["r1x_00z"] = int(env_f("USTEMP_R1X_00Z", 1))          # let the 00Z METAR maximum open the R1x window (off on Kalshi: no edge by then)
 CFG["cli_obs"] = int(env_f("USTEMP_CLI_OBS", 1))          # use the NWS intraday climate report's "today maximum" as a trusted observation
 CFG["cli_trigger"] = int(env_f("USTEMP_CLI_TRIGGER", 0))  # let it open the R1x window before 00Z when the peak has passed (off until backtested)
 CFG["cli_fall"] = env_f("USTEMP_CLI_FALL", 2); CFG["cli_min_since"] = env_f("USTEMP_CLI_MIN_SINCE", 60)
@@ -245,7 +246,7 @@ def evaluate(buckets: list[dict[str, Any]], ob: dict[str, Any], now_local: dt.da
     z00 = Z00_LOCAL_HOUR.get(city, 20)
     rep = ob.get("cli")
     cli_ok = bool(cfg.get("cli_trigger")) and bool(rep) and now_local.hour >= cfg["peak_hour"] and fall >= cfg["cli_fall"] and since >= cfg["cli_min_since"]
-    after_00z = (bool(ob.get("has_00z")) and now_local.hour >= z00) or cli_ok
+    after_00z = (bool(cfg.get("r1x_00z", 1)) and bool(ob.get("has_00z")) and now_local.hour >= z00) or cli_ok
     flags = {"max": round(M, 1), "r_max": r_m, "latest": round(T, 1), "fall_f": round(fall, 1), "since_max_min": round(since), "peak_passed": peak_passed,
              "peak_hour_ok": hour_ok, "fall_ok": fall_ok, "since_ok": since_ok, "has_00z": bool(ob.get("has_00z")), "after_00z": after_00z, "z00_local_hour": z00,
              "cli_report": (f"{rep['max']:.0f}F as of {rep['asof_min']//60:02d}:{rep['asof_min']%60:02d}" if rep else None), "cli_window": cli_ok}

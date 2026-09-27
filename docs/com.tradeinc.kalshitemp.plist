@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <!-- Kalshi daily-high-temperature ladders, PAPER trader (public data only, no keys). Shares the engine and the
-     USTEMP_* settings of scout/us_temp_paper.py. See docs/US_RESEARCH.md. -->
+     USTEMP_* settings of scout/us_temp_paper.py. Settings from the 17-city backtest (docs/US_RESEARCH.md 6a):
+     rules R0 + report-triggered R1x + R2, YES cap 0.80, 00Z-only trigger off. -->
 <plist version="1.0">
 <dict>
     <key>Label</key><string>com.tradeinc.kalshitemp</string>
@@ -21,9 +22,10 @@
         <key>USTEMP_STAKE_USD</key><string>25</string>
         <key>USTEMP_CASH</key><string>500</string>
         <key>USTEMP_MAX_ASK_R0</key><string>0.97</string>
-        <key>USTEMP_R1X_MAX_ASK</key><string>0.85</string>
+        <key>USTEMP_R1X_MAX_ASK</key><string>0.80</string>
         <key>USTEMP_R1X_MIN_BID</key><string>0.10</string>
-        <key>USTEMP_R2</key><string>0</string>
+        <key>USTEMP_R2</key><string>1</string>
+        <key>USTEMP_R1X_00Z</key><string>0</string>
         <key>USTEMP_R2_MARGIN</key><string>3</string>
         <key>USTEMP_R2_MIN_BID</key><string>0.15</string>
         <key>USTEMP_CONFIRM_POLLS</key><string>2</string>
