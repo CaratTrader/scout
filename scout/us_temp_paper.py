@@ -58,6 +58,9 @@ CFG["r2"] = int(env_f("USTEMP_R2", 1))                    # fade rule on/off (of
 CFG["cli_obs"] = int(env_f("USTEMP_CLI_OBS", 1))          # use the NWS intraday climate report's "today maximum" as a trusted observation
 CFG["cli_trigger"] = int(env_f("USTEMP_CLI_TRIGGER", 0))  # let it open the R1x window before 00Z when the peak has passed (off until backtested)
 CFG["cli_fall"] = env_f("USTEMP_CLI_FALL", 2); CFG["cli_min_since"] = env_f("USTEMP_CLI_MIN_SINCE", 60)
+# cities whose office issues an afternoon (16:00-17:00 local) climate report; Denver, Austin and Phoenix only issue the
+# previous day's final at 06:00-07:00, and SF / LA issue after 00Z, so the report cannot open an early window there
+CFG["cli_cities"] = set((os.getenv("USTEMP_CLI_CITIES") or "nyc,mia,mdw,dca,phl,bos,atl,dfw,msp").split(","))
 _MON = {m: i for i, m in enumerate(["JANUARY", "FEBRUARY", "MARCH", "APRIL", "MAY", "JUNE", "JULY", "AUGUST", "SEPTEMBER", "OCTOBER", "NOVEMBER", "DECEMBER"], 1)}
 _CLI_CACHE: dict[str, tuple[float, dict[str, Any] | None]] = {}
 
@@ -171,6 +174,8 @@ def cli_intraday(city: str, day: str, fetch=None) -> dict[str, Any] | None:
                 return rep
         return None
     rep = (fetch or _fetch)()
+    if rep and (city not in CFG["cli_cities"] or rep["asof_min"] < 12 * 60):
+        rep = None  # not an afternoon max-so-far report: never use it
     _CLI_CACHE[key] = (time.time(), rep)
     return rep
 
@@ -232,6 +237,7 @@ def evaluate(buckets: list[dict[str, Any]], ob: dict[str, Any], now_local: dt.da
     R1x: once the 00Z six-hour maximum has been received (ob["has_00z"]), the day's high is known on ~98% of days
     (backtest: 722/735 station-days exact); buy the bucket holding it and fade every other bucket."""
     M = ob["max"]; T = ob["latest"]; r_m = int(M + 0.5)  # the official report rounds to whole F
+    M_obs = ob.get("max_obs", M)  # METAR-only max: the certain rule must not lean on a preliminary report value
     since = (now_local - ob["t_max"]).total_seconds() / 60
     fall = M - T
     hour_ok = now_local.hour >= cfg["peak_hour"]; fall_ok = fall >= cfg["peak_fall"]; since_ok = since >= cfg["peak_min_since"]
@@ -251,8 +257,8 @@ def evaluate(buckets: list[dict[str, Any]], ob: dict[str, Any], now_local: dt.da
         row = {"slug": b["slug"], "label": label, "lo": None if lo < -1e8 else lo, "hi": None if hi > 1e8 else hi, "bid": bid, "ask": ask,
                "bid_sz": b.get("bid_sz"), "ask_sz": b.get("ask_sz"), "candidate": False, "rule": None, "side": None, "px": None, "size": 0, "why": "", "blocker": ""}
         holds = lo <= r_m <= hi
-        dead = hi + 0.5 <= M
-        top_certain = hi >= 1e8 and M >= lo - 0.45
+        dead = hi + 1.0 <= M_obs           # a full degree above the bucket top (KDFW 2026-09-20: 96.8F observed, official 96)
+        top_certain = hi >= 1e8 and M_obs >= lo + 0.05
         row["status"] = "dead (top below observed max)" if dead else "certain YES (max reached its floor)" if top_certain else "holds the max" if holds else f"above the max by {lo - r_m:.0f}F" if lo > r_m else "below the max"
         def cand(rule, side, px, size, why):
             row.update({"candidate": True, "rule": rule, "side": side, "px": round(px, 3), "size": size or 0, "why": why, "blocker": ""})
@@ -268,12 +274,12 @@ def evaluate(buckets: list[dict[str, Any]], ob: dict[str, Any], now_local: dt.da
                 row["blocker"] = f"R1x NO: bid {bid if bid is not None else 'none'} < {cfg['r1x_min_bid']:.2f} (nothing worth selling into)"
         elif dead:
             if no_ask and 0.02 <= no_ask <= cfg["r0_max_ask"]:
-                cand("R0", "NO", no_ask, b.get("bid_sz"), f"top {hi:.0f} < max {M:.1f}")
+                cand("R0", "NO", no_ask, b.get("bid_sz"), f"top {hi:.0f} < observed max {M_obs:.1f}")
             else:
                 row["blocker"] = "R0: no bid to sell into" if not bid else f"R0: NO ask {no_ask:.2f} > cap {cfg['r0_max_ask']:.2f}"
         elif top_certain:
             if ask and 0.02 <= ask <= cfg["r0_max_ask"]:
-                cand("R0", "YES", ask, b.get("ask_sz"), f"max {M:.1f} >= floor {lo:.0f}")
+                cand("R0", "YES", ask, b.get("ask_sz"), f"observed max {M_obs:.1f} >= floor {lo:.0f}")
             else:
                 row["blocker"] = f"R0 YES: ask {ask if ask is not None else 'none'} > cap {cfg['r0_max_ask']:.2f}"
         elif lo >= r_m + cfg["r2_margin"] and cfg.get("r2", 1):
@@ -418,7 +424,7 @@ def poll(led: dict[str, Any], now: dt.datetime | None = None) -> str:
         if not ob:
             cs["note"] = "no METAR observations yet today"; continue
         rep = cli_intraday(city, day) if CFG["cli_obs"] and now_local.hour >= 15 else None
-        ob["cli"] = rep
+        ob["cli"] = rep; ob["max_obs"] = ob["max"]
         if rep and rep["max"] >= ob["max"] - 0.5:  # the official max-so-far is a floor for the day's high; treat like a 6-hour group
             if rep["max"] > ob["max"]:
                 ob["max"] = rep["max"]; ob["t_max"] = now_local.replace(hour=rep["asof_min"] // 60, minute=rep["asof_min"] % 60, second=0, microsecond=0)

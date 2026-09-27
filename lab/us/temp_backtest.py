@@ -14,8 +14,11 @@ import csv, datetime as dt, json, math, re, statistics as st, sys, zoneinfo
 from collections import defaultdict
 from pathlib import Path
 
-TZ = {"sfo": "America/Los_Angeles", "lax": "America/Los_Angeles", "mdw": "America/Chicago", "nyc": "America/New_York", "mia": "America/New_York"}
-STN = {"sfo": "SFO", "lax": "LAX", "mdw": "MDW", "nyc": "NYC", "mia": "MIA"}
+TZ = {"sfo": "America/Los_Angeles", "lax": "America/Los_Angeles", "mdw": "America/Chicago", "nyc": "America/New_York", "mia": "America/New_York",
+      "bos": "America/New_York", "dca": "America/New_York", "phl": "America/New_York", "atl": "America/New_York", "den": "America/Denver",
+      "aus": "America/Chicago", "dfw": "America/Chicago", "msp": "America/Chicago", "phx": "America/Phoenix", "sea": "America/Los_Angeles",
+      "las": "America/Los_Angeles", "san": "America/Los_Angeles"}
+STN = {c: c.upper() for c in TZ}
 FEE = 0.0695
 USE_6HR = True
 def fee(p): return FEE * p * (1 - p)
@@ -56,7 +59,7 @@ def metar() -> dict[str, dict[str, list[tuple[int, float]]]]:
                 continue
             day, hm = r["valid"][:10], r["valid"][11:16]
             minute = int(hm[:2]) * 60 + int(hm[3:])
-            if minute < 60:
+            if minute < 60 and st_ != "PHX":   # climate day = local standard midnight: 01:00 during daylight saving, 00:00 in Phoenix
                 continue
             out[st_][day].append((minute, float(r["tmpf"]), False))
             mx = _six_hour_max_f(r.get("metar") or "") if USE_6HR else None

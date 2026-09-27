@@ -161,7 +161,7 @@ def poll(led: dict[str, Any], now: dt.datetime | None = None) -> str:
         if not ob:
             cs["note"] = "no METAR observations yet today"; continue
         rep = U.cli_intraday(city, day) if U.CFG["cli_obs"] and now_local.hour >= 15 else None  # api.weather.gov location = station id (BOS, NYC, ...)
-        ob["cli"] = rep
+        ob["cli"] = rep; ob["max_obs"] = ob["max"]
         if rep and rep["max"] >= ob["max"] - 0.5:
             if rep["max"] > ob["max"]:
                 ob["max"] = rep["max"]; ob["t_max"] = now_local.replace(hour=rep["asof_min"] // 60, minute=rep["asof_min"] % 60, second=0, microsecond=0)

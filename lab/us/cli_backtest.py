@@ -11,7 +11,8 @@ import sys
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 import lab.us.temp_backtest as B
 
-CLI_DIR = Path("data/lab/us/cli_intraday"); PIL = {"mia": "CLIMIA", "nyc": "CLINYC", "mdw": "CLIMDW", "sfo": "CLISFO", "lax": "CLILAX", "bos": "CLIBOS"}
+CLI_DIR = Path("data/lab/us/cli_intraday"); PIL = {"mia": "CLIMIA", "nyc": "CLINYC", "mdw": "CLIMDW", "sfo": "CLISFO", "lax": "CLILAX", "bos": "CLIBOS", "dca": "CLIDCA", "phl": "CLIPHL", "atl": "CLIATL",
+       "den": "CLIDEN", "aus": "CLIAUS", "dfw": "CLIDFW", "msp": "CLIMSP", "phx": "CLIPHX", "sea": "CLISEA", "las": "CLILAS", "san": "CLISAN"}
 MON = {m: i for i, m in enumerate(["JANUARY", "FEBRUARY", "MARCH", "APRIL", "MAY", "JUNE", "JULY", "AUGUST", "SEPTEMBER", "OCTOBER", "NOVEMBER", "DECEMBER"], 1)}
 
 

@@ -11,8 +11,13 @@ from lab.us.cli_backtest import intraday_reports
 
 KD = Path("data/lab/us/kalshi")
 SERIES = {"KXHIGHNY": ("NYC", "KNYC", "America/New_York"), "KXHIGHCHI": ("MDW", "KMDW", "America/Chicago"), "KXHIGHMIA": ("MIA", "KMIA", "America/New_York"),
-          "KXHIGHLAX": ("LAX", "KLAX", "America/Los_Angeles"), "KXHIGHTSFO": ("SFO", "KSFO", "America/Los_Angeles"), "KXHIGHTBOS": ("BOS", "KBOS", "America/New_York")}
-Z00 = {"NYC": 20, "MIA": 20, "BOS": 20, "MDW": 19, "LAX": 17, "SFO": 17}
+          "KXHIGHLAX": ("LAX", "KLAX", "America/Los_Angeles"), "KXHIGHTSFO": ("SFO", "KSFO", "America/Los_Angeles"), "KXHIGHTBOS": ("BOS", "KBOS", "America/New_York"),
+          "KXHIGHTDC": ("DCA", "KDCA", "America/New_York"), "KXHIGHPHIL": ("PHL", "KPHL", "America/New_York"), "KXHIGHTATL": ("ATL", "KATL", "America/New_York"),
+          "KXHIGHDEN": ("DEN", "KDEN", "America/Denver"), "KXHIGHAUS": ("AUS", "KAUS", "America/Chicago"), "KXHIGHTDAL": ("DFW", "KDFW", "America/Chicago"),
+          "KXHIGHTMIN": ("MSP", "KMSP", "America/Chicago"), "KXHIGHTPHX": ("PHX", "KPHX", "America/Phoenix"), "KXHIGHTSEA": ("SEA", "KSEA", "America/Los_Angeles"),
+          "KXHIGHTLV": ("LAS", "KLAS", "America/Los_Angeles"), "KXHIGHTSAN": ("SAN", "KSAN", "America/Los_Angeles")}
+CLI_OK = {"NYC", "MIA", "MDW", "DCA", "PHL", "BOS", "ATL", "DFW", "MSP"}   # cities with an afternoon climate report
+Z00 = {"NYC": 20, "MIA": 20, "BOS": 20, "DCA": 20, "PHL": 20, "ATL": 20, "MDW": 19, "AUS": 19, "DFW": 19, "MSP": 19, "DEN": 18, "LAX": 17, "SFO": 17, "SEA": 17, "LAS": 17, "SAN": 17, "PHX": 17}
 FEE = 0.07
 def fee(p): return FEE * p * (1 - p)
 
@@ -58,10 +63,9 @@ def quote_at(ser, minute, max_age: int = 90):
 def main():
     delay = int(sys.argv[1]) if len(sys.argv) > 1 else 2
     CAP = float(sys.argv[2]) if len(sys.argv) > 2 else 0.85
-    B.STN["bos"] = "BOS"; B.TZ["bos"] = "America/New_York"
     M = json.load(open(KD / "markets.json")); MET = B.metar(); cli = json.load(open("data/lab/us/asos/cli_high.json"))
     REP = intraday_reports()  # (city, day) -> {asof_min, max}; cities keyed sfo/lax/mdw/nyc/mia (+bos when archived)
-    CITY = {"NYC": "nyc", "MDW": "mdw", "MIA": "mia", "SFO": "sfo", "LAX": "lax", "BOS": "bos"}
+    CITY = {stn: stn.lower() for stn, _, _ in SERIES.values()}
     days = defaultdict(list)
     for t, m in M.items():
         if m.get("result") not in ("yes", "no") or m["series"] not in SERIES:
@@ -96,8 +100,9 @@ def main():
             Mx, tM = B.robust_max(past); T = min(r[1] for r in past if r[0] == past[-1][0]); rM = int(Mx + 0.5)
             peak = t >= 15 * 60 and (Mx - T) >= 1 and (t - tM) >= 45
             after00 = t >= Z00[stn] * 60 + 5 and any(len(r) > 2 and r[2] and r[0] >= Z00[stn] * 60 - 40 for r in past)
-            rep = REP.get((CITY[stn], day))
-            rep_in = bool(rep) and t >= rep["asof_min"] + 5
+            rep = REP.get((CITY[stn], day)) if stn in CLI_OK else None
+            rep_in = bool(rep) and rep["asof_min"] >= 12 * 60 and t >= rep["asof_min"] + 5
+            M_obs = Mx
             if rep_in and rep["max"] > Mx:
                 Mx = rep["max"]; rM = int(Mx + 0.5)   # the report's max-so-far is official and beats hourly METAR
             fall = Mx - T; since = t - tM
@@ -126,9 +131,9 @@ def main():
                     elif not (b["lo"] <= rM <= b["hi"]) and bid >= 0.10 and 0.02 <= no_ask <= 0.97:
                         done.add(("R1x", key)); rec("R1x", "NO", no_ask, not b["won"])
                 if ("R0", key) not in done:
-                    if b["hi"] + 0.5 <= Mx and 0.02 <= no_ask <= 0.97:
+                    if b["hi"] + 1.0 <= M_obs and 0.02 <= no_ask <= 0.97:
                         done.add(("R0", key)); rec("R0", "NO", no_ask, not b["won"])
-                    elif b["hi"] >= 1e8 and Mx >= b["lo"] - 0.45 and 0.02 <= ask <= 0.97:
+                    elif b["hi"] >= 1e8 and M_obs >= b["lo"] + 0.05 and 0.02 <= ask <= 0.97:
                         done.add(("R0", key)); rec("R0", "YES", ask, b["won"])
                 if peak and ("R2", key) not in done and b["lo"] >= rM + 3 and bid >= 0.15 and no_ask >= 0.02:
                     done.add(("R2", key)); rec("R2", "NO", no_ask, not b["won"])
@@ -143,7 +148,7 @@ def main():
         rep([r for r in trades if r["rule"] == rule], rule)
         if rule in ("R1x", "R1c"):
             rep([r for r in trades if r["rule"] == rule and r["side"] == "YES"], f"  {rule} YES"); rep([r for r in trades if r["rule"] == rule and r["side"] == "NO"], f"  {rule} NO")
-    print("\nR1c by station:"); [rep([r for r in trades if r["rule"] == "R1c" and r["stn"] == s], f"  {s}") for s in Z00]
+    print("\nR1c by station:"); [rep([r for r in trades if r["rule"] == "R1c" and r["stn"] == s], f"  {s}") for s in Z00 if any(r["stn"] == s for r in trades)]
     print("R1c by entry price:"); [rep([r for r in trades if r["rule"] == "R1c" and lo <= r["px"] < lo + 0.2], f"  px {lo:.1f}-{lo+0.2:.1f}") for lo in (0.0, 0.2, 0.4, 0.6, 0.8)]
     print("R1_f2 by entry price:"); [rep([r for r in trades if r["rule"] == "R1_f2" and lo <= r["px"] < lo + 0.2], f"  px {lo:.1f}-{lo+0.2:.1f}") for lo in (0.0, 0.2, 0.4, 0.6, 0.8)]
     print("\nby station (all rules):"); [rep([r for r in trades if r["stn"] == s], f"  {s}") for s in Z00]

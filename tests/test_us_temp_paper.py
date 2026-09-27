@@ -176,3 +176,21 @@ def test_climate_day_starts_at_midnight_where_there_is_no_daylight_saving():
                 {"reportTime": "2026-09-27T18:51:00Z", "rawOb": "KMDW 271851Z 00000KT 10SM 31/10 A2990 RMK AO2 T03110100"}]
     ob2 = U.observed("KMDW", zoneinfo.ZoneInfo("America/Chicago"), now, fetch=lambda: rows_cdt)  # a DST zone: the 00:30 reading is excluded
     assert round(ob2["max"], 1) == 88.0
+
+
+def test_certain_rule_uses_metar_only_max_with_a_full_degree_margin():
+    tz = zoneinfo.ZoneInfo("America/Chicago")
+    ob = {"max": 97.0, "max_obs": 96.8, "latest": 95.0, "t_max": dt.datetime(2026, 9, 20, 15, 47, tzinfo=tz), "has_00z": False}
+    buckets = [{"slug": "x-lt97f", "bid": 0.06, "ask": 0.08, "bid_sz": 500, "ask_sz": 500}]   # <= 96 bucket
+    assert not [c for c in U.signals(buckets, ob, dt.datetime(2026, 9, 20, 16, 0, tzinfo=tz), city="dfw") if c["rule"] == "R0"]   # 96.8 is not a full degree above 96
+    ob2 = dict(ob, max_obs=97.2)
+    assert [c["rule"] for c in U.signals(buckets, ob2, dt.datetime(2026, 9, 20, 16, 0, tzinfo=tz), city="dfw")] == ["R0"]
+
+
+def test_report_only_counts_for_allowed_cities_and_afternoon_issuances(monkeypatch):
+    U._CLI_CACHE.clear()
+    rep = {"day": "2026-09-27", "asof_min": 16 * 60, "max": 90.0, "max_time": None}
+    assert U.cli_intraday("nyc", "2026-09-27", fetch=lambda: rep) == rep
+    U._CLI_CACHE.clear(); assert U.cli_intraday("den", "2026-09-27", fetch=lambda: rep) is None            # no afternoon report office
+    U._CLI_CACHE.clear(); assert U.cli_intraday("nyc", "2026-09-27", fetch=lambda: dict(rep, asof_min=6 * 60)) is None   # a morning issuance
+    U._CLI_CACHE.clear()
