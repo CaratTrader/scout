@@ -15,7 +15,7 @@ td.num,th.num{text-align:right;font-family:var(--mono)}.up{color:var(--up)}.down
 .chip.cand{color:#111;background:var(--up);border-color:var(--up);font-weight:600}.readings{font-family:var(--mono);font-size:11.5px;color:var(--muted);line-height:1.7}.readings b{color:var(--text)}
 .dead td{color:var(--muted)}.foot{color:var(--muted);font-size:11px;margin-top:14px}
 </style></head><body>
-<h1>Polymarket US · daily-high temperature ladders <span class="sub">paper trader decision view · refreshes every 15 s · <a href="/">main dashboard</a></span></h1>
+<h1 id="h1">Daily-high temperature ladders <span class="sub" id="h1sub">paper trader decision view · refreshes every 15 s · <a href="/">main dashboard</a> · <a href="/ustemp?venue=kalshi">Kalshi</a> · <a href="/ustemp?venue=polymarket">Polymarket US (retired)</a></span></h1>
 <div class="tiles" id="top"></div>
 <div id="cfg" class="foot"></div>
 <div class="grid" id="cities"></div>
@@ -33,13 +33,15 @@ const fmtTs=t=>t?new Date(t*1000).toLocaleTimeString("en-US",{timeZone:"America/
 const tile=(k,v,s)=>`<div class="tile"><div class="k">${k}</div><div class="v">${v}</div><div class="s">${s||""}</div></div>`;
 const chip=(on,label)=>`<span class="chip ${on?"on":"off"}">${on?"✓":"·"} ${label}</span>`;
 async function load(){
-  let d; try{ d=await (await fetch("/api/ustemp",{cache:"no-store"})).json(); }catch(e){ $("top").innerHTML=tile("dashboard","unreachable",""); return; }
+  const venue=new URLSearchParams(location.search).get("venue")||"kalshi";
+  let d; try{ d=await (await fetch("/api/ustemp?venue="+venue,{cache:"no-store"})).json(); }catch(e){ $("top").innerHTML=tile("dashboard","unreachable",""); return; }
+  $("h1").firstChild.textContent=(venue==="kalshi"?"Kalshi":"Polymarket US")+" · daily-high temperature ladders ";
   const S=d.state||{}, U=d.summary||{}, age=S.ts?Math.round(d.now-S.ts):null;
   $("top").innerHTML=[tile("Paper cash",money(U.cash),`start ${money(U.start_cash)}`),tile("Settled P&L",U.pnl==null?"—":`<span class="${U.pnl>=0?"up":"down"}">${(U.pnl>=0?"+":"")+Number(U.pnl).toFixed(2)}</span>`,`${U.n_fills||0} fills · win ${U.win_rate==null?"—":Math.round(U.win_rate*100)+"%"}`),
     tile("Open positions",(U.positions||[]).length,""),tile("Snapshot age",age==null?"no snapshot":age+" s",age==null?"trader has not written a state file yet":age<150?"trader polling":"stale — check data/us_temp.log"),
     tile("Last poll (ET)",S.ts?fmtTs(S.ts):"—","")].join("");
   const c=S.config||{}; $("cfg").textContent=c.stake?`stake $${c.stake} per trade · confirm ${c.confirm} polls · R0 max ask ${c.r0_max_ask} · R1x max ask ${c.r1x_max_ask}, min bid ${c.r1x_min_bid} · R2 margin ${c.r2_margin}F, min bid ${c.r2_min_bid} · peak: hour ≥ ${c.peak_hour}, fall ≥ ${c.peak_fall}F, ≥ ${c.peak_min_since} min since max · R1 ${c.r1?"on":"off"}`:"";
-  const names={sfo:"San Francisco (KSFO)",lax:"Los Angeles (KLAX)",mdw:"Chicago Midway (KMDW)",nyc:"New York Central Park (KNYC)",mia:"Miami (KMIA)"};
+  const names={sfo:"San Francisco (KSFO)",lax:"Los Angeles (KLAX)",mdw:"Chicago Midway (KMDW)",nyc:"New York Central Park (KNYC)",mia:"Miami (KMIA)",bos:"Boston Logan (KBOS)"};
   $("cities").innerHTML=Object.entries(S.cities||{}).map(([city,C])=>{
     const o=C.observed||{}, head=`<h2>${names[city]||city} <span class="sub">${C.day||""} · local ${C.local_time||"—"} · 00Z report at ${o.z00_local_hour??"—"}:00 local</span></h2>`;
     if(!C.active) return `<section class="card span-12">${head}<div class="muted">${esc(C.note||"inactive")}</div></section>`;

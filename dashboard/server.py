@@ -1250,9 +1250,14 @@ def parse_funnel(log_lines: list[str]) -> dict[str, Any]:
 
 
 # --------------------------------------------------------------------------- state
-def us_temp_summary(now: float) -> dict[str, Any]:
-    """Polymarket US temperature-ladder paper trader (scout/us_temp_paper.py): ledger + today's journal."""
-    led = read_json_stable(DATA / "ledger_us_temp.json", {}) or {}
+VENUE_FILES = {"kalshi": ("ledger_kalshi_temp.json", "kalshi_temp_journal.jsonl", "kalshi_temp.log", "kalshi_temp_state.json"),
+               "polymarket": ("ledger_us_temp.json", "us_temp_journal.jsonl", "us_temp.log", "us_temp_state.json")}
+
+
+def us_temp_summary(now: float, venue: str = "kalshi") -> dict[str, Any]:
+    """Temperature-ladder paper trader (Kalshi by default; the retired Polymarket US run with venue=polymarket)."""
+    ledger_name, journal_name, log_name, _ = VENUE_FILES.get(venue, VENUE_FILES["kalshi"])
+    led = read_json_stable(DATA / ledger_name, {}) or {}
     fills = led.get("fills") or []
     out: dict[str, Any] = {"cash": led.get("cash"), "start_cash": led.get("start_cash"), "created": led.get("created"), "updated": led.get("updated"),
                            "n_fills": len(fills), "positions": led.get("positions") or [], "fills": fills[-30:][::-1]}
@@ -1265,7 +1270,7 @@ def us_temp_summary(now: float) -> dict[str, Any]:
             b["n"] += 1; b["wins"] += 1 if f.get("won") else 0; b["pnl"] += float(f.get("pnl") or 0)
         out["by_rule"] = by
     sig = []; today0 = now - 86400
-    for line in tail_lines(DATA / "us_temp_journal.jsonl", 400):
+    for line in tail_lines(DATA / journal_name, 400):
         try:
             e = json.loads(line)
         except Exception:
@@ -1274,7 +1279,7 @@ def us_temp_summary(now: float) -> dict[str, Any]:
             sig.append({k: e.get(k) for k in ("ts", "event", "city", "rule", "slug", "side", "px", "size", "why", "reason", "shares", "pnl")})
     out["recent_events"] = sig[-40:][::-1]
     try:
-        out["log_age_s"] = round(now - (DATA / "us_temp.log").stat().st_mtime, 1)
+        out["log_age_s"] = round(now - (DATA / log_name).stat().st_mtime, 1)
     except FileNotFoundError:
         out["log_age_s"] = None
     return out
@@ -1704,8 +1709,9 @@ class Handler(BaseHTTPRequestHandler):
             elif path in {"/ustemp", "/ustemp.html"}:
                 self._send((HERE / "ustemp.html").read_bytes(), "text/html; charset=utf-8")
             elif path == "/api/ustemp":
-                now_ = time.time()
-                self._send(json.dumps(clean({"state": read_json_stable(DATA / "us_temp_state.json", {}), "summary": us_temp_summary(now_), "now": now_})).encode(), "application/json")
+                now_ = time.time(); venue = params.get("venue") or "kalshi"
+                state_name = VENUE_FILES.get(venue, VENUE_FILES["kalshi"])[3]
+                self._send(json.dumps(clean({"venue": venue, "state": read_json_stable(DATA / state_name, {}), "summary": us_temp_summary(now_, venue), "now": now_})).encode(), "application/json")
             else:
                 self._send(b"not found", "text/plain", 404)
         except BrokenPipeError:
