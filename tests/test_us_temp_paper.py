@@ -172,5 +172,7 @@ def test_climate_day_starts_at_midnight_where_there_is_no_daylight_saving():
             {"reportTime": "2026-09-27T18:51:00Z", "rawOb": "KPHX 271851Z 00000KT 10SM 31/10 A2990 RMK AO2 T03110100"}]
     ob = U.observed("KPHX", tz, now, fetch=lambda: rows)
     assert round(ob["max"], 1) == 91.4   # the 00:30 reading counts in Phoenix
-    ob2 = U.observed("KMDW", zoneinfo.ZoneInfo("America/Chicago"), now, fetch=lambda: rows)  # same rows, a DST zone: 00:30 excluded
+    rows_cdt = [{"reportTime": "2026-09-27T05:30:00Z", "rawOb": "KMDW 270530Z 00000KT 10SM 33/10 A2990 RMK AO2 T03300100"},   # 00:30 CDT: previous climate day
+                {"reportTime": "2026-09-27T18:51:00Z", "rawOb": "KMDW 271851Z 00000KT 10SM 31/10 A2990 RMK AO2 T03110100"}]
+    ob2 = U.observed("KMDW", zoneinfo.ZoneInfo("America/Chicago"), now, fetch=lambda: rows_cdt)  # a DST zone: the 00:30 reading is excluded
     assert round(ob2["max"], 1) == 88.0
