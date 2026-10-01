@@ -191,6 +191,7 @@ def observed(station: str, tz: zoneinfo.ZoneInfo, now: dt.datetime, fetch=None, 
     if day_start_hour is None:
         day_start_hour = 1 if now.astimezone(tz).dst() else 0
     day_start = now.astimezone(tz).replace(hour=day_start_hour, minute=0, second=0, microsecond=0)
+    groups: list[tuple[dt.datetime, float, dt.datetime]] = []
     for r in rows:
         raw = r.get("rawOb") or ""
         t = r.get("reportTime") or r.get("obsTime")
@@ -207,13 +208,18 @@ def observed(station: str, tz: zoneinfo.ZoneInfo, now: dt.datetime, fetch=None, 
         if temps:
             obs.append((lt, temps[0], False))
         if len(temps) > 1 and lt - dt.timedelta(hours=6) >= day_start:  # 6-hour window entirely inside today's climate day
-            hourly = [(lt2, f) for lt2, f, tr in obs if not tr and lt - dt.timedelta(hours=6) <= lt2 <= lt]
-            good = [f for lt2, f in hourly if (lambda neigh: not neigh or max(neigh) >= f - 2.5)([g for lt3, g in hourly if lt3 != lt2 and abs((lt3 - lt2).total_seconds()) <= 5400])]
-            if good and temps[1] > max(good) + 3.0:  # far above every corroborated hourly reading in its window: sensor artefact (KNYC 2026-08-27)
-                continue
-            obs.append((lt, temps[1], True))                             # trusted: a computed maximum, not a sensor spike
-            if ts.hour == 0 or ts.hour == 23:  # the 00Z report (23:5x-00:0xZ) carries the afternoon maximum
-                has_00z = True
+            groups.append((lt, temps[1], ts))
+    # 6-hour groups are checked only after ALL hourly readings are collected: aviationweather.gov returns reports
+    # newest-first, and checking each group against the readings seen so far dropped the 00Z maximum
+    # (KNYC 2026-09-30: group 73.9F compared with the 66F reading of its own report only, discarded as an artefact).
+    for lt, gmax, ts in groups:
+        hourly = [(lt2, f) for lt2, f, tr in obs if not tr and lt - dt.timedelta(hours=6) <= lt2 <= lt]
+        good = [f for lt2, f in hourly if (lambda neigh: not neigh or max(neigh) >= f - 2.5)([g for lt3, g in hourly if lt3 != lt2 and abs((lt3 - lt2).total_seconds()) <= 5400])]
+        if good and gmax > max(good) + 3.0:  # far above every corroborated hourly reading in its window: sensor artefact (KNYC 2026-08-27)
+            continue
+        obs.append((lt, gmax, True))                                     # trusted: a computed maximum, not a sensor spike
+        if ts.hour == 0 or ts.hour == 23:  # the 00Z report (23:5x-00:0xZ) carries the afternoon maximum
+            has_00z = True
     if not obs:
         return None
     obs.sort()

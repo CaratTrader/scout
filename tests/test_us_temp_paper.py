@@ -194,3 +194,13 @@ def test_report_only_counts_for_allowed_cities_and_afternoon_issuances(monkeypat
     U._CLI_CACHE.clear(); assert U.cli_intraday("den", "2026-09-27", fetch=lambda: rep) is None            # no afternoon report office
     U._CLI_CACHE.clear(); assert U.cli_intraday("nyc", "2026-09-27", fetch=lambda: dict(rep, asof_min=6 * 60)) is None   # a morning issuance
     U._CLI_CACHE.clear()
+
+
+def test_six_hour_group_kept_when_reports_arrive_newest_first():
+    # aviationweather.gov order: newest first. The 00Z group (73.9F) must be checked against the whole afternoon.
+    tz = zoneinfo.ZoneInfo("America/New_York"); now = dt.datetime(2026, 10, 1, 3, 20, tzinfo=dt.timezone.utc)
+    rows = [{"reportTime": "2026-10-01T00:00:00.000Z", "rawOb": "METAR KNYC 302351Z AUTO 00000KT 10SM CLR 19/16 A3012 RMK AO2 SLP189 T01890161 10233 20189 53013"}]
+    for h, t in ((23, "02000161"), (22, "02110161"), (21, "02280161"), (20, "02220156"), (19, "02220156"), (18, "02220150")):
+        rows.append({"reportTime": f"2026-09-30T{h:02d}:00:00.000Z", "rawOb": f"METAR KNYC 30{h-1:02d}51Z AUTO 10SM CLR 22/16 A3012 RMK AO2 T{t}"})
+    ob = U.observed("KNYC", tz, now, fetch=lambda: rows)
+    assert round(ob["max"], 1) == 73.9 and ob["has_00z"] is True
