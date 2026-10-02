@@ -16,10 +16,12 @@ from __future__ import annotations
 
 import datetime as dt
 import json
+import math
 import os
 import re
 import sys
 import time
+import urllib.parse
 import urllib.request
 import zoneinfo
 from pathlib import Path
@@ -62,18 +64,102 @@ CFG["cli_fall"] = env_f("USTEMP_CLI_FALL", 2); CFG["cli_min_since"] = env_f("UST
 # cities whose office issues an afternoon (16:00-17:00 local) climate report; Denver, Austin and Phoenix only issue the
 # previous day's final at 06:00-07:00, and SF / LA issue after 00Z, so the report cannot open an early window there
 CFG["cli_cities"] = set((os.getenv("USTEMP_CLI_CITIES") or "nyc,mia,mdw,dca,phl,bos,atl,dfw,msp").split(","))
+# off-box dead-man switch: a healthchecks.io-style URL pinged after every completed poll (empty = disabled). The
+# monitor, not this machine, raises the alarm when pings stop - an alert sent from here cannot fire while offline.
+CFG["heartbeat_url"] = (os.getenv("USTEMP_HEARTBEAT_URL") or "").strip()
 _MON = {m: i for i, m in enumerate(["JANUARY", "FEBRUARY", "MARCH", "APRIL", "MAY", "JUNE", "JULY", "AUGUST", "SEPTEMBER", "OCTOBER", "NOVEMBER", "DECEMBER"], 1)}
 _CLI_CACHE: dict[str, tuple[float, dict[str, Any] | None]] = {}
+
+
+_NET: dict[str, dict[str, Any]] = {}   # per host: {"fails", "first_fail", "down_since", "suppressed", "first_err"}
+OUTAGE_AFTER = 3                        # consecutive connectivity failures on one host before it counts as an outage
+
+
+def is_network_error(exc: BaseException) -> bool:
+    """Connectivity failures (no route, DNS, refused, timeouts, captive-portal resets), as opposed to an HTTP error answer."""
+    if isinstance(exc, urllib.error.HTTPError):
+        return False
+    return isinstance(exc, (urllib.error.URLError, ConnectionError, OSError))
+
+
+def _host(url: str) -> str:
+    try:
+        return urllib.parse.urlparse(url).hostname or url[:40]
+    except Exception:
+        return url[:40]
+
+
+def net_down(url: str, exc: BaseException) -> None:
+    """Per host: isolated failures are ordinary errors; after OUTAGE_AFTER consecutive failures one outage_start is
+    journaled and further failures are only counted (the 15.6 h captive-portal outage of 2026-09-27/28 had written
+    9,136 identical error lines)."""
+    h = _host(url); st = _NET.setdefault(h, {"fails": 0, "first_fail": 0.0, "down_since": None, "suppressed": 0, "first_err": ""})
+    st["fails"] += 1
+    if st["fails"] == 1:
+        st["first_fail"] = time.time(); st["first_err"] = str(exc)[:120]
+    if st["down_since"] is not None:
+        st["suppressed"] += 1
+    elif st["fails"] >= OUTAGE_AFTER:
+        st["down_since"] = st["first_fail"]; st["suppressed"] = 0
+        journal({"event": "outage_start", "host": h, "since": st["first_fail"], "consecutive_failures": st["fails"], "err": st["first_err"]})
+    else:
+        journal({"event": "error", "url": url[-80:], "err": str(exc)[:120]})
+
+
+def net_up(url: str) -> None:
+    h = _host(url); st = _NET.get(h)
+    if not st:
+        return
+    if st["down_since"] is not None:
+        journal({"event": "outage_end", "host": h, "seconds": round(time.time() - st["down_since"]), "suppressed_errors": st["suppressed"], "first_err": st["first_err"]})
+    _NET.pop(h, None)
+
+
+def close_stale_outages(now: float | None = None) -> None:
+    """On startup: an outage_start left open by a previous process (restart during an outage) gets an outage_end
+    marked process_restart, so start/end pairs in the journal stay consistent."""
+    now = now or time.time(); open_: dict[str, dict[str, Any]] = {}
+    try:
+        lines = JOURNAL.read_text().splitlines()[-5000:] if JOURNAL.exists() else []
+    except Exception:
+        return
+    for line in lines:
+        try:
+            e = json.loads(line)
+        except Exception:
+            continue
+        if e.get("event") == "outage_start":
+            open_[e.get("host") or e.get("url", "?")] = e
+        elif e.get("event") == "outage_end":
+            open_.pop(e.get("host") or e.get("url", "?"), None)
+    for h, e in open_.items():
+        journal({"event": "outage_end", "host": h, "reason": "process_restart", "seconds": round(now - float(e.get("since") or e.get("ts") or now))})
 
 
 def get(url: str, timeout: float = 20, quiet: bool = False) -> Any:
     try:
         with urllib.request.urlopen(urllib.request.Request(url, headers={"User-Agent": "scout-us-temp-paper"}), timeout=timeout) as r:
-            return json.loads(r.read())
+            data = json.loads(r.read())
+        net_up(url)
+        return data
     except Exception as exc:  # network blips are routine; the next poll retries
-        if not quiet:
+        if is_network_error(exc):
+            net_down(url, exc)
+        elif not quiet:
             journal({"event": "error", "url": url[-80:], "err": str(exc)[:120]})
         return None
+
+
+def heartbeat(ok: bool = True) -> None:
+    """Ping the off-box monitor (healthchecks.io convention: <url> on success, <url>/fail on failure). Never raises."""
+    url = CFG.get("heartbeat_url")
+    if not url:
+        return
+    try:
+        with urllib.request.urlopen(urllib.request.Request(url if ok else url.rstrip("/") + "/fail", headers={"User-Agent": "scout-temp-paper"}), timeout=10) as r:
+            r.read()
+    except Exception:
+        pass
 
 
 def journal(ev: dict[str, Any]) -> None:
@@ -88,14 +174,25 @@ def fee(p: float, shares: float) -> float:
 
 
 # ------------------------------------------------------------------ buckets
+_BUCKET = re.compile(r"(?:gte(-?\d+))?(?:lt(-?\d+))?f$")
+
+
 def bounds(slug: str) -> tuple[float, float]:
-    """Venue convention: gte68lt69f = 68-69F inclusive, lt68f = 67F or below, gte76f = 76F or more."""
-    lo = re.search(r"gte(\d+)", slug); hi = re.search(r"lt(\d+)", slug)
-    if lo and hi:
-        return float(lo.group(1)), float(hi.group(1))
-    if hi:
-        return -1e9, float(hi.group(1)) - 1
-    return (float(lo.group(1)) if lo else -1e9), 1e9
+    """Venue convention: gte68lt69f = 68-69F inclusive, lt68f = 67F or below, gte76f = 76F or more. Negative strikes
+    (winter: lt-3f, gte-2lt-1f, gte-2f) are supported; only the bucket suffix at the end of the slug is parsed, so
+    nothing in the ticker part can be mistaken for a strike."""
+    m = _BUCKET.search(slug)
+    lo = m.group(1) if m else None; hi = m.group(2) if m else None
+    if lo is not None and hi is not None:
+        return float(lo), float(hi)
+    if hi is not None:
+        return -1e9, float(hi) - 1
+    return (float(lo) if lo is not None else -1e9), 1e9
+
+
+def round_f(x: float) -> int:
+    """Round half up to a whole degree like the climate report (int(x + 0.5) is wrong below -0.5F)."""
+    return math.floor(x + 0.5)
 
 
 # ------------------------------------------------------------------ METAR
@@ -111,13 +208,30 @@ def metar_temps_f(raw: str) -> list[float]:
         m = re.search(r"\s(M?\d{2})/(M?\d{2})?\s", raw)
         if m:
             c = float(m.group(1).replace("M", "-")); out.append(c * 9 / 5 + 32)
-    m = re.search(r"\bRMK\b.*?\b1([01])(\d{3})\b", raw)
-    if m and out:
-        c = int(m.group(2)) / 10.0 * (-1 if m.group(1) == "1" else 1); out.append(c * 9 / 5 + 32)
+    if out and " RMK " in f" {raw} ":
+        toks = raw.split(" RMK ", 1)[1].split() if " RMK " in raw else raw.split("RMK", 1)[1].split()
+        skip = 0
+        for i, tok in enumerate(toks):
+            if skip:
+                skip -= 1; continue
+            if tok == "PK" and i + 1 < len(toks) and toks[i + 1] == "WND":
+                skip = 2; continue  # "PK WND dddff(f)/(hh)mm" is peak wind, never a temperature (KDEN 2026-09-02)
+            g = re.fullmatch(r"1([01])(\d{3})", tok)
+            if g:
+                c = int(g.group(2)) / 10.0 * (-1 if g.group(1) == "1" else 1); out.append(c * 9 / 5 + 32)
+                break
     return out
 
 
 IEM = "https://mesonet.agron.iastate.edu/cgi-bin/request/asos.py"
+
+
+def iem_url(station: str, now_utc: dt.datetime) -> str:
+    """IEM archive request for the last ~2 UTC days through now. The end date is exclusive and in UTC, so it must be
+    tomorrow's UTC date (the old local "today.day" end returned only yesterday on the 28th-31st and after 00Z)."""
+    start = (now_utc - dt.timedelta(days=2)).date(); end = (now_utc + dt.timedelta(days=1)).date()
+    return (f"{IEM}?station={station[1:]}&data=metar&year1={start.year}&month1={start.month}&day1={start.day}&year2={end.year}&month2={end.month}&day2={end.day}"
+            f"&tz=Etc/UTC&format=onlycomma&latlon=no&elev=no&missing=M&trace=T&direct=no&report_type=3&report_type=4")
 
 
 def fetch_metars(station: str, tz: zoneinfo.ZoneInfo) -> list[dict[str, Any]]:
@@ -127,14 +241,17 @@ def fetch_metars(station: str, tz: zoneinfo.ZoneInfo) -> list[dict[str, Any]]:
     if rows:
         return rows
     import csv, io
-    today = dt.datetime.now(tz).date(); y = today - dt.timedelta(days=1)
-    url = (f"{IEM}?station={station[1:]}&data=metar&year1={y.year}&month1={y.month}&day1={y.day}&year2={today.year}&month2={today.month}&day2={today.day + 1 if today.day < 28 else today.day}"
-           f"&tz=Etc/UTC&format=onlycomma&latlon=no&elev=no&missing=M&trace=T&direct=no&report_type=3&report_type=4")
+    url = iem_url(station, dt.datetime.now(dt.timezone.utc))
     try:
         with urllib.request.urlopen(urllib.request.Request(url, headers={"User-Agent": "scout-us-temp-paper"}), timeout=40) as r:
             text = r.read().decode()
+        net_up(url)
     except Exception as exc:
-        journal({"event": "error", "url": "iem-fallback", "err": str(exc)[:120]}); return []
+        if is_network_error(exc):
+            net_down(url, exc)
+        else:
+            journal({"event": "error", "url": "iem-fallback", "err": str(exc)[:120]})
+        return []
     out = []
     for rec in csv.DictReader(io.StringIO(text)):
         if rec.get("metar"):
@@ -162,6 +279,8 @@ def parse_cli(text: str) -> dict[str, Any] | None:
 def cli_intraday(city: str, day: str, fetch=None) -> dict[str, Any] | None:
     """Today's intraday NWS climate report for the city (cached 10 min). Location codes on api.weather.gov are the
     station ids (MIA, NYC, MDW, SFO, LAX)."""
+    if city not in CFG["cli_cities"]:
+        return None  # no afternoon report office: never fetch (saved ~1,400-2,900 wasted api.weather.gov calls/day)
     key = f"{city}:{day}"; hit = _CLI_CACHE.get(key)
     if hit and time.time() - hit[0] < 600:
         return hit[1]
@@ -181,60 +300,81 @@ def cli_intraday(city: str, day: str, fetch=None) -> dict[str, Any] | None:
     return rep
 
 
-def observed(station: str, tz: zoneinfo.ZoneInfo, now: dt.datetime, fetch=None, day_start_hour: int | None = None) -> dict[str, Any] | None:
-    """Today's (climate-day) running max, latest temperature and time of the max, from METARs. The climate day is
-    midnight-to-midnight local *standard* time: 01:00 local wherever daylight saving is in force, 00:00 where it is
-    not (Phoenix)."""
-    fetch = fetch or (lambda: fetch_metars(station, tz))
-    rows = fetch() or []
-    obs: list[tuple[dt.datetime, float]] = []; has_00z = False
-    if day_start_hour is None:
-        day_start_hour = 1 if now.astimezone(tz).dst() else 0
-    day_start = now.astimezone(tz).replace(hour=day_start_hour, minute=0, second=0, microsecond=0)
-    groups: list[tuple[dt.datetime, float, dt.datetime]] = []
+def _row_time(r: dict[str, Any], use_obs_time: bool) -> dt.datetime | None:
+    """aviationweather.gov rows carry reportTime (rounded UP to the next hour for routine METARs) and obsTime (the
+    actual observation, epoch seconds); IEM fallback rows carry only reportTime (actual time)."""
+    t = r.get("obsTime") if use_obs_time and r.get("obsTime") is not None else (r.get("reportTime") or r.get("obsTime"))
+    try:
+        ts = dt.datetime.fromtimestamp(float(t), dt.timezone.utc) if isinstance(t, (int, float)) else dt.datetime.fromisoformat(str(t).replace("Z", "+00:00"))
+    except Exception:
+        return None
+    return ts if ts.tzinfo else ts.replace(tzinfo=dt.timezone.utc)
+
+
+def _collect(rows: list[dict[str, Any]], tz: zoneinfo.ZoneInfo, now: dt.datetime, day_start: dt.datetime, use_obs_time: bool):
+    """(readings [(local time, F, trusted)], has_00z, rejected group values). Hourly readings first, then 6-hour
+    groups checked against ALL hourly readings in their window (aviationweather.gov returns newest-first)."""
+    obs: list[tuple[dt.datetime, float, bool]] = []; groups = []; has_00z = False; rejected: list[float] = []
     for r in rows:
-        raw = r.get("rawOb") or ""
-        t = r.get("reportTime") or r.get("obsTime")
-        try:
-            ts = dt.datetime.fromtimestamp(float(t), dt.timezone.utc) if isinstance(t, (int, float)) else dt.datetime.fromisoformat(str(t).replace("Z", "+00:00"))
-        except Exception:
+        ts = _row_time(r, use_obs_time)
+        if ts is None:
             continue
-        if ts.tzinfo is None:
-            ts = ts.replace(tzinfo=dt.timezone.utc)
         lt = ts.astimezone(tz)
         if lt < day_start or lt > now.astimezone(tz):
             continue
-        temps = metar_temps_f(raw)
+        temps = metar_temps_f(r.get("rawOb") or "")
         if temps:
             obs.append((lt, temps[0], False))
         if len(temps) > 1 and lt - dt.timedelta(hours=6) >= day_start:  # 6-hour window entirely inside today's climate day
             groups.append((lt, temps[1], ts))
-    # 6-hour groups are checked only after ALL hourly readings are collected: aviationweather.gov returns reports
-    # newest-first, and checking each group against the readings seen so far dropped the 00Z maximum
-    # (KNYC 2026-09-30: group 73.9F compared with the 66F reading of its own report only, discarded as an artefact).
     for lt, gmax, ts in groups:
         hourly = [(lt2, f) for lt2, f, tr in obs if not tr and lt - dt.timedelta(hours=6) <= lt2 <= lt]
         good = [f for lt2, f in hourly if (lambda neigh: not neigh or max(neigh) >= f - 2.5)([g for lt3, g in hourly if lt3 != lt2 and abs((lt3 - lt2).total_seconds()) <= 5400])]
         if good and gmax > max(good) + 3.0:  # far above every corroborated hourly reading in its window: sensor artefact (KNYC 2026-08-27)
-            continue
-        obs.append((lt, gmax, True))                                     # trusted: a computed maximum, not a sensor spike
-        if ts.hour == 0 or ts.hour == 23:  # the 00Z report (23:5x-00:0xZ) carries the afternoon maximum
+            rejected.append(gmax); continue
+        obs.append((lt, gmax, True))
+        if ts.astimezone(dt.timezone.utc).hour in (0, 23):  # the 00Z report (23:5x-00:0xZ) carries the afternoon maximum
             has_00z = True
-    if not obs:
-        return None
     obs.sort()
-    # corroborated max: a reading counts only if another reading within 90 minutes is >= it - 2.5F (lone sensor spikes
-    # such as KNYC 2026-08-27, 80F in heavy rain with the maintenance flag while the official high was 77, are ignored)
+    return obs, has_00z, rejected
+
+
+def _robust(obs: list[tuple[dt.datetime, float, bool]]) -> list[tuple[dt.datetime, float]]:
+    """Corroborated readings: an hourly reading counts only if another reading within 90 minutes is >= it - 2.5F
+    (lone sensor spikes such as KNYC 2026-08-27, 80F in heavy rain with the maintenance flag, are ignored)."""
     def ok(lt, f, trusted):
         if trusted:
             return True
         neigh = [f2 for lt2, f2, _ in obs if lt2 != lt and abs((lt2 - lt).total_seconds()) <= 5400]
         return not neigh or max(neigh) >= f - 2.5
-    good = [(lt, f) for lt, f, tr in obs if ok(lt, f, tr)] or [(obs[-1][0], obs[-1][1])]
+    return [(lt, f) for lt, f, tr in obs if ok(lt, f, tr)] or [(obs[-1][0], obs[-1][1])]
+
+
+def observed(station: str, tz: zoneinfo.ZoneInfo, now: dt.datetime, fetch=None, day_start_hour: int | None = None) -> dict[str, Any] | None:
+    """Today's (climate-day) running max, latest temperature and time of the max, from METARs. The climate day is
+    midnight-to-midnight local *standard* time: 01:00 local wherever daylight saving is in force, 00:00 where it is
+    not (Phoenix). Also returns shadow values for review: max_raw (no spike filter) and max_obstime (rows keyed by
+    the actual observation time instead of the hour-rounded reportTime)."""
+    fetch = fetch or (lambda: fetch_metars(station, tz))
+    rows = fetch() or []
+    if day_start_hour is None:
+        day_start_hour = 1 if now.astimezone(tz).dst() else 0
+    day_start = now.astimezone(tz).replace(hour=day_start_hour, minute=0, second=0, microsecond=0)
+    obs, has_00z, rejected = _collect(rows, tz, now, day_start, use_obs_time=False)
+    if not obs:
+        return None
+    good = _robust(obs)
     mx = max(f for _, f in good); t_max = max(lt for lt, f in good if f == mx)
     latest = [f for lt, f, tr in obs if lt == obs[-1][0] and not tr] or [obs[-1][1]]
     readings = [{"time": lt.strftime("%H:%M"), "f": round(f, 1), "src": "6hr max" if tr else "hourly", "used": (lt, f) in good} for lt, f, tr in obs]
-    return {"max": mx, "t_max": t_max, "latest": min(latest), "n": len(obs), "last_obs": obs[-1][0], "has_00z": has_00z, "readings": readings}
+    max_raw = max([f for _, f, _ in obs] + rejected)
+    try:
+        obs2, _, _ = _collect(rows, tz, now, day_start, use_obs_time=True)
+        max_obstime = max(f for _, f in _robust(obs2)) if obs2 else None
+    except Exception:
+        max_obstime = None
+    return {"max": mx, "t_max": t_max, "latest": min(latest), "n": len(obs), "last_obs": obs[-1][0], "has_00z": has_00z, "readings": readings,
+            "max_raw": max_raw, "max_obstime": max_obstime}
 
 
 # ------------------------------------------------------------------ signals
@@ -243,7 +383,8 @@ def evaluate(buckets: list[dict[str, Any]], ob: dict[str, Any], now_local: dt.da
     Returns {"flags": {...}, "rows": [...]}; rows with candidate=True are the trades (see signals()).
     R1x: once the 00Z six-hour maximum has been received (ob["has_00z"]), the day's high is known on ~98% of days
     (backtest: 722/735 station-days exact); buy the bucket holding it and fade every other bucket."""
-    M = ob["max"]; T = ob["latest"]; r_m = int(M + 0.5)  # the official report rounds to whole F
+    M = ob["max"]; T = ob["latest"]; r_m = round_f(M)  # the official report rounds to whole F
+    r_raw = round_f(max(M, ob.get("max_raw", M)))  # unfiltered max (spike filter off): shadow only, see r2_shadow
     M_obs = ob.get("max_obs", M)  # METAR-only max: the certain rule must not lean on a preliminary report value
     since = (now_local - ob["t_max"]).total_seconds() / 60
     fall = M - T
@@ -300,14 +441,26 @@ def evaluate(buckets: list[dict[str, Any]], ob: dict[str, Any], now_local: dt.da
             else:
                 row["blocker"] = f"R2: bid {bid if bid is not None else 'none'} < {cfg['r2_min_bid']:.2f}"
         elif holds:
-            row["blocker"] = (f"holds the max; R1x waits for the 00Z report ({z00}:00 local)" if not after_00z else "")
+            triggers = (["the 00Z report (%d:00 local)" % z00] if cfg.get("r1x_00z", 1) else []) + (["the afternoon climate report + peak"] if cfg.get("cli_trigger") else [])
+            if cfg["r1"]:
+                row["blocker"] = "holds the max; R1 waits for the peak" if not peak_passed else f"holds the max; R1 needs ask 0.02-{cfg['r1_max_ask']:.2f} and the max+1 inside the bucket"
+            elif not cfg["r1x"] or not triggers:
+                row["blocker"] = "holds the max; no active rule buys it (R1x off)" if not cfg["r1x"] else "holds the max; no active rule buys it (00Z and report triggers off)"
+            else:
+                row["blocker"] = "holds the max; R1x waits for " + " or ".join(triggers) if not after_00z else ""
             if cfg["r1"] and peak_passed and r_m + 1 <= hi and ask and 0.02 <= ask <= cfg["r1_max_ask"]:
                 cand("R1", "YES", ask, b.get("ask_sz"), f"bucket holds max {r_m} and {r_m+1}, peak passed")
         elif lo > r_m:
-            row["blocker"] = f"above the max by only {lo - r_m:.0f}F (< R2 margin {cfg['r2_margin']:.0f}F); waits for the 00Z report"
+            row["blocker"] = (f"above the max by {lo - r_m:.0f}F; R2 off" if lo >= r_m + cfg["r2_margin"] else
+                              f"above the max by only {lo - r_m:.0f}F (< R2 margin {cfg['r2_margin']:.0f}F)")
         else:
-            row["blocker"] = "below the max but not yet dead by 0.5F"
+            row["blocker"] = "below the max but not yet dead by a full degree"
+        # shadow: would R2 still fade this bucket if r_m came from the unfiltered max (spike filter off)? The filter
+        # rejected the true high on 32 of 1,203 backtest days (e.g. KMDW 2026-09-08: bot 84.0, official 87).
+        row["r2_raw"] = bool(row["rule"] == "R2" and lo >= r_raw + cfg["r2_margin"])
         rows.append(row)
+    flags["r_max_raw"] = r_raw
+    flags["r2_shadow_diff"] = [r["label"] for r in rows if r["rule"] == "R2" and not r["r2_raw"]]
     return {"flags": flags, "rows": rows}
 
 
@@ -328,30 +481,56 @@ def save_ledger(led: dict[str, Any]) -> None:
     tmp = LEDGER.with_suffix(".tmp"); tmp.write_text(json.dumps(led, indent=1)); tmp.replace(LEDGER)
 
 
+def start_poll(led: dict[str, Any], now: float | None = None) -> int:
+    """Advance the poll counter; confirmations count only sightings on consecutive polls. After a gap longer than
+    3 poll intervals (restart, reboot waiting at the FileVault login, outage) every pending confirmation is dropped:
+    the poll before the gap and the poll after it are not consecutive in any useful sense."""
+    now = time.time() if now is None else now
+    led.setdefault("pending", {})
+    if led.get("poll_ts") and now - float(led["poll_ts"]) > 3 * CFG["poll_s"]:
+        led["pending"] = {}
+    led["poll_seq"] = int(led.get("poll_seq", 0)) + 1; led["poll_ts"] = now
+    return led["poll_seq"]
+
+
+def finish_poll(led: dict[str, Any]) -> None:
+    """Drop every pending confirmation that was not seen on this poll (once per poll, including polls with no
+    candidates). Before 2026-10-01 pruning happened inside each per-candidate call, which deleted the other
+    candidates' entries (two simultaneous candidates could never fill) and never ran on empty polls (a candidate seen
+    once could fill on any later sighting)."""
+    seq = int(led.get("poll_seq", 0))
+    for key in list(led.get("pending", {}).keys()):
+        if led["pending"][key].get("last") != seq:
+            del led["pending"][key]
+
+
 def confirm_and_fill(led: dict[str, Any], cands: list[dict[str, Any]], meta: dict[str, Any], cfg=CFG) -> list[dict[str, Any]]:
-    """Catchable rule: the same (slug, side, rule) must be seen on `confirm` consecutive polls with a price no worse
-    than the first sighting; fill at the latest price, size capped by the displayed size."""
+    """Catchable rule: the same (slug, side) must be seen on `confirm` consecutive polls at a price no worse than the
+    first sighting; fill at the latest price, size capped by the displayed size. Safe to call once per candidate:
+    it never touches other candidates' entries (pruning is finish_poll's job). meta is this candidate's own."""
+    seq = int(led.get("poll_seq", 0)); led.setdefault("pending", {})
     fills = []
     held = {(p["slug"], p["side"]) for p in led["positions"]}
-    seen = {c["slug"] + "|" + c["side"] for c in cands}
-    for key in list(led["pending"].keys()):
-        if key not in seen:
-            del led["pending"][key]
     for c in cands:
         key = c["slug"] + "|" + c["side"]
         if (c["slug"], c["side"]) in held:
             continue
         p = led["pending"].get(key)
-        if not p:
-            led["pending"][key] = {"n": 1, "px": c["px"], "rule": c["rule"]}; continue
-        if c["px"] > p["px"] + 0.005:  # got worse: restart the confirmation
-            led["pending"][key] = {"n": 1, "px": c["px"], "rule": c["rule"]}; continue
-        p["n"] += 1
+        if p and p.get("last") == seq:
+            continue  # already counted on this poll
+        now = time.time()
+        consecutive = bool(p) and p.get("last") == seq - 1 and now - float(p.get("ts", 0)) <= 2.5 * cfg["poll_s"]
+        if not consecutive or c["px"] > p["px"] + 0.005:  # new, interrupted, too old, or got worse: restart the confirmation
+            p = led["pending"][key] = {"n": 1, "px": c["px"], "rule": c["rule"], "last": seq, "ts": now, "day": meta.get("day")}
+        else:
+            p["n"] += 1; p["last"] = seq; p["ts"] = now
         if p["n"] < cfg["confirm"]:
             continue
+        if c.get("size") is None:  # the order book could not be read this poll: keep the confirmation, retry next poll
+            journal({"event": "skip", "reason": "no_book", **{k: v for k, v in c.items() if k != "depth"}, **meta}); continue
         shares = round(min(cfg["stake"] / c["px"], float(c["size"] or 0)), 2)
-        if shares < 1 or led["cash"] < shares * c["px"]:
-            journal({"event": "skip", "reason": "size" if shares < 1 else "cash", **c, **meta}); del led["pending"][key]; continue
+        if shares < 1 or led["cash"] < shares * c["px"] + fee(c["px"], shares):
+            journal({"event": "skip", "reason": "size" if shares < 1 else "cash", **{k: v for k, v in c.items() if k != "depth"}, **meta}); del led["pending"][key]; continue
         stake = round(shares * c["px"], 4); f = fee(c["px"], shares)
         pos = {"slug": c["slug"], "side": c["side"], "px": c["px"], "shares": shares, "stake": stake, "fee": f, "rule": c["rule"], "why": c["why"],
                "opened": dt.datetime.now(dt.timezone.utc).isoformat(), **meta}
@@ -417,7 +596,7 @@ def ladder(city: str, day: str) -> list[dict[str, Any]]:
 
 def poll(led: dict[str, Any], now: dt.datetime | None = None) -> str:
     now = now or dt.datetime.now(dt.timezone.utc)
-    n_c = n_f = 0; notes = []
+    n_c = n_f = 0; notes = []; start_poll(led)
     snap: dict[str, Any] = {"ts": now.timestamp(), "updated": now.isoformat(), "config": {**CFG, "z00_local_hour": Z00_LOCAL_HOUR}, "cities": {}}
     for city, (station, tzname) in CITIES.items():
         tz = zoneinfo.ZoneInfo(tzname); now_local = now.astimezone(tz); day = now_local.date().isoformat()
@@ -470,6 +649,7 @@ def poll(led: dict[str, Any], now: dt.datetime | None = None) -> str:
             n_f += len(confirm_and_fill(led, [c], c_meta))
         n_c += len(cands)
         notes.append(f"{city} max={ob['max']:.0f} now={ob['latest']:.0f} cands={len(cands)}")
+    finish_poll(led)
     settled = settle(led)
     led["updated"] = now.isoformat(); save_ledger(led)
     snap.update({"cash": led["cash"], "positions": led["positions"], "pending": led.get("pending", {}), "n_fills": len(led.get("fills", []))})
@@ -484,14 +664,17 @@ def main() -> None:
     once = "--once" in sys.argv
     led = load_ledger()
     print(f"US temperature paper trader: stake ${CFG['stake']:.0f}, poll {CFG['poll_s']:.0f}s, R0<= {CFG['r0_max_ask']}, R2 margin {CFG['r2_margin']:.0f}F, R1 {'on' if CFG['r1'] else 'off'}", flush=True)
+    close_stale_outages()
     while True:
+        t0 = time.monotonic(); ok = True
         try:
             print(poll(led), flush=True)
         except Exception as exc:
-            print(f"cycle error: {type(exc).__name__}: {exc}", flush=True); journal({"event": "cycle_error", "err": str(exc)[:200]})
+            ok = False; print(f"cycle error: {type(exc).__name__}: {exc}", flush=True); journal({"event": "cycle_error", "err": str(exc)[:200]})
+        heartbeat(ok)
         if once:
             break
-        time.sleep(CFG["poll_s"])
+        time.sleep(max(0.0, t0 + CFG["poll_s"] - time.monotonic()))  # fixed-rate, immune to wall-clock steps
 
 
 if __name__ == "__main__":

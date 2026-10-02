@@ -2,7 +2,10 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <!-- Kalshi daily-high-temperature ladders, PAPER trader (public data only, no keys). Shares the engine and the
      USTEMP_* settings of scout/us_temp_paper.py. Settings from the 17-city backtest (docs/US_RESEARCH.md 6a):
-     rules R0 + report-triggered R1x + R2, YES cap 0.80, 00Z-only trigger off. -->
+     rules R0 + report-triggered R1x + R2, YES cap 0.80, 00Z-only trigger off.
+     2026-10-01 review: the report trigger had no edge at real issuance times (backtest look-ahead) -> OFF. The report
+     is still read as an observation for R2 (USTEMP_CLI_OBS=1). Live profile = R0 + R2.
+     USTEMP_HEARTBEAT_URL: paste a healthchecks.io (or similar) ping URL to get a phone alert when polls stop. -->
 <plist version="1.0">
 <dict>
     <key>Label</key><string>com.tradeinc.kalshitemp</string>
@@ -31,9 +34,10 @@
         <key>USTEMP_CONFIRM_POLLS</key><string>2</string>
         <key>USTEMP_R1</key><string>0</string>
         <key>USTEMP_CLI_OBS</key><string>1</string>
-        <key>USTEMP_CLI_TRIGGER</key><string>1</string>
+        <key>USTEMP_CLI_TRIGGER</key><string>0</string>
         <key>USTEMP_CLI_FALL</key><string>2</string>
         <key>USTEMP_CLI_MIN_SINCE</key><string>60</string>
+        <key>USTEMP_HEARTBEAT_URL</key><string></string>
     </dict>
     <key>RunAtLoad</key><true/>
     <key>KeepAlive</key><true/>

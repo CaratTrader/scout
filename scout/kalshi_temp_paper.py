@@ -38,28 +38,37 @@ STATE = Path(os.getenv("KTEMP_STATE") or "data/kalshi_temp_state.json")
 SNAPS = Path(os.getenv("KTEMP_SNAPS") or "data/kalshi_temp_snapshots.jsonl")
 FEE = 0.07  # Kalshi taker fee coefficient (fee = 0.07 * C * p * (1-p))
 _LAST_CALL = [0.0]
+_STATS = {"calls": 0, "r429": 0, "r429_exhausted": 0}
+_POLL = {"quote_ok": 0, "quote_fail": 0}  # this poll's Kalshi quote outcomes (heartbeat health)
 
 
 def kget(url: str, quiet: bool = False) -> Any:
-    """Paced GET (>= 1.05 s between calls) with retries on 429."""
+    """Paced GET (>= 1.05 s between calls) with retries on 429. 429s are counted (and journaled when retries run
+    out); connectivity failures go to the shared outage tracker instead of one journal line per call."""
     for attempt in range(4):
         wait = 1.05 - (time.time() - _LAST_CALL[0])
         if wait > 0:
             time.sleep(wait)
-        _LAST_CALL[0] = time.time()
+        _LAST_CALL[0] = time.time(); _STATS["calls"] += 1
         try:
             with urllib.request.urlopen(urllib.request.Request(url, headers={"User-Agent": "scout-kalshi-temp-paper", "Accept": "application/json"}), timeout=30) as r:
-                return json.loads(r.read())
+                data = json.loads(r.read())
+            U.net_up(url)
+            return data
         except urllib.error.HTTPError as e:
             if e.code == 429:
-                time.sleep(3 * (attempt + 1)); continue
+                _STATS["r429"] += 1; time.sleep(3 * (attempt + 1)); continue
             if not quiet:
                 U.journal({"event": "error", "url": url[-80:], "err": f"HTTP {e.code}"})
             return None
         except Exception as exc:
-            if not quiet:
+            if U.is_network_error(exc):
+                U.net_down(url, exc)
+            elif not quiet:
                 U.journal({"event": "error", "url": url[-80:], "err": str(exc)[:100]})
             return None
+    _STATS["r429_exhausted"] += 1
+    U.journal({"event": "error", "url": url[-80:], "err": "429 retries exhausted"})
     return None
 
 
@@ -101,9 +110,14 @@ def cents(v: Any) -> float | None:
         return None
 
 
-def quotes(series: str, day: str, tz: zoneinfo.ZoneInfo) -> list[dict[str, Any]]:
-    """Top-of-book for every bucket of today's ladder (one request per series, refreshed each poll)."""
-    d = kget(f"{K}/markets?series_ticker={series}&status=open&limit=50") or {}
+def quotes(series: str, day: str, tz: zoneinfo.ZoneInfo) -> list[dict[str, Any]] | None:
+    """Top-of-book for every bucket of today's ladder (one request per series, refreshed each poll). None = the
+    request failed (as opposed to [] = no open market for today)."""
+    d = kget(f"{K}/markets?series_ticker={series}&status=open&limit=50")
+    if d is None:
+        _POLL["quote_fail"] += 1
+        return None
+    _POLL["quote_ok"] += 1
     out = []
     for m in d.get("markets") or []:
         if market_day(m, tz) != day:
@@ -114,14 +128,22 @@ def quotes(series: str, day: str, tz: zoneinfo.ZoneInfo) -> list[dict[str, Any]]
     return out
 
 
-def book_size(ticker: str, side: str) -> float:
-    """Displayed size at the best level: buying YES takes the YES asks (= NO bids); buying NO takes the NO asks (= YES bids)."""
-    ob = (kget(f"{K}/markets/{ticker}/orderbook", quiet=True) or {}).get("orderbook_fp") or {}
+def book_depth(ticker: str, side: str, levels_n: int = 5) -> list[list[float]] | None:
+    """Best `levels_n` levels a taker on `side` would hit, as [[taker price, contracts], ...] best first. Buying YES
+    takes the YES asks (= NO bids at 1 - price); buying NO takes the NO asks (= YES bids). None = request failed."""
+    d = kget(f"{K}/markets/{ticker}/orderbook", quiet=True)
+    if d is None:
+        return None
+    ob = d.get("orderbook_fp") or {}
     levels = ob.get("no_dollars" if side == "YES" else "yes_dollars") or []
-    if not levels:
-        return 0.0
-    best = max(levels, key=lambda lv: float(lv[0]))  # the highest NO bid caps the YES ask, and vice versa
-    return float(best[1])
+    best = sorted(((float(px), float(sz)) for px, sz in levels), key=lambda lv: -lv[0])[:levels_n]
+    return [[round(1 - px, 4), sz] for px, sz in best]
+
+
+def book_size(ticker: str, side: str) -> float:
+    """Displayed size at the best level (0 when the book is empty or unreadable)."""
+    depth = book_depth(ticker, side)
+    return float(depth[0][1]) if depth else 0.0
 
 
 def settle(led: dict[str, Any]) -> list[dict[str, Any]]:
@@ -147,7 +169,7 @@ def settle(led: dict[str, Any]) -> list[dict[str, Any]]:
 
 def poll(led: dict[str, Any], now: dt.datetime | None = None) -> str:
     now = now or dt.datetime.now(dt.timezone.utc)
-    n_c = n_f = 0; notes = []
+    n_c = n_f = 0; notes = []; U.start_poll(led); r429_before = _STATS["r429"]; _POLL.update(quote_ok=0, quote_fail=0)
     snap: dict[str, Any] = {"ts": now.timestamp(), "updated": now.isoformat(), "venue": "kalshi", "config": {**U.CFG, "z00_local_hour": U.Z00_LOCAL_HOUR}, "cities": {}}
     for series, (city, station, tzname) in SERIES.items():
         tz = zoneinfo.ZoneInfo(tzname); now_local = now.astimezone(tz); day = now_local.date().isoformat()
@@ -155,6 +177,8 @@ def poll(led: dict[str, Any], now: dt.datetime | None = None) -> str:
         if now_local.hour < 9:
             cs["note"] = "waits until 09:00 local"; continue
         buckets = quotes(series, day, tz)
+        if buckets is None:
+            cs["note"] = "Kalshi request failed this poll"; continue
         if not buckets:
             cs["note"] = "no open Kalshi markets for today"; continue
         ob = U.observed(station, tz, now)
@@ -177,11 +201,22 @@ def poll(led: dict[str, Any], now: dt.datetime | None = None) -> str:
             k = f"{city}:{day}:{tag}"
             if cond and k not in U._SEEN:
                 U._SEEN.add(k); U.journal({"event": tag, "venue": "kalshi", "city": city, "day": day, "max": fl["max"], "latest": fl["latest"], "report": fl.get("cli_report")})
+        # shadow logs (no effect on trading): R2 decisions the unfiltered max would block; obsTime-keyed max differences
+        for lab in fl.get("r2_shadow_diff") or []:
+            k = f"{city}:{day}:r2shadow:{lab}"
+            if k not in U._SEEN:
+                U._SEEN.add(k); U.journal({"event": "r2_shadow", "city": city, "day": day, "bucket": lab, "r_max": fl["r_max"], "r_max_raw": fl.get("r_max_raw"), "max_raw": round(ob.get("max_raw", 0), 1)})
+        mo = ob.get("max_obstime")
+        if mo is not None and abs(mo - ob["max_obs"]) >= 0.5:
+            k = f"{city}:{day}:obstime:{round(mo, 1)}:{round(ob['max_obs'], 1)}"
+            if k not in U._SEEN:
+                U._SEEN.add(k); U.journal({"event": "obstime_shadow", "city": city, "day": day, "max_reporttime": round(ob["max_obs"], 1), "max_obstime": round(mo, 1)})
         holds = next((r for r in ev["rows"] if r["status"] == "holds the max"), None)
         try:
             with SNAPS.open("a") as fh:
                 fh.write(json.dumps({"ts": round(now.timestamp()), "city": city, "lt": now_local.strftime("%H:%M"), "max": fl["max"], "latest": fl["latest"], "fall": fl["fall_f"], "since": fl["since_max_min"],
                                      "peak": fl["peak_passed"], "z00": bool(ob.get("has_00z")), "cli": fl.get("cli_report"), "early": fl.get("cli_window"), "cands": cs["candidates"],
+                                     "max_raw": round(ob.get("max_raw", fl["max"]), 1), "max_ot": None if ob.get("max_obstime") is None else round(ob["max_obstime"], 1),
                                      "holds": holds and {"b": holds["label"], "bid": holds["bid"], "ask": holds["ask"]}, "book": [(r["label"], r["bid"], r["ask"]) for r in ev["rows"] if (r["bid"] or 0) >= 0.05]}) + "\n")
         except Exception:
             pass
@@ -190,12 +225,23 @@ def poll(led: dict[str, Any], now: dt.datetime | None = None) -> str:
         for c in cands:
             if (c["slug"], c["side"]) in held_keys:
                 continue
-            c["size"] = book_size(c["ticker"], c["side"])  # one order-book call per candidate, only when needed
+            depth = book_depth(c["ticker"], c["side"])  # one order-book call per candidate, only when needed
+            c["depth"] = depth
+            if depth is None:
+                c["size"] = None  # unreadable book: confirm_and_fill keeps the confirmation and retries next poll
+            elif depth and depth[0][0] > c["px"] + 0.005:
+                # the list quote went stale while METAR/report calls ran: the executable price is worse, so this is not
+                # the candidate that was scored. Skip it; the next poll re-scores from a fresh quote.
+                U.journal({"event": "signal", "venue": "kalshi", "city": city, **c, "stale_quote": True, "exec_px": depth[0][0], "max": round(ob["max"], 1), "latest": round(ob["latest"], 1)})
+                continue
+            else:
+                c["size"] = round(sum(sz for px, sz in depth if px <= c["px"] + 0.005), 2)  # all contracts at or better than the scored price
             U.journal({"event": "signal", "venue": "kalshi", "city": city, **c, "max": round(ob["max"], 1), "latest": round(ob["latest"], 1)})
             meta = {"city": city, "day": day, "ticker": c["ticker"], "venue": "kalshi", "end_date": by_slug[c["slug"]].get("close_time")}
             n_f += len(U.confirm_and_fill(led, [c], meta))
         n_c += len(cands)
         notes.append(f"{city} max={ob['max']:.0f} now={ob['latest']:.0f} cands={len(cands)}")
+    U.finish_poll(led)
     settled = settle(led)
     led["updated"] = now.isoformat(); U.save_ledger(led)
     snap.update({"cash": led["cash"], "positions": led["positions"], "pending": led.get("pending", {}), "n_fills": len(led.get("fills", []))})
@@ -203,22 +249,29 @@ def poll(led: dict[str, Any], now: dt.datetime | None = None) -> str:
         tmp = STATE.with_suffix(".tmp"); tmp.write_text(json.dumps(snap, default=str)); tmp.replace(STATE)
     except Exception as exc:
         U.journal({"event": "error", "url": "state-file", "err": str(exc)[:120]})
-    return f"kalshi-temp paper cash={led['cash']:.2f} pos={len(led['positions'])} cands={n_c} fills={n_f} settled={len(settled)} | " + " ".join(notes)
+    r429 = _STATS["r429"] - r429_before
+    if r429:
+        U.journal({"event": "rate_limit", "r429_this_poll": r429, "r429_total": _STATS["r429"], "exhausted_total": _STATS["r429_exhausted"]})
+    return f"kalshi-temp paper cash={led['cash']:.2f} pos={len(led['positions'])} cands={n_c} fills={n_f} settled={len(settled)} 429s={r429} | " + " ".join(notes)
 
 
 def main() -> None:
     U.LEDGER, U.JOURNAL, U.FEE = LEDGER, JOURNAL, FEE
     once = "--once" in sys.argv
     led = U.load_ledger()
-    print(f"Kalshi temperature paper trader: {len(SERIES)} cities, stake ${U.CFG['stake']:.0f}, poll {U.CFG['poll_s']:.0f}s, R1x cap {U.CFG['r1x_max_ask']}, report trigger {'on' if U.CFG['cli_trigger'] else 'off'}", flush=True)
+    print(f"Kalshi temperature paper trader: {len(SERIES)} cities, stake ${U.CFG['stake']:.0f}, poll {U.CFG['poll_s']:.0f}s, R1x cap {U.CFG['r1x_max_ask']}, report trigger {'on' if U.CFG['cli_trigger'] else 'off'}, heartbeat {'on' if U.CFG['heartbeat_url'] else 'off'}", flush=True)
+    U.close_stale_outages()
     while True:
+        t0 = time.monotonic(); ok = True
         try:
             print(poll(led), flush=True)
         except Exception as exc:
-            print(f"cycle error: {type(exc).__name__}: {exc}", flush=True); U.journal({"event": "cycle_error", "err": str(exc)[:200]})
+            ok = False; print(f"cycle error: {type(exc).__name__}: {exc}", flush=True); U.journal({"event": "cycle_error", "err": str(exc)[:200]})
+        # healthy = the poll completed and, if it tried Kalshi at all, at least one quote request succeeded
+        U.heartbeat(ok and not (_POLL["quote_fail"] and not _POLL["quote_ok"]))
         if once:
             break
-        time.sleep(U.CFG["poll_s"])
+        time.sleep(max(0.0, t0 + U.CFG["poll_s"] - time.monotonic()))  # fixed-rate, immune to wall-clock steps
 
 
 if __name__ == "__main__":

@@ -46,8 +46,10 @@ def test_confirmation_and_fill_and_settlement(monkeypatch, tmp_path):
     monkeypatch.setattr(U, "JOURNAL", tmp_path / "j.jsonl"); monkeypatch.setattr(U, "LEDGER", tmp_path / "l.json")
     led = U.load_ledger(); c = {"rule": "R0", "slug": "x-lt68f", "side": "NO", "px": 0.90, "size": 20, "why": "t"}
     meta = {"city": "sfo", "day": "2026-09-22", "end_date": "2026-09-23T12:00:00Z"}
+    U.start_poll(led)
     assert U.confirm_and_fill(led, [c], meta) == []                      # first sighting only pends
-    fills = U.confirm_and_fill(led, [dict(c, px=0.89)], meta)            # second sighting, not worse -> fill at 0.89
+    U.finish_poll(led); U.start_poll(led)
+    fills = U.confirm_and_fill(led, [dict(c, px=0.89)], meta)            # second consecutive sighting, not worse -> fill at 0.89
     assert len(fills) == 1 and fills[0]["shares"] == 20 and abs(led["cash"] - (500 - 17.8 - U.fee(0.89, 20))) < 1e-6
     monkeypatch.setattr(U, "get", lambda url, timeout=20, **kw: {"settlement": 0})   # YES settled 0 -> NO pays 1
     monkeypatch.setattr(U.dt, "datetime", type("D", (dt.datetime,), {"now": classmethod(lambda cls, tz=None: dt.datetime(2026, 9, 24, tzinfo=tz))}))
@@ -204,3 +206,134 @@ def test_six_hour_group_kept_when_reports_arrive_newest_first():
         rows.append({"reportTime": f"2026-09-30T{h:02d}:00:00.000Z", "rawOb": f"METAR KNYC 30{h-1:02d}51Z AUTO 10SM CLR 22/16 A3012 RMK AO2 T{t}"})
     ob = U.observed("KNYC", tz, now, fetch=lambda: rows)
     assert round(ob["max"], 1) == 73.9 and ob["has_00z"] is True
+
+
+
+# ---------------------------------------------------------------- 2026-10-01 review fixes
+def _led(monkeypatch, tmp_path):
+    monkeypatch.setattr(U, "JOURNAL", tmp_path / "j.jsonl"); monkeypatch.setattr(U, "LEDGER", tmp_path / "l.json")
+    return U.load_ledger()
+
+
+def test_two_simultaneous_candidates_both_fill(monkeypatch, tmp_path):
+    led = _led(monkeypatch, tmp_path)
+    a = {"rule": "R2", "slug": "x-gte72lt73f", "side": "NO", "px": 0.80, "size": 100, "why": "a"}
+    b = {"rule": "R0", "slug": "y-lt68f", "side": "NO", "px": 0.90, "size": 100, "why": "b"}
+    for _ in range(2):
+        U.start_poll(led)
+        fills = U.confirm_and_fill(led, [a], {"city": "atl", "day": "d"}) + U.confirm_and_fill(led, [b], {"city": "den", "day": "d"})
+        U.finish_poll(led)
+    assert len(fills) == 2 and {f["city"] for f in fills} == {"atl", "den"}
+
+
+def test_gap_restarts_the_confirmation(monkeypatch, tmp_path):
+    led = _led(monkeypatch, tmp_path)
+    c = {"rule": "R2", "slug": "x-gte72lt73f", "side": "NO", "px": 0.80, "size": 100, "why": "a"}
+    U.start_poll(led); U.confirm_and_fill(led, [c], {"day": "d"}); U.finish_poll(led)   # seen
+    U.start_poll(led); U.finish_poll(led)                                                 # absent: pending dropped
+    assert led["pending"] == {}
+    U.start_poll(led); assert U.confirm_and_fill(led, [c], {"day": "d"}) == []; U.finish_poll(led)   # seen again: counts as first
+    U.start_poll(led); assert len(U.confirm_and_fill(led, [c], {"day": "d"})) == 1
+
+
+def test_legacy_pending_without_poll_id_is_pruned(monkeypatch, tmp_path):
+    led = _led(monkeypatch, tmp_path); led["pending"] = {"x-gte87lt88f|NO": {"n": 1, "px": 0.08, "rule": "R1x"}}
+    U.start_poll(led); U.finish_poll(led)
+    assert led["pending"] == {}
+
+
+def test_single_poll_confirmation_and_unreadable_book(monkeypatch, tmp_path):
+    led = _led(monkeypatch, tmp_path)
+    c = {"rule": "R0", "slug": "y-lt68f", "side": "NO", "px": 0.90, "size": 100, "why": "b"}
+    U.start_poll(led)
+    assert len(U.confirm_and_fill(led, [c], {"day": "d"}, cfg=dict(U.CFG, confirm=1))) == 1
+    led2 = {"cash": 500.0, "positions": [], "fills": [], "pending": {}}
+    U.start_poll(led2); U.confirm_and_fill(led2, [dict(c, size=None)], {"day": "d"}); U.finish_poll(led2)
+    U.start_poll(led2); assert U.confirm_and_fill(led2, [dict(c, size=None)], {"day": "d"}) == []   # book unreadable: no fill
+    assert led2["pending"]["y-lt68f|NO"]["n"] == 2                                              # confirmation kept for next poll
+
+
+def test_negative_strikes_and_rounding():
+    assert U.bounds("k-KXHIGHTMIN-27JAN15-T-3-lt-3f") == (-1e9, -4.0)
+    assert U.bounds("k-KXHIGHTMIN-27JAN15-B-1.5-gte-2lt-1f") == (-2.0, -1.0)
+    assert U.bounds("k-KXHIGHTMIN-27JAN15-T4-gte5f") == (5.0, 1e9)
+    assert U.bounds("k-KXHIGHTMIN-27JAN15-T-1-gte0f") == (0.0, 1e9)
+    assert U.bounds("tc-temp-sfohigh-2026-09-18-gte68lt69f") == (68.0, 69.0)
+    assert U.round_f(-0.6) == -1 and U.round_f(-0.5) == 0 and U.round_f(72.5) == 73 and U.round_f(72.4) == 72
+
+
+def test_iem_fallback_url_covers_now_on_month_ends():
+    import re as _re
+    for now in (dt.datetime(2026, 9, 28, 23, 0, tzinfo=dt.timezone.utc), dt.datetime(2026, 10, 31, 2, 0, tzinfo=dt.timezone.utc),
+                dt.datetime(2026, 12, 31, 23, 30, tzinfo=dt.timezone.utc), dt.datetime(2027, 2, 28, 3, 0, tzinfo=dt.timezone.utc)):
+        u = U.iem_url("KSFO", now)
+        y2, m2, d2 = (int(_re.search(k + r"=(\d+)", u).group(1)) for k in ("year2", "month2", "day2"))
+        y1, m1, d1 = (int(_re.search(k + r"=(\d+)", u).group(1)) for k in ("year1", "month1", "day1"))
+        assert dt.date(y2, m2, d2) == (now + dt.timedelta(days=1)).date() and dt.date(y1, m1, d1) <= (now - dt.timedelta(hours=30)).date()
+
+
+def test_peak_wind_group_is_not_a_temperature():
+    raw = "KDEN 022353Z 31018G30KT 10SM FEW120 31/02 A3001 RMK AO2 PK WND 10037/2258 SLP110 T03110022 10311 20278 58010"
+    f = U.metar_temps_f(raw)
+    assert round(f[0], 1) == 88.0 and round(f[1], 1) == 88.0   # the 10311 group, not the PK WND 10037 token
+
+
+def test_outage_needs_consecutive_failures_and_is_per_host(monkeypatch):
+    ev = []; monkeypatch.setattr(U, "journal", lambda e: ev.append(e)); U._NET.clear()
+    err = U.urllib.error.URLError(OSError(51, "Network is unreachable"))
+    U.net_down("https://aviationweather.gov/a", err); U.net_up("https://aviationweather.gov/a")   # isolated blip
+    assert [e["event"] for e in ev] == ["error"]
+    ev.clear()
+    for _ in range(6):
+        U.net_down("https://aviationweather.gov/a", err)
+    U.net_up("https://api.elections.kalshi.com/x")          # another host succeeding does not end the AWC outage
+    U.net_up("https://aviationweather.gov/b")
+    assert [e["event"] for e in ev] == ["error", "error", "outage_start", "outage_end"]
+    assert ev[2]["host"] == "aviationweather.gov" and ev[3]["suppressed_errors"] == 3
+    U._NET.clear()
+
+
+def test_stale_outage_closed_on_restart(monkeypatch, tmp_path):
+    j = tmp_path / "j.jsonl"; j.write_text('{"ts": 100, "event": "outage_start", "host": "aviationweather.gov", "since": 100}\n')
+    monkeypatch.setattr(U, "JOURNAL", j)
+    U.close_stale_outages(now=400)
+    last = [l for l in j.read_text().splitlines()][-1]
+    assert '"outage_end"' in last and '"process_restart"' in last and '"seconds": 300' in last
+
+
+def test_confirmation_does_not_survive_a_long_gap(monkeypatch, tmp_path):
+    led = _led(monkeypatch, tmp_path)
+    c = {"rule": "R0", "slug": "y-lt68f", "side": "NO", "px": 0.90, "size": 100, "why": "b"}
+    U.start_poll(led, now=1000.0); U.confirm_and_fill(led, [c], {"day": "d"}); U.finish_poll(led)
+    U.start_poll(led, now=1000.0 + 5 * 3600)                  # 5 h later (reboot at the FileVault login)
+    assert led["pending"] == {}
+    assert U.confirm_and_fill(led, [c], {"day": "d"}) == []  # the first sighting after the gap only pends
+
+
+def test_cash_check_includes_the_fee(monkeypatch, tmp_path):
+    led = _led(monkeypatch, tmp_path); led["cash"] = 25.0
+    c = {"rule": "R2", "slug": "x-gte72lt73f", "side": "NO", "px": 0.50, "size": 500, "why": "a"}
+    U.start_poll(led); U.confirm_and_fill(led, [c], {"day": "d"}, cfg=dict(U.CFG, confirm=1))
+    assert led["positions"] == [] and led["cash"] == 25.0
+
+
+def test_blocker_texts_follow_the_configuration():
+    tz = zoneinfo.ZoneInfo("America/New_York")
+    ob = {"max": 70.0, "latest": 68.0, "t_max": dt.datetime(2026, 10, 1, 14, 0, tzinfo=tz), "has_00z": False}
+    b = [{"slug": "x-gte70lt71f", "bid": 0.5, "ask": 0.6, "bid_sz": 10, "ask_sz": 10}, {"slug": "x-gte74lt75f", "bid": 0.3, "ask": 0.35, "bid_sz": 10, "ask_sz": 10}]
+    now = dt.datetime(2026, 10, 1, 16, 0, tzinfo=tz)
+    live = dict(U.CFG, r1x=1, r1x_00z=0, cli_trigger=0, r1=0, r2=0)
+    rows = {r["slug"]: r for r in U.evaluate(b, ob, now, cfg=live, city="nyc")["rows"]}
+    assert "00Z and report triggers off" in rows["x-gte70lt71f"]["blocker"] and rows["x-gte74lt75f"]["blocker"] == "above the max by 4F; R2 off"
+    rows = {r["slug"]: r for r in U.evaluate(b, ob, now, cfg=dict(live, r1x=0), city="nyc")["rows"]}
+    assert rows["x-gte70lt71f"]["blocker"].endswith("(R1x off)")
+    rows = {r["slug"]: r for r in U.evaluate(b, ob, now, cfg=dict(live, r1x_00z=1), city="nyc")["rows"]}
+    assert "00Z report (20:00 local)" in rows["x-gte70lt71f"]["blocker"]
+
+
+def test_r2_shadow_flags_fades_the_unfiltered_max_would_block():
+    tz = zoneinfo.ZoneInfo("America/Chicago")
+    ob = {"max": 84.0, "max_raw": 87.1, "latest": 80.0, "t_max": dt.datetime(2026, 9, 8, 13, 0, tzinfo=tz), "has_00z": False}
+    buckets = [{"slug": "x-gte87lt88f", "bid": 0.30, "ask": 0.35, "bid_sz": 100, "ask_sz": 100}]
+    ev = U.evaluate(buckets, ob, dt.datetime(2026, 9, 8, 16, 0, tzinfo=tz), city="mdw")
+    assert ev["rows"][0]["rule"] == "R2" and ev["flags"]["r2_shadow_diff"] == ["87-88"]
