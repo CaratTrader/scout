@@ -1,13 +1,24 @@
 """Kalshi daily-high temperature ladders: same observed-max rules as lab/us/temp_backtest.py, on Kalshi's 1-minute
 candlesticks (yes bid/ask close per minute) and settled results. Strikes: 'less' cap X -> max <= X-1; 'between'
-floor..cap inclusive; 'greater' floor X -> max >= X+1. Usage: python -m lab.us.kalshi_backtest [delay_min]"""
+floor..cap inclusive; 'greater' floor X -> max >= X+1.
+
+The NWS afternoon climate report is usable only at its issuance (IEM AFOS entered time, the archive file name) plus
+KB_REPORT_LAG minutes (default 7), not at its as-of time: reports come out a median 33 min after the as-of. That
+minute is added to the 15-minute decision grid. Before 2026-10-01 the report was used at as-of + 5 min (look-ahead).
+When the report's max-so-far beats the METAR max it lifts the max and the max is dated at the report's as-of time,
+as in the bot (scout/us_temp_paper.py); only 'VALID TODAY AS OF' reports with as-of >= 12:00 from the offices in
+KB_REPORT_OFFICES are used (the bot's rules; KB_REPORT_PARSE=lenient also takes the 'VALID AS OF 0400 PM' Minneapolis
+/ Dallas reports).
+LIVE configuration (paper job since 2026-09-27): R0 + R2, the report lifting the max for R2 once usable, one trade per
+market, equal $25 stakes. R1c (report trigger, off in the bot) is still computed for reference.
+Usage: python -m lab.us.kalshi_backtest [delay_min] [yes_cap]"""
 from __future__ import annotations
-import datetime as dt, json, math, statistics as st, sys, zoneinfo
+import datetime as dt, json, math, os, statistics as st, sys, zoneinfo
 from collections import defaultdict
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 import lab.us.temp_backtest as B
-from lab.us.cli_backtest import intraday_reports
+from lab.us.cli_backtest import all_intraday_reports, REPORT_LAG_MIN
 
 KD = Path("data/lab/us/kalshi")
 SERIES = {"KXHIGHNY": ("NYC", "KNYC", "America/New_York"), "KXHIGHCHI": ("MDW", "KMDW", "America/Chicago"), "KXHIGHMIA": ("MIA", "KMIA", "America/New_York"),
@@ -16,10 +27,15 @@ SERIES = {"KXHIGHNY": ("NYC", "KNYC", "America/New_York"), "KXHIGHCHI": ("MDW", 
           "KXHIGHDEN": ("DEN", "KDEN", "America/Denver"), "KXHIGHAUS": ("AUS", "KAUS", "America/Chicago"), "KXHIGHTDAL": ("DFW", "KDFW", "America/Chicago"),
           "KXHIGHTMIN": ("MSP", "KMSP", "America/Chicago"), "KXHIGHTPHX": ("PHX", "KPHX", "America/Phoenix"), "KXHIGHTSEA": ("SEA", "KSEA", "America/Los_Angeles"),
           "KXHIGHTLV": ("LAS", "KLAS", "America/Los_Angeles"), "KXHIGHTSAN": ("SAN", "KSAN", "America/Los_Angeles")}
-CLI_OK = {"NYC", "MIA", "MDW", "DCA", "PHL", "BOS", "ATL", "DFW", "MSP"}   # cities with an afternoon climate report
+CLI_OK = {"NYC", "MIA", "MDW", "DCA", "PHL", "BOS", "ATL", "DFW", "MSP"}   # the bot's report offices (USTEMP_CLI_CITIES)
 Z00 = {"NYC": 20, "MIA": 20, "BOS": 20, "DCA": 20, "PHL": 20, "ATL": 20, "MDW": 19, "AUS": 19, "DFW": 19, "MSP": 19, "DEN": 18, "LAX": 17, "SFO": 17, "SEA": 17, "LAS": 17, "SAN": 17, "PHX": 17}
 FEE = 0.07
+STAKE = 25.0
+REPORT_LAG = int(os.environ.get("KB_REPORT_LAG", REPORT_LAG_MIN))
+REPORT_STRICT = os.environ.get("KB_REPORT_PARSE", "strict") != "lenient"
+REPORT_OFFICES = {c.strip().upper() for c in (os.environ.get("KB_REPORT_OFFICES") or ",".join(sorted(CLI_OK))).split(",") if c.strip()}
 def fee(p): return FEE * p * (1 - p)
+def rnd(x: float) -> int: return math.floor(x + 0.5)   # round half up, like the climate report and the bot
 
 
 def interval(m: dict) -> tuple[float, float]:
@@ -60,11 +76,28 @@ def quote_at(ser, minute, max_age: int = 90):
     return None
 
 
+def one_per_market(trades: list[dict], rules: tuple[str, ...]) -> list[dict]:
+    """First trade in time on each market among `rules` (the bot holds one position per market)."""
+    seen, out = set(), []
+    for r in sorted((x for x in trades if x["rule"] in rules), key=lambda x: (x["day"], x["t"], rules.index(x["rule"]))):
+        if r["ticker"] not in seen:
+            seen.add(r["ticker"]); out.append(r)
+    return out
+
+
+def stats(rows: list[dict], days: int) -> dict:
+    """Per contract (pnl) and per equal-$ stake (ret = pnl / px; a $25 trade makes 25 * ret)."""
+    p = [r["pnl"] for r in rows]; ret = [r["pnl"] / r["px"] for r in rows]; n = len(rows)
+    tt = lambda v: st.mean(v) / st.pstdev(v) * math.sqrt(len(v)) if len(v) > 2 and st.pstdev(v) > 0 else float("nan")
+    return {"n": n, "win": sum(r["won"] for r in rows) / n, "px": st.mean(r["px"] for r in rows), "c": st.mean(p) * 100, "per$": sum(p) / sum(r["px"] for r in rows),
+            "t": tt(p), "t$": tt(ret), "per_day": n / days, "usd": STAKE * sum(ret), "usd_day": STAKE * sum(ret) / days, "ret": st.mean(ret)}
+
+
 def main():
     delay = int(sys.argv[1]) if len(sys.argv) > 1 else 2
-    CAP = float(sys.argv[2]) if len(sys.argv) > 2 else 0.85
+    CAP = float(sys.argv[2]) if len(sys.argv) > 2 else 0.80
     M = json.load(open(KD / "markets.json")); MET = B.metar(); cli = json.load(open("data/lab/us/asos/cli_high.json"))
-    REP = intraday_reports()  # (city, day) -> {asof_min, max}; cities keyed sfo/lax/mdw/nyc/mia (+bos when archived)
+    REPS = all_intraday_reports(strict=REPORT_STRICT, min_asof=12 * 60, lag=REPORT_LAG)   # (city, day) -> [reports by issuance]
     CITY = {stn: stn.lower() for stn, _, _ in SERIES.values()}
     days = defaultdict(list)
     for t, m in M.items():
@@ -75,7 +108,8 @@ def main():
         close = dt.datetime.fromisoformat(m["close_time"].replace("Z", "+00:00")); day = (close.astimezone(zoneinfo.ZoneInfo(tzn)) - dt.timedelta(hours=6)).date().isoformat()
         days[(stn, day)].append(m)
     print(f"Kalshi ladders: {len(days)} station-days, {sum(len(v) for v in days.values())} markets")
-    trades = []; used = 0; skipped = defaultdict(int); truth = defaultdict(int)
+    print(f"report: usable at issuance + {REPORT_LAG} min, parse {'strict (VALID TODAY)' if REPORT_STRICT else 'lenient'}, offices {','.join(sorted(REPORT_OFFICES))}")
+    trades = []; used = []; skipped = defaultdict(int); truth = defaultdict(int); rep_days = []; lifted = 0
     for (stn, day), mk in days.items():
         icao = next(v[1] for v in SERIES.values() if v[0] == stn); tzn = next(v[2] for v in SERIES.values() if v[0] == stn); tz = zoneinfo.ZoneInfo(tzn)
         obs = MET.get(stn, {}).get(day)
@@ -92,21 +126,29 @@ def main():
                 lo, hi = interval(m); rows.append({"m": m, "lo": lo, "hi": hi, "won": m["result"] == "yes", "ser": ser})
         if not rows:
             skipped["no_candles"] += 1; continue
-        used += 1; done = set()
-        for t in range(12 * 60, 23 * 60 + 30, 15):
+        used.append((stn, day)); done = set()
+        reps = REPS.get((CITY[stn], day), []) if stn in REPORT_OFFICES else []
+        if reps:
+            rep_days.append(reps[0]["usable_min"])
+        # decision grid: every 15 min from 12:00, plus the minute each report becomes usable
+        grid = sorted(set(range(12 * 60, 23 * 60 + 30, 15)) | {r["usable_min"] for r in reps if 12 * 60 <= r["usable_min"] < 23 * 60 + 30})
+        day_lift = False
+        for t in grid:
             past = [r for r in obs if r[0] <= t]
             if not past:
                 continue
-            Mx, tM = B.robust_max(past); T = min(r[1] for r in past if r[0] == past[-1][0]); rM = int(Mx + 0.5)
-            peak = t >= 15 * 60 and (Mx - T) >= 1 and (t - tM) >= 45
+            M_obs, tM = B.robust_max(past); T = min(r[1] for r in past if r[0] == past[-1][0])
+            cr = None
+            for r in reps:                      # latest report already usable at t (the bot fetches the newest one)
+                if r["usable_min"] <= t:
+                    cr = r
+            Mx = M_obs
+            if cr and cr["max"] > M_obs:        # the official max-so-far beats hourly METAR: lift, dated at its as-of time
+                Mx, tM = cr["max"], cr["asof_min"]; day_lift = True
+            rM = rnd(Mx); fall = Mx - T; since = t - tM
+            peak = t >= 15 * 60 and fall >= 1 and since >= 45
             after00 = t >= Z00[stn] * 60 + 5 and any(len(r) > 2 and r[2] and r[0] >= Z00[stn] * 60 - 40 for r in past)
-            rep = REP.get((CITY[stn], day)) if stn in CLI_OK else None
-            rep_in = bool(rep) and rep["asof_min"] >= 12 * 60 and t >= rep["asof_min"] + 5
-            M_obs = Mx
-            if rep_in and rep["max"] > Mx:
-                Mx = rep["max"]; rM = int(Mx + 0.5)   # the report's max-so-far is official and beats hourly METAR
-            fall = Mx - T; since = t - tM
-            cli_gate = rep_in and t >= 15 * 60 and fall >= 2 and since >= 60
+            cli_gate = cr is not None and t >= 15 * 60 and fall >= 2 and since >= 60
             for b in rows:
                 q = quote_at(b["ser"], t + delay)
                 if not q:
@@ -114,7 +156,8 @@ def main():
                 ask, bid = q; no_ask = 1 - bid
                 key = b["m"]["ticker"]
                 def rec(rule, side, px, won):
-                    trades.append({"rule": rule, "stn": stn, "day": day, "side": side, "px": px, "pnl": (1 if won else 0) - px - fee(px), "won": won, "t": t, "ticker": key})
+                    trades.append({"rule": rule, "stn": stn, "day": day, "side": side, "px": px, "pnl": (1 if won else 0) - px - fee(px), "won": won, "t": t, "ticker": key,
+                                   "m_obs": M_obs, "rep_max": cr["max"] if cr else None, "rep_usable": cr["usable_min"] if cr else None})
                 holds = b["lo"] <= rM <= b["hi"]
                 if cli_gate and not after00 and ("R1c", key) not in done:
                     if holds and 0.02 <= ask <= CAP:
@@ -126,34 +169,50 @@ def main():
                     if (tag, key) not in done and t >= 15 * 60 and fall >= F and since >= S and holds and (rM + 1 <= b["hi"] or b["hi"] >= 1e8) and 0.02 <= ask <= 0.90:
                         done.add((tag, key)); rec(tag, "YES", ask, b["won"])
                 if after00 and ("R1x", key) not in done:
-                    if b["lo"] <= rM <= b["hi"] and 0.02 <= ask <= CAP:
+                    if holds and 0.02 <= ask <= CAP:
                         done.add(("R1x", key)); rec("R1x", "YES", ask, b["won"])
-                    elif not (b["lo"] <= rM <= b["hi"]) and bid >= 0.10 and 0.02 <= no_ask <= 0.97:
+                    elif not holds and bid >= 0.10 and 0.02 <= no_ask <= 0.97:
                         done.add(("R1x", key)); rec("R1x", "NO", no_ask, not b["won"])
-                if ("R0", key) not in done:
+                if ("R0", key) not in done:     # certain rule: METAR-only max, a full degree above the bucket top
                     if b["hi"] + 1.0 <= M_obs and 0.02 <= no_ask <= 0.97:
                         done.add(("R0", key)); rec("R0", "NO", no_ask, not b["won"])
                     elif b["hi"] >= 1e8 and M_obs >= b["lo"] + 0.05 and 0.02 <= ask <= 0.97:
                         done.add(("R0", key)); rec("R0", "YES", ask, b["won"])
                 if peak and ("R2", key) not in done and b["lo"] >= rM + 3 and bid >= 0.15 and no_ask >= 0.02:
                     done.add(("R2", key)); rec("R2", "NO", no_ask, not b["won"])
-    print(f"station-days used {used}, skipped {dict(skipped)}; Kalshi settlement minus NWS CLI high: {dict(sorted(truth.items()))}; delay {delay} min")
+        lifted += day_lift
+    cal = len({d for _, d in used})
+    rep_days.sort()
+    print(f"station-days used {len(used)} over {cal} calendar days ({min(d for _, d in used)} .. {max(d for _, d in used)}), skipped {dict(skipped)}; Kalshi settlement minus NWS CLI high: {dict(sorted(truth.items()))}; delay {delay} min, YES cap {CAP}")
+    if rep_days:
+        print(f"station-days with a usable report: {len(rep_days)} (first usable minute median {rep_days[len(rep_days)//2]//60:02d}:{rep_days[len(rep_days)//2]%60:02d}); report lifted the max on {lifted}")
+
     def rep(rows, label):
-        if not rows: print(f"{label:26s} n=0"); return
-        p = [r["pnl"] for r in rows]; stake = sum(r["px"] for r in rows)
-        tst = st.mean(p) / st.pstdev(p) * math.sqrt(len(p)) if len(p) > 2 and st.pstdev(p) > 0 else float("nan")
-        print(f"{label:26s} n={len(rows):4d} win={sum(r['won'] for r in rows)/len(rows):4.0%} avg px={st.mean(r['px'] for r in rows):.3f} pnl/sh={st.mean(p)*100:+6.1f}c per$={sum(p)/stake:+.3f} t={tst:5.1f} trades/day={len(rows)/max(used,1):.2f}")
-    print("\nRULES (P&L per contract after 7% taker fee)")
-    for rule in ("R0", "R1x", "R1c", "R2", "R1_f1", "R1_f2", "R1_f3"):
+        if not rows: print(f"{label:30s} n=0"); return
+        s = stats(rows, cal)
+        print(f"{label:30s} n={s['n']:4d} win={s['win']:4.0%} avg px={s['px']:.3f} pnl/c={s['c']:+6.1f}c per$={s['per$']:+.3f} t={s['t']:5.1f} t($)={s['t$']:5.1f} "
+              f"/day={s['per_day']:.2f} $/day@{STAKE:.0f}={s['usd_day']:+6.2f} total@{STAKE:.0f}=${s['usd']:+8.2f}")
+
+    print(f"\nRULES (per contract after 7% taker fee; t($) and $ on equal ${STAKE:.0f} stakes; /day over {cal} calendar days, 17 cities)")
+    for rule in ("R0", "R2", "R1c", "R1x", "R1_f1", "R1_f2", "R1_f3"):
         rep([r for r in trades if r["rule"] == rule], rule)
         if rule in ("R1x", "R1c"):
             rep([r for r in trades if r["rule"] == rule and r["side"] == "YES"], f"  {rule} YES"); rep([r for r in trades if r["rule"] == rule and r["side"] == "NO"], f"  {rule} NO")
-    print("\nR1c by station:"); [rep([r for r in trades if r["rule"] == "R1c" and r["stn"] == s], f"  {s}") for s in Z00 if any(r["stn"] == s for r in trades)]
+    live = one_per_market(trades, ("R0", "R2")); ref = one_per_market(trades, ("R0", "R1c", "R2"))
+    print(f"\nLIVE CONFIGURATION: R0 + R2 (report lifts the max once usable), one trade per market, YES cap {CAP}, ${STAKE:.0f} per trade")
+    rep(live, "LIVE R0+R2")
+    if live:
+        dollars = [STAKE * r["pnl"] / r["px"] for r in live]; i = max(range(len(live)), key=lambda k: dollars[k]); top = live[i]
+        print(f"  largest winner: {top['ticker']} {top['rule']} {top['side']} @ {top['px']:.2f} -> ${dollars[i]:+.2f} = {dollars[i]/sum(dollars):.0%} of total ${sum(dollars):+.2f}")
+        rep([r for k, r in enumerate(live) if k != i], "  without the largest winner")
+        print("  by month:"); [rep([r for r in live if r["day"][:7] == mo], f"    {mo}") for mo in sorted({r["day"][:7] for r in live})]
+        print("  by city:"); [rep([r for r in live if r["stn"] == s], f"    {s}") for s in sorted(Z00, key=lambda s: -sum(r["stn"] == s for r in live)) if any(r["stn"] == s for r in live)]
+    print("\nREFERENCE: R0 + R1c + R2 (report trigger on), one trade per market")
+    rep(ref, "R0+R1c+R2")
+    print("\nR1c by station:"); [rep([r for r in trades if r["rule"] == "R1c" and r["stn"] == s], f"  {s}") for s in Z00 if any(r["stn"] == s and r["rule"] == "R1c" for r in trades)]
     print("R1c by entry price:"); [rep([r for r in trades if r["rule"] == "R1c" and lo <= r["px"] < lo + 0.2], f"  px {lo:.1f}-{lo+0.2:.1f}") for lo in (0.0, 0.2, 0.4, 0.6, 0.8)]
-    print("R1_f2 by entry price:"); [rep([r for r in trades if r["rule"] == "R1_f2" and lo <= r["px"] < lo + 0.2], f"  px {lo:.1f}-{lo+0.2:.1f}") for lo in (0.0, 0.2, 0.4, 0.6, 0.8)]
-    print("\nby station (all rules):"); [rep([r for r in trades if r["stn"] == s], f"  {s}") for s in Z00]
-    print("by month (all rules):"); [rep([r for r in trades if r["day"][:7] == mo], f"  {mo}") for mo in sorted({r["day"][:7] for r in trades})]
-    print("by entry price (all rules):"); [rep([r for r in trades if lo <= r["px"] < lo + 0.2], f"  px {lo:.1f}-{lo+0.2:.1f}") for lo in (0.0, 0.2, 0.4, 0.6, 0.8)]
+    print("R2 by station:"); [rep([r for r in trades if r["rule"] == "R2" and r["stn"] == s], f"  {s}") for s in Z00 if any(r["stn"] == s and r["rule"] == "R2" for r in trades)]
+    print("R2 by entry price:"); [rep([r for r in trades if r["rule"] == "R2" and lo <= r["px"] < lo + 0.2], f"  px {lo:.1f}-{lo+0.2:.1f}") for lo in (0.0, 0.2, 0.4, 0.6, 0.8)]
     with open(KD / f"trades_d{delay}.jsonl", "w") as fh:
         for r in trades: fh.write(json.dumps(r) + "\n")
 

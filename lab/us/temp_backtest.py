@@ -23,15 +23,27 @@ FEE = 0.0695
 USE_6HR = True
 def fee(p): return FEE * p * (1 - p)
 
+_BUCKET = re.compile(r"(?:gte(-?\d+))?(?:lt(-?\d+))?f$")
+
+
 def bounds(slug: str) -> tuple[float, float]:
     """Venue slug convention (verified on 2,543 resolved markets against the NWS report): "gte68lt69f" is the
-    68-69F bucket (inclusive), the bottom "lt68f" is 67F or below (strict), the top "gte76f" is 76F or more."""
-    lo = re.search(r"gte(\d+)", slug); hi = re.search(r"lt(\d+)", slug)
-    if lo and hi:
-        return float(lo.group(1)), float(hi.group(1))
-    if hi:
-        return -1e9, float(hi.group(1)) - 1
-    return (float(lo.group(1)) if lo else -1e9), 1e9
+    68-69F bucket (inclusive), the bottom "lt68f" is 67F or below (strict), the top "gte76f" is 76F or more.
+    Negative strikes (lt-3f, gte-2lt-1f, gte-2f) are accepted; only the bucket suffix at the end of the slug is
+    parsed, as in the bot (scout/us_temp_paper.bounds)."""
+    m = _BUCKET.search(slug)
+    lo = m.group(1) if m else None; hi = m.group(2) if m else None
+    if lo is not None and hi is not None:
+        return float(lo), float(hi)
+    if hi is not None:
+        return -1e9, float(hi) - 1
+    return (float(lo) if lo is not None else -1e9), 1e9
+
+
+def rnd(x: float) -> int:
+    """Round half up to a whole degree, like the climate report and the bot (int(x + 0.5) is wrong below -0.5F,
+    Python's round() rounds 90.5 to 90)."""
+    return math.floor(x + 0.5)
 
 def _six_hour_max_f(raw: str) -> float | None:
     """METAR remark 1sTTT = 6-hour maximum temperature in tenths C (s=1 negative). Reported at 00/06/12/18Z from
@@ -40,7 +52,7 @@ def _six_hour_max_f(raw: str) -> float | None:
     if not m:
         return None
     c = int(m.group(2)) / 10.0 * (-1 if m.group(1) == "1" else 1)
-    return round(c * 9 / 5 + 32)
+    return rnd(c * 9 / 5 + 32)
 
 
 def metar() -> dict[str, dict[str, list[tuple[int, float]]]]:
@@ -115,7 +127,7 @@ def main():
             if m.get("category") == "climate" and m["slug"].startswith("tc-temp-"):
                 p_ = m["slug"].split("-"); lad[f"{p_[2][:3]}:{'-'.join(p_[3:6])}"].append(m)
     MET = metar(); dmax = json.load(open("data/lab/us/asos/cli_high.json"))
-    dmax = {{"KSFO": "SFO", "KLAX": "LAX", "KMDW": "MDW", "KNYC": "NYC", "KMIA": "MIA"}[k]: v for k, v in dmax.items()}
+    dmax = {k[1:]: v for k, v in dmax.items()}   # KSFO -> SFO (cli_high.json now holds all 17 stations)
     trades = []; gap = []; days_used = 0; days_skipped = defaultdict(int)
     for key, mk in lad.items():
         city, day = key.split(":"); stn = STN[city]; tz = zoneinfo.ZoneInfo(TZ[city])
@@ -159,7 +171,7 @@ def main():
                         done.add(("R0", b["slug"])); trades.append({"rule": "R0", "F": 0, "city": city, "day": day, "side": "YES", "px": ask, "pnl": (1 if b["won"] else 0) - ask - fee(ask), "won": b["won"], "t": t, "slug": b["slug"]})
                 z00 = {"sfo": 17, "lax": 17, "mdw": 19, "nyc": 20, "mia": 20}[city] * 60 + 5   # first grid minute after the 00Z report
                 if USE_6HR and t >= z00:
-                    rM = int(M + 0.5)
+                    rM = rnd(M)
                     if ("R1x", b["slug"]) not in done:
                         if b["lo"] <= rM <= b["hi"] and 0.02 <= ask <= 0.90:
                             done.add(("R1x", b["slug"])); trades.append({"rule": "R1x", "F": 0, "city": city, "day": day, "side": "YES", "px": ask, "pnl": (1 if b["won"] else 0) - ask - fee(ask), "won": b["won"], "t": t, "slug": b["slug"]})
