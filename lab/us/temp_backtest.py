@@ -17,7 +17,8 @@ from pathlib import Path
 TZ = {"sfo": "America/Los_Angeles", "lax": "America/Los_Angeles", "mdw": "America/Chicago", "nyc": "America/New_York", "mia": "America/New_York",
       "bos": "America/New_York", "dca": "America/New_York", "phl": "America/New_York", "atl": "America/New_York", "den": "America/Denver",
       "aus": "America/Chicago", "dfw": "America/Chicago", "msp": "America/Chicago", "phx": "America/Phoenix", "sea": "America/Los_Angeles",
-      "las": "America/Los_Angeles", "san": "America/Los_Angeles"}
+      "las": "America/Los_Angeles", "san": "America/Los_Angeles",
+      "hou": "America/Chicago", "okc": "America/Chicago", "sat": "America/Chicago", "msy": "America/Chicago"}
 STN = {c: c.upper() for c in TZ}
 FEE = 0.0695
 USE_6HR = True
@@ -48,7 +49,8 @@ def rnd(x: float) -> int:
 def _six_hour_max_f(raw: str) -> float | None:
     """METAR remark 1sTTT = 6-hour maximum temperature in tenths C (s=1 negative). Reported at 00/06/12/18Z from
     continuous sensing, so it is the true maximum of the period, unlike the hourly reading."""
-    m = re.search(r"\bRMK\b.*?\b1([01])(\d{3})\b", raw or "")
+    raw = re.sub(r"\bPK WND \S+", "", raw or "")   # peak wind "PK WND 10032/1105" is not a temperature (as in the bot)
+    m = re.search(r"\bRMK\b.*?\b1([01])(\d{3})\b", raw)
     if not m:
         return None
     c = int(m.group(2)) / 10.0 * (-1 if m.group(1) == "1" else 1)

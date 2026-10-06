@@ -360,3 +360,39 @@ Paper job configuration (2026-09-27, revised; checked against the installed plis
 (`USTEMP_CLI_TRIGGER=0`), the report kept as a trusted observation for R2 (`USTEMP_CLI_OBS=1`), YES cap 0.80, $25
 per trade, all 17 cities in paper. Expected pace about one trade a day across 17 cities; the edge per trade rests on
 about 60 backtest trades, one of which carries two thirds of the dollar profit.
+
+### 6b. 5-minute observations and four new cities (2026-10-06)
+
+**Why.** Paper lost on KLAX 2026-10-02. The R2 fade of 87-88 was bought at NO 0.03, with YES bid 0.97. The hourly METAR max was 84.0F (raw 84.9; the spike filter rejected the genuine 18Z group 10294). The 5-minute ASOS rows on api.weather.gov showed 30C (86F) at 13:15 local, about 2 h before the fill, and the official high was 87.
+
+**Data.** api.weather.gov `/stations/{id}/observations` mixes two kinds of rows:
+- 5-minute rows: whole degrees C, no rawMessage.
+- Hourly METARs: tenths, with rawMessage.
+
+The 5-minute rows are published about 16-21 min late. KNYC and KSAT have none. IEM archives the same rows as HFMETAR ("MADISHF", tmpf "M"), which the backtest uses as a stand-in.
+
+**Variants** (lab/us/kalshi_backtest.py, 21 cities, 2026-07-19 → 10-05, 79 days, one trade per market, equal $25):
+
+| Rule set | n | win | per $ | t($) | $/day | holdout: 4 new cities | holdout: old cities 09-27+ (ex LAX 10-02) |
+|---|---|---|---|---|---|---|---|
+| R0 + R2 (METAR max, until today) | 81 | 77% | +14% | 1.1 | 4.35 (1.3 without the Seattle 0.08 fluke) | 11 trades, −$3 | 6 trades, −$62 |
+| R0 + R2raw (unfiltered max) | 72 | 83% | +16% | 1.8 | 2.91 | 11, −$3 | 3, +$17 |
+| **R0 + R2m (unfiltered + 5-min max, live)** | **47** | **89%** | **+19%** | **2.6** | **3.01 (2.36 without the best trade)** | **9, +$15** | **1, +$4** |
+| R0 + R2u (5-min upper bound C+0.5) | 28 | 86% | +11% | 0.9 | 0.69 | 7, −$3 | 0 |
+| R0 + R2rawc (raw max, no fade under NO 0.20) | 69 | 87% | +17% | 2.6 | 3.92 | 11, −$3 | 3, +$17 |
+| R0h (dead bucket on 5-min lower bound) | 0 extra trades over R0 | | | | | | |
+
+**How R2m was chosen.**
+- The decision rule was written down before the holdout run: R2m unless R2rawc beat it on the holdout by more than 5 points per $.
+- R2m is robust to the 5-minute lag assumption (10-40 min: t($) 2.6) and to the fill delay (5 min: t($) 2.3).
+- Removing the cheap R2 fades (NO < 0.20, 1 win in 8) is most of the gain. R2m removes them for a stated reason, while R2rawc removes them with an in-sample threshold.
+
+**Paper bot changes** (commit of 2026-10-06):
+- `USTEMP_R2_MAX=raw5m`.
+- R2 waits when the 5-minute request failed, the newest row is more than 45 min old, or a station that publishes rows returned none.
+- A host breaker limits retries to one per 120 s, and requests are gzipped.
+- R0 on the 5-minute lower bound is journaled as `r0_5min_shadow` only. Fades the new max prevented are journaled as `r2_blocked`.
+- Climate-day start is now local standard midnight from the standard offset, which is correct on 2026-11-01 and 2027-03-14.
+- New series: KXHIGHTHOU (CLIHOU, Hobby), KXHIGHTOKC (CLIOKC), KXHIGHTSATX (CLISAT), KXHIGHTNOLA (CLIMSY). R0 + R2 only.
+
+**Expected pace.** About 0.6 trades/day across 21 cities, down from about 1.0 under the old R2: fewer trades, but far fewer data-error losers. The go-live bar is unchanged.

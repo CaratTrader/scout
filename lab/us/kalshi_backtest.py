@@ -9,8 +9,8 @@ When the report's max-so-far beats the METAR max it lifts the max and the max is
 as in the bot (scout/us_temp_paper.py); only 'VALID TODAY AS OF' reports with as-of >= 12:00 from the offices in
 KB_REPORT_OFFICES are used (the bot's rules; KB_REPORT_PARSE=lenient also takes the 'VALID AS OF 0400 PM' Minneapolis
 / Dallas reports).
-LIVE configuration (paper job since 2026-09-27): R0 + R2, the report lifting the max for R2 once usable, one trade per
-market, equal $25 stakes. R1c (report trigger, off in the bot) is still computed for reference.
+LIVE configuration: R0 + R2 (paper job since 2026-09-27); since 2026-10-06 R2 measures its margin from the
+unfiltered max and the 5-minute max (variant R2m, USTEMP_R2_MAX=raw5m), 21 cities; one trade per market, equal $25 stakes. R1c (report trigger, off in the bot) is still computed for reference.
 Usage: python -m lab.us.kalshi_backtest [delay_min] [yes_cap]"""
 from __future__ import annotations
 import datetime as dt, json, math, os, statistics as st, sys, zoneinfo
@@ -19,6 +19,8 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 import lab.us.temp_backtest as B
 from lab.us.cli_backtest import all_intraday_reports, REPORT_LAG_MIN
+from scout import us_temp_paper as U
+import csv, re
 
 KD = Path("data/lab/us/kalshi")
 SERIES = {"KXHIGHNY": ("NYC", "KNYC", "America/New_York"), "KXHIGHCHI": ("MDW", "KMDW", "America/Chicago"), "KXHIGHMIA": ("MIA", "KMIA", "America/New_York"),
@@ -26,16 +28,58 @@ SERIES = {"KXHIGHNY": ("NYC", "KNYC", "America/New_York"), "KXHIGHCHI": ("MDW", 
           "KXHIGHTDC": ("DCA", "KDCA", "America/New_York"), "KXHIGHPHIL": ("PHL", "KPHL", "America/New_York"), "KXHIGHTATL": ("ATL", "KATL", "America/New_York"),
           "KXHIGHDEN": ("DEN", "KDEN", "America/Denver"), "KXHIGHAUS": ("AUS", "KAUS", "America/Chicago"), "KXHIGHTDAL": ("DFW", "KDFW", "America/Chicago"),
           "KXHIGHTMIN": ("MSP", "KMSP", "America/Chicago"), "KXHIGHTPHX": ("PHX", "KPHX", "America/Phoenix"), "KXHIGHTSEA": ("SEA", "KSEA", "America/Los_Angeles"),
-          "KXHIGHTLV": ("LAS", "KLAS", "America/Los_Angeles"), "KXHIGHTSAN": ("SAN", "KSAN", "America/Los_Angeles")}
+          "KXHIGHTLV": ("LAS", "KLAS", "America/Los_Angeles"), "KXHIGHTSAN": ("SAN", "KSAN", "America/Los_Angeles"),
+          "KXHIGHTHOU": ("HOU", "KHOU", "America/Chicago"), "KXHIGHTOKC": ("OKC", "KOKC", "America/Chicago"),
+          "KXHIGHTSATX": ("SAT", "KSAT", "America/Chicago"), "KXHIGHTNOLA": ("MSY", "KMSY", "America/Chicago")}
 CLI_OK = {"NYC", "MIA", "MDW", "DCA", "PHL", "BOS", "ATL", "DFW", "MSP"}   # the bot's report offices (USTEMP_CLI_CITIES)
-Z00 = {"NYC": 20, "MIA": 20, "BOS": 20, "DCA": 20, "PHL": 20, "ATL": 20, "MDW": 19, "AUS": 19, "DFW": 19, "MSP": 19, "DEN": 18, "LAX": 17, "SFO": 17, "SEA": 17, "LAS": 17, "SAN": 17, "PHX": 17}
+Z00 = {"NYC": 20, "MIA": 20, "BOS": 20, "DCA": 20, "PHL": 20, "ATL": 20, "MDW": 19, "AUS": 19, "DFW": 19, "MSP": 19, "DEN": 18, "LAX": 17, "SFO": 17, "SEA": 17, "LAS": 17, "SAN": 17, "PHX": 17,
+       "HOU": 19, "OKC": 19, "SAT": 19, "MSY": 19}
 FEE = 0.07
 STAKE = 25.0
 REPORT_LAG = int(os.environ.get("KB_REPORT_LAG", REPORT_LAG_MIN))
 REPORT_STRICT = os.environ.get("KB_REPORT_PARSE", "strict") != "lenient"
 REPORT_OFFICES = {c.strip().upper() for c in (os.environ.get("KB_REPORT_OFFICES") or ",".join(sorted(CLI_OK))).split(",") if c.strip()}
+HF_LAG = int(os.environ.get("KB_HF_LAG", 20))   # api.weather.gov serves the 5-minute observations ~18 min after the fact
+NEW = {"HOU", "OKC", "SAT", "MSY"}               # cities added 2026-10-06
+DESIGN = {("LAX", "2026-10-02")}                 # the loss the 5-minute fix was designed around: never part of a holdout
+NO_LIVE_HF = {"NYC", "SAT"}                      # api.weather.gov serves no 5-minute rows for KNYC / KSAT (IEM has SAT's)
 def fee(p): return FEE * p * (1 - p)
 def rnd(x: float) -> int: return math.floor(x + 0.5)   # round half up, like the climate report and the bot
+
+
+def hf_and_groups():
+    """(station -> local day -> [(minute, whole C)] from the IEM 5-minute HFMETAR rows ('MADISHF'),
+        station -> local day -> [(minute, F)] of every 6-hour maximum group, unfiltered, for the raw max).
+    5-minute rows carry whole degrees C: the true reading lies within C +- 0.5."""
+    hf = defaultdict(lambda: defaultdict(list)); gr = defaultdict(lambda: defaultdict(list))
+    for stn, _, _ in SERIES.values():
+        f = Path(f"data/lab/us/asos_raw/{stn}.csv")
+        if not f.exists():
+            continue
+        for r in csv.DictReader(open(f)):
+            raw = r.get("metar") or ""; day, hm = r["valid"][:10], r["valid"][11:16]
+            minute = int(hm[:2]) * 60 + int(hm[3:])
+            if minute < 60 and stn != "PHX":
+                continue
+            if "MADISHF" in raw and stn not in NO_LIVE_HF:
+                m = re.search(r"\s(M?\d{2})/(M?\d{2})?\s", raw)
+                if m:
+                    c = float(m.group(1).replace("M", "-"))
+                else:
+                    g = re.search(r"\bT([01])(\d{3})", raw)
+                    if not g:
+                        continue
+                    c = round(int(g.group(2)) / 10.0 * (-1 if g.group(1) == "1" else 1))
+                hf[stn][day].append((minute, c))
+            else:
+                t = U.metar_temps_f(raw)
+                if len(t) > 1 and minute >= 7 * 60:
+                    gr[stn][day].append((minute, t[1]))
+    for d in (hf, gr):
+        for stn in d:
+            for day in d[stn]:
+                d[stn][day].sort()
+    return hf, gr
 
 
 def interval(m: dict) -> tuple[float, float]:
@@ -96,7 +140,7 @@ def stats(rows: list[dict], days: int) -> dict:
 def main():
     delay = int(sys.argv[1]) if len(sys.argv) > 1 else 2
     CAP = float(sys.argv[2]) if len(sys.argv) > 2 else 0.80
-    M = json.load(open(KD / "markets.json")); MET = B.metar(); cli = json.load(open("data/lab/us/asos/cli_high.json"))
+    M = json.load(open(KD / "markets.json")); MET = B.metar(); cli = json.load(open("data/lab/us/asos/cli_high.json")); HF, GR = hf_and_groups()
     REPS = all_intraday_reports(strict=REPORT_STRICT, min_asof=12 * 60, lag=REPORT_LAG)   # (city, day) -> [reports by issuance]
     CITY = {stn: stn.lower() for stn, _, _ in SERIES.values()}
     days = defaultdict(list)
@@ -146,6 +190,13 @@ def main():
             if cr and cr["max"] > M_obs:        # the official max-so-far beats hourly METAR: lift, dated at its as-of time
                 Mx, tM = cr["max"], cr["asof_min"]; day_lift = True
             rM = rnd(Mx); fall = Mx - T; since = t - tM
+            # variants (2026-10-06): unfiltered max; 5-minute observations usable HF_LAG min after the fact
+            Mraw = max([r[1] for r in past] + [g for gm, g in GR.get(stn, {}).get(day, []) if gm <= t])
+            h5 = [(m_, c) for m_, c in HF.get(stn, {}).get(day, []) if m_ + HF_LAG <= t]
+            M5_mid = max((c * 1.8 + 32 for _, c in h5), default=-1e9); M5_hi = max(((c + 0.5) * 1.8 + 32 for _, c in h5), default=-1e9)
+            # dead-bucket lower bound: two consecutive 5-minute readings (<= 10 min apart) at >= C, minus half a degree C
+            M5_lo2 = max((((min(a[1], b_[1]) - 0.5) * 1.8 + 32) for a, b_ in zip(h5, h5[1:]) if b_[0] - a[0] <= 10), default=-1e9)
+            rM_raw = rnd(max(Mx, Mraw)); rM_m = rnd(max(Mx, Mraw, M5_mid)); rM_u = rnd(max(Mx, Mraw, M5_hi)); M0h = max(M_obs, M5_lo2)
             peak = t >= 15 * 60 and fall >= 1 and since >= 45
             after00 = t >= Z00[stn] * 60 + 5 and any(len(r) > 2 and r[2] and r[0] >= Z00[stn] * 60 - 40 for r in past)
             cli_gate = cr is not None and t >= 15 * 60 and fall >= 2 and since >= 60
@@ -180,6 +231,15 @@ def main():
                         done.add(("R0", key)); rec("R0", "YES", ask, b["won"])
                 if peak and ("R2", key) not in done and b["lo"] >= rM + 3 and bid >= 0.15 and no_ask >= 0.02:
                     done.add(("R2", key)); rec("R2", "NO", no_ask, not b["won"])
+                for tag, rr, floor in (("R2raw", rM_raw, 0.02), ("R2m", rM_m, 0.02), ("R2u", rM_u, 0.02), ("R2rawc", rM_raw, 0.20)):
+                    # R2rawc: unfiltered max, and no fade when the market prices the bucket above 80% (NO < 0.20)
+                    if peak and (tag, key) not in done and b["lo"] >= rr + 3 and bid >= 0.15 and no_ask >= floor:
+                        done.add((tag, key)); rec(tag, "NO", no_ask, not b["won"])
+                if ("R0h", key) not in done:    # R0 on max(METAR max, 5-minute lower bound)
+                    if b["hi"] + 1.0 <= M0h and 0.02 <= no_ask <= 0.97:
+                        done.add(("R0h", key)); rec("R0h", "NO", no_ask, not b["won"])
+                    elif b["hi"] >= 1e8 and M0h >= b["lo"] + 0.05 and 0.02 <= ask <= 0.97:
+                        done.add(("R0h", key)); rec("R0h", "YES", ask, b["won"])
         lifted += day_lift
     cal = len({d for _, d in used})
     rep_days.sort()
@@ -198,15 +258,37 @@ def main():
         rep([r for r in trades if r["rule"] == rule], rule)
         if rule in ("R1x", "R1c"):
             rep([r for r in trades if r["rule"] == rule and r["side"] == "YES"], f"  {rule} YES"); rep([r for r in trades if r["rule"] == rule and r["side"] == "NO"], f"  {rule} NO")
-    live = one_per_market(trades, ("R0", "R2")); ref = one_per_market(trades, ("R0", "R1c", "R2"))
-    print(f"\nLIVE CONFIGURATION: R0 + R2 (report lifts the max once usable), one trade per market, YES cap {CAP}, ${STAKE:.0f} per trade")
-    rep(live, "LIVE R0+R2")
+    LIVE_R2 = {"metar": "R2", "raw": "R2raw", "raw5m": "R2m", "raw5u": "R2u"}[U.CFG["r2_max"]]
+    live = one_per_market(trades, ("R0", LIVE_R2)); ref = one_per_market(trades, ("R0", "R1c", "R2"))
+    print(f"\nLIVE CONFIGURATION: R0 + {LIVE_R2} (USTEMP_R2_MAX={U.CFG['r2_max']}; report lifts the max once usable), one trade per market, YES cap {CAP}, ${STAKE:.0f} per trade, {len(SERIES)} cities")
+    rep(live, f"LIVE R0+{LIVE_R2}")
     if live:
         dollars = [STAKE * r["pnl"] / r["px"] for r in live]; i = max(range(len(live)), key=lambda k: dollars[k]); top = live[i]
         print(f"  largest winner: {top['ticker']} {top['rule']} {top['side']} @ {top['px']:.2f} -> ${dollars[i]:+.2f} = {dollars[i]/sum(dollars):.0%} of total ${sum(dollars):+.2f}")
         rep([r for k, r in enumerate(live) if k != i], "  without the largest winner")
         print("  by month:"); [rep([r for r in live if r["day"][:7] == mo], f"    {mo}") for mo in sorted({r["day"][:7] for r in live})]
         print("  by city:"); [rep([r for r in live if r["stn"] == s], f"    {s}") for s in sorted(Z00, key=lambda s: -sum(r["stn"] == s for r in live)) if any(r["stn"] == s for r in live)]
+    print(f"\n5-MINUTE / RAW-MAX VARIANTS (5-minute data usable {HF_LAG} min after the fact; stations with 5-minute rows: {sorted(HF)})")
+    print("  caveat: 5-minute rows come from the IEM HFMETAR archive as a stand-in for api.weather.gov; row coverage differs slightly between the two")
+    for rule in ("R2raw", "R2m", "R2u", "R2rawc", "R0h"):
+        rep([r for r in trades if r["rule"] == rule], rule)
+    combos = {}
+    for combo in (("R0", "R2"), ("R0", "R2raw"), ("R0", "R2m"), ("R0", "R2u"), ("R0", "R2rawc"), ("R0h", "R2m")):
+        combos[combo] = one_per_market(trades, combo); rep(combos[combo], "+".join(combo))
+        rep([r for r in combos[combo] if r["stn"] not in NEW and r["day"] < "2026-09-27"], "    old 17 cities to 09-26")
+        rep([r for r in combos[combo] if r["stn"] not in NEW and r["day"] >= "2026-09-27" and (r["stn"], r["day"]) not in DESIGN], "    holdout: old cities 09-27+ ex LAX 10-02")
+        rep([r for r in combos[combo] if r["stn"] in NEW], "    holdout: new 4 cities")
+    base = {r["ticker"]: r for r in trades if r["rule"] == "R2"}
+    for tag in ("R2raw", "R2m", "R2u"):
+        kept = {r["ticker"] for r in trades if r["rule"] == tag}
+        gone = [r for k, r in base.items() if k not in kept]
+        print(f"  R2 trades {tag} removes: {len(gone)}, of which losers {sum(not r['won'] for r in gone)}: " + ", ".join(f"{r['ticker']}@{r['px']:.2f}{'W' if r['won'] else 'L'}" for r in gone))
+    r0 = {r["ticker"] for r in trades if r["rule"] == "R0"}
+    extra = [r for r in trades if r["rule"] == "R0h" and r["ticker"] not in r0]
+    print(f"  R0h trades not in R0: {len(extra)}, losers {sum(not r['won'] for r in extra)}"); rep(extra, "  R0h extra")
+    earlier = [(r, next(x for x in trades if x["rule"] == "R0" and x["ticker"] == r["ticker"])) for r in trades if r["rule"] == "R0h" and r["ticker"] in r0]
+    print(f"  R0h on R0 markets: {len(earlier)}, earlier on {sum(a['t'] < b_['t'] for a, b_ in earlier)}, avg px R0h {st.mean(a['px'] for a, _ in earlier) if earlier else 0:.3f} vs R0 {st.mean(b_['px'] for _, b_ in earlier) if earlier else 0:.3f}")
+    print("  losing R0h trades:", ", ".join(f"{r['ticker']} {r['side']}@{r['px']:.2f} t={r['t']//60:02d}:{r['t']%60:02d}" for r in trades if r["rule"] == "R0h" and not r["won"]))
     print("\nREFERENCE: R0 + R1c + R2 (report trigger on), one trade per market")
     rep(ref, "R0+R1c+R2")
     print("\nR1c by station:"); [rep([r for r in trades if r["rule"] == "R1c" and r["stn"] == s], f"  {s}") for s in Z00 if any(r["stn"] == s and r["rule"] == "R1c" for r in trades)]

@@ -5,6 +5,9 @@
      rules R0 + report-triggered R1x + R2, YES cap 0.80, 00Z-only trigger off.
      2026-10-01 review: the report trigger had no edge at real issuance times (backtest look-ahead) -> OFF. The report
      is still read as an observation for R2 (USTEMP_CLI_OBS=1). Live profile = R0 + R2.
+     2026-10-06: 21 cities (+ Houston, Oklahoma City, San Antonio, New Orleans); R2 measures its 3F margin from the
+     unfiltered max and the api.weather.gov 5-minute max (USTEMP_R2_MAX=raw5m; KLAX 2026-10-02 loss), and waits when
+     that data is missing or stale. R0 on the 5-minute lower bound is shadow-logged only (USTEMP_R0_5MIN=0).
      USTEMP_HEARTBEAT_URL: paste a healthchecks.io (or similar) ping URL to get a phone alert when polls stop. -->
 <plist version="1.0">
 <dict>
@@ -38,6 +41,9 @@
         <key>USTEMP_CLI_FALL</key><string>2</string>
         <key>USTEMP_CLI_MIN_SINCE</key><string>60</string>
         <key>USTEMP_HEARTBEAT_URL</key><string></string>
+        <key>USTEMP_FIVE_MIN</key><string>1</string>
+        <key>USTEMP_R2_MAX</key><string>raw5m</string>
+        <key>USTEMP_R0_5MIN</key><string>0</string>
     </dict>
     <key>RunAtLoad</key><true/>
     <key>KeepAlive</key><true/>

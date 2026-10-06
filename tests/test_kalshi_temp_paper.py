@@ -52,7 +52,7 @@ def test_quotes_distinguishes_failure_from_no_market(monkeypatch):
 
 
 
-def _poll_with(monkeypatch, tmp_path, depth):
+def _poll_with(monkeypatch, tmp_path, depth, five=None):
     """One Kalshi poll for NYC with a dead bucket bid at 0.10 (R0 NO at 0.90), network fully mocked."""
     monkeypatch.setattr(U, "JOURNAL", tmp_path / "j.jsonl"); monkeypatch.setattr(U, "LEDGER", tmp_path / "l.json")
     monkeypatch.setattr(KT, "SNAPS", tmp_path / "s.jsonl"); monkeypatch.setattr(KT, "STATE", tmp_path / "st.json")
@@ -66,6 +66,7 @@ def _poll_with(monkeypatch, tmp_path, depth):
     monkeypatch.setattr(U, "cli_intraday", lambda city, day, fetch=None: None)
     monkeypatch.setattr(KT, "book_depth", lambda ticker, side, levels_n=5: depth)
     monkeypatch.setattr(KT, "settle", lambda led: [])
+    monkeypatch.setattr(U, "five_min_obs", lambda station, tz_, now, day_start_hour=None, fetch=None: five)
     led = U.load_ledger(); now = dt.datetime(2026, 10, 1, 20, 0, tzinfo=dt.timezone.utc)
     for i in range(2):
         KT.poll(led, now + dt.timedelta(seconds=60 * i))
@@ -80,3 +81,14 @@ def test_fill_uses_all_depth_at_the_scored_price(monkeypatch, tmp_path):
 def test_stale_quote_is_skipped(monkeypatch, tmp_path):
     led = _poll_with(monkeypatch, tmp_path, [[0.97, 500.0]])   # executable NO price worse than the scored 0.90
     assert led["positions"] == []
+
+
+def test_failed_five_minute_request_does_not_block_the_dead_bucket_rule(monkeypatch, tmp_path):
+    led = _poll_with(monkeypatch, tmp_path, [[0.90, 10.0]], five=None)   # R0 never depends on the 5-minute data
+    assert len(led["positions"]) == 1
+
+
+def test_new_cities_are_central_time_without_report_trigger():
+    for s_, city in (("KXHIGHTHOU", "hou"), ("KXHIGHTOKC", "okc"), ("KXHIGHTSATX", "sat"), ("KXHIGHTNOLA", "msy")):
+        assert KT.SERIES[s_][0] == city and KT.SERIES[s_][2] == "America/Chicago"
+        assert U.Z00_LOCAL_HOUR[city] == 19 and city not in U.CFG["cli_cities"]

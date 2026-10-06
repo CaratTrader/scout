@@ -54,7 +54,8 @@ CFG = {
     "r1x": int(env_f("USTEMP_R1X", 1)), "r1x_max_ask": env_f("USTEMP_R1X_MAX_ASK", 0.90), "r1x_min_bid": env_f("USTEMP_R1X_MIN_BID", 0.10),
 }
 Z00_LOCAL_HOUR = {"sfo": 17, "lax": 17, "sea": 17, "las": 17, "san": 17, "phx": 17, "den": 18, "mdw": 19, "aus": 19, "dfw": 19, "msp": 19,
-                  "nyc": 20, "mia": 20, "bos": 20, "dca": 20, "phl": 20, "atl": 20}  # local hour of the 00Z report (daylight saving; Phoenix has none)
+                  "nyc": 20, "mia": 20, "bos": 20, "dca": 20, "phl": 20, "atl": 20,
+                  "hou": 19, "okc": 19, "sat": 19, "msy": 19}  # local hour of the 00Z report (daylight saving; Phoenix has none)
 NWS = "https://api.weather.gov/products"
 CFG["r2"] = int(env_f("USTEMP_R2", 1))                    # fade rule on/off
 CFG["r1x_00z"] = int(env_f("USTEMP_R1X_00Z", 1))          # let the 00Z METAR maximum open the R1x window (off on Kalshi: no edge by then)
@@ -67,6 +68,17 @@ CFG["cli_cities"] = set((os.getenv("USTEMP_CLI_CITIES") or "nyc,mia,mdw,dca,phl,
 # off-box dead-man switch: a healthchecks.io-style URL pinged after every completed poll (empty = disabled). The
 # monitor, not this machine, raises the alarm when pings stop - an alert sent from here cannot fire while offline.
 CFG["heartbeat_url"] = (os.getenv("USTEMP_HEARTBEAT_URL") or "").strip()
+# 5-minute ASOS observations (api.weather.gov, whole degrees C, published ~16-21 min late). Hourly METARs miss short
+# peaks: KLAX 2026-10-02 hourly max 84.0F, 5-minute 30C at 13:15 local, official high 87 -> the R2 fade of 87-88 lost.
+CFG["five_min"] = int(env_f("USTEMP_FIVE_MIN", 1))
+CFG["five_min_ttl"] = env_f("USTEMP_FIVE_MIN_TTL", 150)   # seconds between refreshes per station (rows arrive every 5 min)
+# which max the R2 fade measures its margin from: "metar" (before 2026-10-06), "raw" (spike filter off), "raw5m" /
+# "raw5u" (raw plus the 5-minute max at its whole-C value / at its +0.5C upper bound)
+CFG["r2_max"] = (os.getenv("USTEMP_R2_MAX") or "raw5m").strip()
+CFG["five_min_stale_s"] = env_f("USTEMP_FIVE_MIN_STALE_S", 2700)   # newest 5-minute row older than this = blind (lag ~20 min, holes up to 30)
+CFG["no_5min_cities"] = set((os.getenv("USTEMP_NO_5MIN_CITIES") or "nyc,sat").split(","))   # KNYC / KSAT publish no 5-minute rows
+CFG["r2_min_no"] = env_f("USTEMP_R2_MIN_NO", 0.02)        # no fade below this NO price (0.20 = market above 80% YES)
+CFG["r0_5min"] = int(env_f("USTEMP_R0_5MIN", 0))           # let the 5-minute lower bound kill buckets for R0 (shadow-logged when off)
 _MON = {m: i for i, m in enumerate(["JANUARY", "FEBRUARY", "MARCH", "APRIL", "MAY", "JUNE", "JULY", "AUGUST", "SEPTEMBER", "OCTOBER", "NOVEMBER", "DECEMBER"], 1)}
 _CLI_CACHE: dict[str, tuple[float, dict[str, Any] | None]] = {}
 
@@ -195,6 +207,15 @@ def round_f(x: float) -> int:
     return math.floor(x + 0.5)
 
 
+def climate_day_start(now: dt.datetime, tz: zoneinfo.ZoneInfo) -> dt.datetime:
+    """Start of the climate day containing `now`: midnight local *standard* time all year (01:00 local under daylight
+    saving, 00:00 in Phoenix). Derived from the standard offset, so it is also right on the two clock-change days
+    (2026-11-01: 06:00Z in Central time, where "dst() at 10:00" gave 05:00Z and counted an hour of Oct 31)."""
+    loc = now.astimezone(tz); std = loc.utcoffset() - (loc.dst() or dt.timedelta(0))
+    d = (now.astimezone(dt.timezone.utc) + std).date()
+    return dt.datetime.combine(d, dt.time(0), tzinfo=dt.timezone(std)).astimezone(tz)
+
+
 # ------------------------------------------------------------------ METAR
 def metar_temps_f(raw: str) -> list[float]:
     """[current reading F, optional 6-hour maximum F]. Current = T-group tenths (fallback TT/TD group); the 6-hour
@@ -300,6 +321,85 @@ def cli_intraday(city: str, day: str, fetch=None) -> dict[str, Any] | None:
     return rep
 
 
+OBS5 = "https://api.weather.gov/stations"
+_FIVE_CACHE: dict[str, tuple[float, dict[str, Any] | None]] = {}
+_FIVE_FAIL = {"until": 0.0, "open": False}   # host-level breaker for api.weather.gov 5-minute requests
+FIVE_RETRY_S = 120
+
+
+def _get_json_gz(url: str, timeout: float) -> Any:
+    """GET with gzip (a station-day of observations is ~1 MB plain, ~30 KB compressed). Quiet: failures return None
+    (five_min_obs journals one line per failure streak); connectivity failures feed the outage tracker."""
+    import gzip
+    try:
+        with urllib.request.urlopen(urllib.request.Request(url, headers={"User-Agent": "scout-us-temp-paper", "Accept-Encoding": "gzip"}), timeout=timeout) as r:
+            raw = r.read(); enc = r.headers.get("Content-Encoding")
+        data = json.loads(gzip.decompress(raw) if enc == "gzip" else raw)
+        net_up(url)
+        return data
+    except Exception as exc:
+        if is_network_error(exc):
+            net_down(url, exc)
+        return None
+
+
+def five_min_summary(feats: list[dict[str, Any]], tz: zoneinfo.ZoneInfo, now: dt.datetime, day_start: dt.datetime) -> dict[str, Any]:
+    """5-minute rows of today's climate day -> {"n", "max_mid", "max_hi", "max_lo2", "t_max", "last"} in F.
+    api.weather.gov mixes the hourly METARs (tenths of C, carry rawMessage) with the 5-minute rows (whole C, no
+    rawMessage); only whole-C values without rawMessage are used, read as C +- 0.5. max_hi = highest upper bound (the R2
+    margin); max_lo2 = highest value seen on two consecutive rows <= 10 min apart, at its lower bound (one sample alone
+    could be a glitch); rows flagged X (rejected) or Q (questioned) by NWS quality control are skipped."""
+    rows = []
+    for f in feats:
+        p = f.get("properties") or {}; tv = (p.get("temperature") or {})
+        v = tv.get("value")
+        if v is None or p.get("rawMessage") or tv.get("qualityControl") in ("X", "Q"):
+            continue
+        try:
+            c = float(v); ts = dt.datetime.fromisoformat(str(p["timestamp"]).replace("Z", "+00:00"))
+        except (KeyError, TypeError, ValueError):
+            continue
+        if not c.is_integer():
+            continue
+        lt = ts.astimezone(tz)
+        if day_start <= lt <= now.astimezone(tz):
+            rows.append((lt, c))
+    rows.sort()
+    if not rows:
+        return {"n": 0}
+    to_f = lambda c: c * 9 / 5 + 32
+    pairs = [min(a[1], b[1]) for a, b in zip(rows, rows[1:]) if (b[0] - a[0]).total_seconds() <= 600]
+    top = max(c for _, c in rows)
+    return {"n": len(rows), "max_mid": to_f(top), "max_hi": to_f(top + 0.5), "max_lo2": to_f(max(pairs) - 0.5) if pairs else None,
+            "t_max": max(lt for lt, c in rows if c == top), "last": rows[-1][0]}
+
+
+def five_min_obs(station: str, tz: zoneinfo.ZoneInfo, now: dt.datetime, day_start_hour: int | None = None, fetch=None) -> dict[str, Any] | None:
+    """Today's 5-minute summary for the station (cached five_min_ttl s). {"n": 0} = the station publishes none (KNYC,
+    KSAT); None = the request failed (callers must not treat a blind spot as "no peak")."""
+    day_start = climate_day_start(now, tz) if day_start_hour is None else now.astimezone(tz).replace(hour=day_start_hour, minute=0, second=0, microsecond=0)
+    key = f"{station}:{day_start.date()}"; hit = _FIVE_CACHE.get(key); t = time.time()
+    if hit and t - hit[0] < (CFG["five_min_ttl"] if hit[1] is not None else FIVE_RETRY_S):
+        return hit[1]
+    if fetch is None and t < _FIVE_FAIL["until"]:
+        return hit[1] if hit else None   # breaker open: a slow or failing host costs one wait per FIVE_RETRY_S, not one per station
+    start = day_start.astimezone(dt.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+    d = (fetch or (lambda: _get_json_gz(f"{OBS5}/{station}/observations?start={start}&limit=500", timeout=8)))()
+    if d is None:
+        if fetch is None:
+            if not _FIVE_FAIL["open"]:
+                journal({"event": "error", "url": "five-min", "err": f"api.weather.gov 5-minute request failed at {station}; retrying every {FIVE_RETRY_S}s"})
+            _FIVE_FAIL.update(until=t + FIVE_RETRY_S, open=True)
+        if hit and hit[1] is not None:   # keep the last good summary (evaluate() blocks R2 once it is stale) and retry soon
+            _FIVE_CACHE[key] = (t - CFG["five_min_ttl"] + FIVE_RETRY_S, hit[1]); return hit[1]
+        _FIVE_CACHE[key] = (t, None); return None
+    if fetch is None:
+        _FIVE_FAIL["open"] = False
+    out = five_min_summary(d.get("features") or [], tz, now, day_start)
+    _FIVE_CACHE[key] = (t, out)
+    return out
+
+
 def _row_time(r: dict[str, Any], use_obs_time: bool) -> dt.datetime | None:
     """aviationweather.gov rows carry reportTime (rounded UP to the next hour for routine METARs) and obsTime (the
     actual observation, epoch seconds); IEM fallback rows carry only reportTime (actual time)."""
@@ -357,9 +457,7 @@ def observed(station: str, tz: zoneinfo.ZoneInfo, now: dt.datetime, fetch=None, 
     the actual observation time instead of the hour-rounded reportTime)."""
     fetch = fetch or (lambda: fetch_metars(station, tz))
     rows = fetch() or []
-    if day_start_hour is None:
-        day_start_hour = 1 if now.astimezone(tz).dst() else 0
-    day_start = now.astimezone(tz).replace(hour=day_start_hour, minute=0, second=0, microsecond=0)
+    day_start = climate_day_start(now, tz) if day_start_hour is None else now.astimezone(tz).replace(hour=day_start_hour, minute=0, second=0, microsecond=0)
     obs, has_00z, rejected = _collect(rows, tz, now, day_start, use_obs_time=False)
     if not obs:
         return None
@@ -384,8 +482,27 @@ def evaluate(buckets: list[dict[str, Any]], ob: dict[str, Any], now_local: dt.da
     R1x: once the 00Z six-hour maximum has been received (ob["has_00z"]), the day's high is known on ~98% of days
     (backtest: 722/735 station-days exact); buy the bucket holding it and fade every other bucket."""
     M = ob["max"]; T = ob["latest"]; r_m = round_f(M)  # the official report rounds to whole F
-    r_raw = round_f(max(M, ob.get("max_raw", M)))  # unfiltered max (spike filter off): shadow only, see r2_shadow
+    r_raw = round_f(max(M, ob.get("max_raw", M)))  # unfiltered max (spike filter off)
     M_obs = ob.get("max_obs", M)  # METAR-only max: the certain rule must not lean on a preliminary report value
+    no5 = city in cfg.get("no_5min_cities", ())
+    five = {} if no5 else (ob.get("five") or {})   # KNYC / KSAT: ignore stray rows (KSAT 2026-10-06: one row at 01:5x, then none)
+    src = cfg.get("r2_max", "metar")
+    r2_vals = [M] + ([ob.get("max_raw", M)] if src != "metar" else []) + \
+        ([five["max_hi"]] if src == "raw5u" and five.get("max_hi") is not None else []) + ([five["max_mid"]] if src == "raw5m" and five.get("max_mid") is not None else [])
+    r_r2 = round_f(max(r2_vals))  # the max R2 measures its margin from (>= r_m)
+    r2_src = "5-minute" if src.startswith("raw5") and len(r2_vals) > 2 and round_f(r2_vals[-1]) == r_r2 > round_f(max(r2_vals[:2])) else "unfiltered"
+    # R2 must not fade on a blind spot: request failed, newest row too old, or no rows at a station that publishes them
+    blind = None
+    if src.startswith("raw5") and cfg.get("five_min") and "five" in ob and not no5:
+        if ob["five"] is None:
+            blind = "request failed this poll"
+        elif five.get("n") and five.get("last") is not None and (now_local - five["last"]).total_seconds() > cfg.get("five_min_stale_s", 2700):
+            blind = f"newest row {(now_local - five['last']).total_seconds() / 60:.0f} min old"
+        elif not five.get("n"):
+            blind = "no rows today"
+    M0 = max(M_obs, five["max_lo2"]) if five.get("max_lo2") is not None else M_obs  # METAR max or the 5-minute lower bound
+    if cfg.get("r0_5min"):
+        M_obs = M0; r_m = max(r_m, round_f(M0))   # holds / R1x / R2 must use the same max as dead
     since = (now_local - ob["t_max"]).total_seconds() / 60
     fall = M - T
     hour_ok = now_local.hour >= cfg["peak_hour"]; fall_ok = fall >= cfg["peak_fall"]; since_ok = since >= cfg["peak_min_since"]
@@ -396,7 +513,10 @@ def evaluate(buckets: list[dict[str, Any]], ob: dict[str, Any], now_local: dt.da
     after_00z = (bool(cfg.get("r1x_00z", 1)) and bool(ob.get("has_00z")) and now_local.hour >= z00) or cli_ok
     flags = {"max": round(M, 1), "r_max": r_m, "latest": round(T, 1), "fall_f": round(fall, 1), "since_max_min": round(since), "peak_passed": peak_passed,
              "peak_hour_ok": hour_ok, "fall_ok": fall_ok, "since_ok": since_ok, "has_00z": bool(ob.get("has_00z")), "after_00z": after_00z, "z00_local_hour": z00,
-             "cli_report": (f"{rep['max']:.0f}F as of {rep['asof_min']//60:02d}:{rep['asof_min']%60:02d}" if rep else None), "cli_window": cli_ok}
+             "cli_report": (f"{rep['max']:.0f}F as of {rep['asof_min']//60:02d}:{rep['asof_min']%60:02d}" if rep else None), "cli_window": cli_ok,
+             "r2_max_src": src, "r_max_r2": r_r2, "five_min_blind": blind, "five_min": ({"n": five.get("n", 0), "max": round(five["max_mid"], 1) if five.get("max_mid") is not None else None,
+                                                              "lo2": round(five["max_lo2"], 1) if five.get("max_lo2") is not None else None} if "five" in ob and ob["five"] is not None else
+                                                             ("request failed" if "five" in ob else "off"))}
     rows = []
     for b in buckets:
         lo, hi = bounds(b["slug"]); bid, ask = b.get("bid"), b.get("ask")
@@ -431,13 +551,21 @@ def evaluate(buckets: list[dict[str, Any]], ob: dict[str, Any], now_local: dt.da
             else:
                 row["blocker"] = f"R0 YES: ask {ask if ask is not None else 'none'} > cap {cfg['r0_max_ask']:.2f}"
         elif lo >= r_m + cfg["r2_margin"] and cfg.get("r2", 1):
-            if not peak_passed:
+            old_ok = peak_passed and bool(bid) and bid >= cfg["r2_min_bid"] and bool(no_ask) and no_ask >= 0.02
+            if lo < r_r2 + cfg["r2_margin"]:
+                row["blocker"] = f"R2: {r2_src} max {r_r2}F puts the floor within the {cfg['r2_margin']:.0f}F margin"
+                row["r2_blocked"] = old_ok   # the METAR-max rule (before 2026-10-06) would have faded it
+            elif blind:
+                row["blocker"] = f"R2 waits for 5-minute data ({blind})"
+            elif not peak_passed:
                 why_not = [] if hour_ok else [f"before {cfg['peak_hour']:.0f}:00 local"]
                 if not fall_ok: why_not.append(f"fall {fall:.1f}F < {cfg['peak_fall']:.0f}F")
                 if not since_ok: why_not.append(f"{since:.0f} min since max < {cfg['peak_min_since']:.0f}")
                 row["blocker"] = "R2 waits for the peak: " + ", ".join(why_not)
-            elif bid and bid >= cfg["r2_min_bid"] and no_ask and no_ask >= 0.02:
-                cand("R2", "NO", no_ask, b.get("bid_sz"), f"floor {lo:.0f} >= max {r_m}+{cfg['r2_margin']:.0f}, peak passed")
+            elif bid and bid >= cfg["r2_min_bid"] and no_ask and no_ask >= cfg.get("r2_min_no", 0.02):
+                cand("R2", "NO", no_ask, b.get("bid_sz"), f"floor {lo:.0f} >= max {r_r2}+{cfg['r2_margin']:.0f}, peak passed")
+            elif bid and bid >= cfg["r2_min_bid"]:
+                row["blocker"] = f"R2: NO ask {no_ask:.2f} < {cfg.get('r2_min_no', 0.02):.2f} (the market prices this bucket at {bid:.0%})"
             else:
                 row["blocker"] = f"R2: bid {bid if bid is not None else 'none'} < {cfg['r2_min_bid']:.2f}"
         elif holds:
@@ -455,12 +583,14 @@ def evaluate(buckets: list[dict[str, Any]], ob: dict[str, Any], now_local: dt.da
                               f"above the max by only {lo - r_m:.0f}F (< R2 margin {cfg['r2_margin']:.0f}F)")
         else:
             row["blocker"] = "below the max but not yet dead by a full degree"
-        # shadow: would R2 still fade this bucket if r_m came from the unfiltered max (spike filter off)? The filter
-        # rejected the true high on 32 of 1,203 backtest days (e.g. KMDW 2026-09-08: bot 84.0, official 87).
-        row["r2_raw"] = bool(row["rule"] == "R2" and lo >= r_raw + cfg["r2_margin"])
+        # shadow (R0 with the 5-minute lower bound, while USTEMP_R0_5MIN is off): would this bucket be a dead-bucket NO?
+        n_a = (1 - bid) if bid else None
+        row["r0_5min"] = bool(not cfg.get("r0_5min") and not row["candidate"] and hi + 1.0 <= M0 and not hi + 1.0 <= ob.get("max_obs", M)
+                              and n_a and 0.02 <= n_a <= cfg["r0_max_ask"])
         rows.append(row)
     flags["r_max_raw"] = r_raw
-    flags["r2_shadow_diff"] = [r["label"] for r in rows if r["rule"] == "R2" and not r["r2_raw"]]
+    flags["r2_blocked"] = [r["label"] for r in rows if r.get("r2_blocked")]   # trades the new R2 max prevented
+    flags["r0_5min_shadow"] = [r["label"] for r in rows if r["r0_5min"]]
     return {"flags": flags, "rows": rows}
 
 
@@ -620,6 +750,8 @@ def poll(led: dict[str, Any], now: dt.datetime | None = None) -> str:
             q = bbo(m["slug"])
             if q and q.get("state", "").endswith("OPEN"):
                 buckets.append(q)
+        if CFG["five_min"]:
+            ob["five"] = five_min_obs(station, tz, now)
         ev = evaluate(buckets, ob, now_local, city=city)
         cs.update({"active": True, "observed": {**ev["flags"], "t_max": ob["t_max"].strftime("%H:%M"), "n_readings": ob["n"]}, "readings": ob.get("readings", []), "buckets": ev["rows"],
                    "n_buckets_open": len(buckets), "candidates": sum(1 for r in ev["rows"] if r["candidate"])})

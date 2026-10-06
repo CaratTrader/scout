@@ -29,6 +29,10 @@ SERIES = {
     "KXHIGHDEN": ("den", "KDEN", "America/Denver"), "KXHIGHAUS": ("aus", "KAUS", "America/Chicago"), "KXHIGHTDAL": ("dfw", "KDFW", "America/Chicago"),
     "KXHIGHTMIN": ("msp", "KMSP", "America/Chicago"), "KXHIGHTPHX": ("phx", "KPHX", "America/Phoenix"), "KXHIGHTSEA": ("sea", "KSEA", "America/Los_Angeles"),
     "KXHIGHTLV": ("las", "KLAS", "America/Los_Angeles"), "KXHIGHTSAN": ("san", "KSAN", "America/Los_Angeles"),
+    # added 2026-10-06 (R0 + R2 only; no afternoon-report office): Houston Hobby (CLIHOU), Oklahoma City (CLIOKC),
+    # San Antonio (CLISAT), New Orleans (CLIMSY)
+    "KXHIGHTHOU": ("hou", "KHOU", "America/Chicago"), "KXHIGHTOKC": ("okc", "KOKC", "America/Chicago"),
+    "KXHIGHTSATX": ("sat", "KSAT", "America/Chicago"), "KXHIGHTNOLA": ("msy", "KMSY", "America/Chicago"),
 }
 if os.getenv("KTEMP_SERIES"):
     SERIES = {k: v for k, v in SERIES.items() if k in os.getenv("KTEMP_SERIES", "").split(",")}
@@ -190,6 +194,11 @@ def poll(led: dict[str, Any], now: dt.datetime | None = None) -> str:
             if rep["max"] > ob["max"]:
                 ob["max"] = rep["max"]; ob["t_max"] = now_local.replace(hour=rep["asof_min"] // 60, minute=rep["asof_min"] % 60, second=0, microsecond=0)
             ob["readings"].append({"time": f"{rep['asof_min']//60:02d}:{rep['asof_min']%60:02d}", "f": rep["max"], "src": "NWS climate report", "used": True})
+        if U.CFG["five_min"] and city not in U.CFG["no_5min_cities"]:
+            ob["five"] = U.five_min_obs(station, tz, now)   # None = request failed (R2 then waits)
+            f5 = ob["five"]
+            if f5 and f5.get("n"):
+                ob["readings"].append({"time": f5["t_max"].strftime("%H:%M"), "f": round(f5["max_mid"], 1), "src": f"5-min max ({f5['n']} rows, whole C)", "used": True})
         ev = U.evaluate(buckets, ob, now_local, city=city)
         by_slug = {b["slug"]: b for b in buckets}
         for r in ev["rows"]:
@@ -201,11 +210,15 @@ def poll(led: dict[str, Any], now: dt.datetime | None = None) -> str:
             k = f"{city}:{day}:{tag}"
             if cond and k not in U._SEEN:
                 U._SEEN.add(k); U.journal({"event": tag, "venue": "kalshi", "city": city, "day": day, "max": fl["max"], "latest": fl["latest"], "report": fl.get("cli_report")})
-        # shadow logs (no effect on trading): R2 decisions the unfiltered max would block; obsTime-keyed max differences
-        for lab in fl.get("r2_shadow_diff") or []:
-            k = f"{city}:{day}:r2shadow:{lab}"
-            if k not in U._SEEN:
-                U._SEEN.add(k); U.journal({"event": "r2_shadow", "city": city, "day": day, "bucket": lab, "r_max": fl["r_max"], "r_max_raw": fl.get("r_max_raw"), "max_raw": round(ob.get("max_raw", 0), 1)})
+        # R2 fades the new max (unfiltered + 5-minute) prevented, and dead buckets only the 5-minute data shows (shadow)
+        f5 = ob.get("five") or {}
+        for tag, labs in (("r2_blocked", fl.get("r2_blocked") or []), ("r0_5min_shadow", fl.get("r0_5min_shadow") or [])):
+            for lab in labs:
+                k = f"{city}:{day}:{tag}:{lab}"
+                if k not in U._SEEN:
+                    r = next((x for x in ev["rows"] if x["label"].split(" (")[0] == lab), {})
+                    U._SEEN.add(k); U.journal({"event": tag, "city": city, "day": day, "bucket": lab, "bid": r.get("bid"), "r_max": fl["r_max"], "r_max_r2": fl.get("r_max_r2"),
+                                               "max_raw": round(ob.get("max_raw", 0), 1), "max5": f5.get("max_mid") and round(f5["max_mid"], 1), "lo2": f5.get("max_lo2") and round(f5["max_lo2"], 1)})
         mo = ob.get("max_obstime")
         if mo is not None and abs(mo - ob["max_obs"]) >= 0.5:
             k = f"{city}:{day}:obstime:{round(mo, 1)}:{round(ob['max_obs'], 1)}"
@@ -217,6 +230,7 @@ def poll(led: dict[str, Any], now: dt.datetime | None = None) -> str:
                 fh.write(json.dumps({"ts": round(now.timestamp()), "city": city, "lt": now_local.strftime("%H:%M"), "max": fl["max"], "latest": fl["latest"], "fall": fl["fall_f"], "since": fl["since_max_min"],
                                      "peak": fl["peak_passed"], "z00": bool(ob.get("has_00z")), "cli": fl.get("cli_report"), "early": fl.get("cli_window"), "cands": cs["candidates"],
                                      "max_raw": round(ob.get("max_raw", fl["max"]), 1), "max_ot": None if ob.get("max_obstime") is None else round(ob["max_obstime"], 1),
+                                     "max5": f5.get("max_mid") and round(f5["max_mid"], 1), "lo2": f5.get("max_lo2") and round(f5["max_lo2"], 1), "r2m": fl.get("r_max_r2"),
                                      "holds": holds and {"b": holds["label"], "bid": holds["bid"], "ask": holds["ask"]}, "book": [(r["label"], r["bid"], r["ask"]) for r in ev["rows"] if (r["bid"] or 0) >= 0.05]}) + "\n")
         except Exception:
             pass
@@ -259,7 +273,7 @@ def main() -> None:
     U.LEDGER, U.JOURNAL, U.FEE = LEDGER, JOURNAL, FEE
     once = "--once" in sys.argv
     led = U.load_ledger()
-    print(f"Kalshi temperature paper trader: {len(SERIES)} cities, stake ${U.CFG['stake']:.0f}, poll {U.CFG['poll_s']:.0f}s, R1x cap {U.CFG['r1x_max_ask']}, report trigger {'on' if U.CFG['cli_trigger'] else 'off'}, heartbeat {'on' if U.CFG['heartbeat_url'] else 'off'}", flush=True)
+    print(f"Kalshi temperature paper trader: {len(SERIES)} cities, stake ${U.CFG['stake']:.0f}, poll {U.CFG['poll_s']:.0f}s, R1x cap {U.CFG['r1x_max_ask']}, report trigger {'on' if U.CFG['cli_trigger'] else 'off'}, R2 max {U.CFG['r2_max']}, 5-min {'on' if U.CFG['five_min'] else 'off'} (R0 {'on' if U.CFG['r0_5min'] else 'shadow'}), heartbeat {'on' if U.CFG['heartbeat_url'] else 'off'}", flush=True)
     U.close_stale_outages()
     while True:
         t0 = time.monotonic(); ok = True

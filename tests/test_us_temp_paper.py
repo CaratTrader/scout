@@ -331,9 +331,120 @@ def test_blocker_texts_follow_the_configuration():
     assert "00Z report (20:00 local)" in rows["x-gte70lt71f"]["blocker"]
 
 
-def test_r2_shadow_flags_fades_the_unfiltered_max_would_block():
+def test_r2_measures_its_margin_from_the_unfiltered_max():
     tz = zoneinfo.ZoneInfo("America/Chicago")
     ob = {"max": 84.0, "max_raw": 87.1, "latest": 80.0, "t_max": dt.datetime(2026, 9, 8, 13, 0, tzinfo=tz), "has_00z": False}
     buckets = [{"slug": "x-gte87lt88f", "bid": 0.30, "ask": 0.35, "bid_sz": 100, "ask_sz": 100}]
-    ev = U.evaluate(buckets, ob, dt.datetime(2026, 9, 8, 16, 0, tzinfo=tz), city="mdw")
-    assert ev["rows"][0]["rule"] == "R2" and ev["flags"]["r2_shadow_diff"] == ["87-88"]
+    now = dt.datetime(2026, 9, 8, 16, 0, tzinfo=tz)
+    assert U.evaluate(buckets, ob, now, cfg=dict(U.CFG, r2_max="metar"), city="mdw")["rows"][0]["rule"] == "R2"   # the old rule faded it
+    ev = U.evaluate(buckets, ob, now, cfg=dict(U.CFG, r2_max="raw"), city="mdw")
+    assert ev["rows"][0]["rule"] is None and "unfiltered max 87F" in ev["rows"][0]["blocker"] and ev["flags"]["r2_blocked"] == ["87-88"]
+
+
+def _feat(ts, c, raw=None, qc="V"):
+    return {"properties": {"timestamp": ts, "temperature": {"value": c, "qualityControl": qc}, "rawMessage": raw}}
+
+
+def test_five_min_summary_reads_whole_c_rows_only():
+    tz = zoneinfo.ZoneInfo("America/Los_Angeles")
+    day_start = dt.datetime(2026, 10, 2, 1, 0, tzinfo=tz); now = dt.datetime(2026, 10, 2, 15, 0, tzinfo=tz)
+    feats = [_feat("2026-10-02T19:53:00+00:00", 28.9, raw="KLAX 021953Z ..."),   # hourly METAR (tenths, rawMessage): skipped
+             _feat("2026-10-02T20:10:00+00:00", 29), _feat("2026-10-02T20:15:00+00:00", 30), _feat("2026-10-02T20:45:00+00:00", 29),
+             _feat("2026-10-02T21:05:00+00:00", 30), _feat("2026-10-02T21:10:00+00:00", 30),
+             _feat("2026-10-02T21:20:00+00:00", 41, qc="X"),                      # rejected by NWS quality control
+             _feat("2026-10-02T23:30:00+00:00", 35),                              # after `now`
+             _feat("2026-10-02T07:30:00+00:00", 33)]                              # 00:30 local, before the climate day
+    s = U.five_min_summary(feats, tz, now, day_start)
+    assert s["n"] == 5 and s["max_mid"] == 86.0 and round(s["max_hi"], 1) == 86.9
+    assert round(s["max_lo2"], 1) == 85.1                                       # 30C twice in a row (21:05, 21:10)
+    assert s["t_max"] == dt.datetime(2026, 10, 2, 14, 10, tzinfo=tz)
+    assert U.five_min_summary([_feat("2026-10-02T20:15:00+00:00", 30)], tz, now, day_start)["max_lo2"] is None   # one sample: no lower bound
+    assert U.five_min_summary([], tz, now, day_start) == {"n": 0}
+
+
+def test_lax_2026_10_02_fade_is_blocked_by_5_minute_data():
+    """Hourly max 84.0 (raw 84.9 from the rejected 18Z group); 5-minute 30C. Official high 87: the 87-88 fade lost."""
+    tz = zoneinfo.ZoneInfo("America/Los_Angeles")
+    now = dt.datetime(2026, 10, 2, 15, 3, tzinfo=tz)
+    ob = {"max": 84.0, "max_raw": 84.9, "latest": 82.0, "t_max": dt.datetime(2026, 10, 2, 12, 53, tzinfo=tz), "has_00z": False,
+          "five": {"n": 60, "max_mid": 86.0, "max_hi": 86.9, "max_lo2": 85.1}}
+    buckets = [{"slug": "x-gte87lt88f", "bid": 0.97, "ask": 0.98, "bid_sz": 100, "ask_sz": 100},
+               {"slug": "x-gte90lt91f", "bid": 0.20, "ask": 0.25, "bid_sz": 100, "ask_sz": 100}]
+    old = {r["slug"]: r for r in U.evaluate(buckets, ob, now, cfg=dict(U.CFG, r2_max="metar"), city="lax")["rows"]}
+    assert old["x-gte87lt88f"]["rule"] == "R2"
+    ev = U.evaluate(buckets, ob, now, cfg=dict(U.CFG, r2_max="raw5m"), city="lax")   # the default since 2026-10-06
+    rows = {r["slug"]: r for r in ev["rows"]}
+    assert rows["x-gte87lt88f"]["rule"] is None and "5-minute max 86F" in rows["x-gte87lt88f"]["blocker"]
+    assert rows["x-gte90lt91f"]["rule"] == "R2" and ev["flags"]["r_max_r2"] == 86 and ev["flags"]["r2_blocked"] == ["87-88"]
+    ev = U.evaluate(buckets, ob, now, cfg=dict(U.CFG, r2_max="raw5u"), city="lax")   # upper bound: 87 (90-91 still exactly 3F above)
+    assert ev["flags"]["r_max_r2"] == 87 and [r["rule"] for r in ev["rows"]] == [None, "R2"]
+    assert U.CFG["r2_max"] == "raw5m"
+
+
+def test_r2_waits_when_the_5_minute_request_failed_but_not_where_none_exist():
+    tz = zoneinfo.ZoneInfo("America/Chicago")
+    ob = {"max": 80.0, "max_raw": 80.0, "latest": 78.0, "t_max": dt.datetime(2026, 9, 8, 13, 0, tzinfo=tz), "has_00z": False, "five": None}
+    b = [{"slug": "x-gte84lt85f", "bid": 0.30, "ask": 0.35, "bid_sz": 100, "ask_sz": 100}]
+    now = dt.datetime(2026, 9, 8, 16, 0, tzinfo=tz); cfg = dict(U.CFG, r2_max="raw5u", five_min=1)
+    r = U.evaluate(b, ob, now, cfg=cfg, city="mdw")["rows"][0]
+    assert r["rule"] is None and "waits for 5-minute data (request failed" in r["blocker"] and not r.get("r2_blocked")
+    assert U.evaluate(b, dict(ob, five={"n": 0}), now, cfg=cfg, city="nyc")["rows"][0]["rule"] == "R2"   # KNYC / KSAT publish none
+    r = U.evaluate(b, dict(ob, five={"n": 0}), now, cfg=cfg, city="mdw")["rows"][0]                    # KMDW does: an empty answer is blind
+    assert r["rule"] is None and "no rows today" in r["blocker"]
+    stale = {"n": 50, "max_mid": 77.0, "max_hi": 77.9, "max_lo2": 75.1, "last": now - dt.timedelta(minutes=50)}
+    assert "min old" in U.evaluate(b, dict(ob, five=stale), now, cfg=cfg, city="mdw")["rows"][0]["blocker"]
+    assert U.evaluate(b, dict(ob, five={"n": 1, "max_mid": 66.2, "max_hi": 67.1, "max_lo2": None, "last": now - dt.timedelta(hours=8)}), now, cfg=cfg,
+                      city="sat")["rows"][0]["rule"] == "R2"   # a stray KSAT row is ignored, not read as a stale feed
+    fresh = dict(stale, last=now - dt.timedelta(minutes=25))
+    assert U.evaluate(b, dict(ob, five=fresh), now, cfg=cfg, city="mdw")["rows"][0]["rule"] == "R2"
+
+
+def test_r0_5min_lower_bound_is_shadow_until_enabled():
+    tz = zoneinfo.ZoneInfo("America/Chicago")
+    ob = {"max": 84.0, "max_obs": 84.0, "max_raw": 84.0, "latest": 84.0, "t_max": dt.datetime(2026, 9, 8, 13, 0, tzinfo=tz), "has_00z": False,
+          "five": {"n": 40, "max_mid": 87.8, "max_hi": 88.7, "max_lo2": 86.9}}
+    b = [{"slug": "x-gte84lt85f", "bid": 0.40, "ask": 0.45, "bid_sz": 100, "ask_sz": 100}]    # 84-85: dead only on the 5-minute bound
+    now = dt.datetime(2026, 9, 8, 13, 30, tzinfo=tz)
+    ev = U.evaluate(b, ob, now, cfg=dict(U.CFG, r0_5min=0), city="mdw")
+    assert ev["rows"][0]["rule"] is None and ev["flags"]["r0_5min_shadow"] == ["84-85"]
+    ev = U.evaluate(b, ob, now, cfg=dict(U.CFG, r0_5min=1), city="mdw")
+    assert ev["rows"][0]["rule"] == "R0" and ev["rows"][0]["side"] == "NO" and ev["flags"]["r0_5min_shadow"] == []
+
+
+def test_five_min_obs_caches_success_and_retries_failure(monkeypatch):
+    tz = zoneinfo.ZoneInfo("America/Chicago"); now = dt.datetime(2026, 9, 8, 13, 0, tzinfo=tz)
+    U._FIVE_CACHE.clear(); calls = []
+    def ok():
+        calls.append(1); return {"features": [_feat("2026-09-08T17:00:00+00:00", 25), _feat("2026-09-08T17:05:00+00:00", 26)]}
+    assert U.five_min_obs("KMDW", tz, now, fetch=ok)["n"] == 2 and U.five_min_obs("KMDW", tz, now, fetch=ok)["n"] == 2 and len(calls) == 1
+    key = next(iter(U._FIVE_CACHE)); U._FIVE_CACHE[key] = (U._FIVE_CACHE[key][0] - U.CFG["five_min_ttl"] - 1, U._FIVE_CACHE[key][1])   # expire
+    assert U.five_min_obs("KMDW", tz, now, fetch=lambda: None)["n"] == 2   # failed refresh keeps the last good summary
+    U._FIVE_CACHE.clear()
+    assert U.five_min_obs("KMDW", tz, now, fetch=lambda: None) is None
+    assert U.five_min_obs("KMDW", tz, now, fetch=ok) is None             # a failure is retried after FIVE_RETRY_S, not every poll
+    U._FIVE_CACHE[key] = (U._FIVE_CACHE[key][0] - U.FIVE_RETRY_S - 1, None)
+    assert U.five_min_obs("KMDW", tz, now, fetch=ok)["n"] == 2
+    U._FIVE_CACHE.clear()
+
+
+def test_five_min_breaker_limits_requests_when_the_host_fails(monkeypatch):
+    tz = zoneinfo.ZoneInfo("America/Chicago"); now = dt.datetime(2026, 9, 8, 13, 0, tzinfo=tz)
+    U._FIVE_CACHE.clear(); U._FIVE_FAIL.update(until=0.0, open=False); calls = []; logged = []
+    monkeypatch.setattr(U, "_get_json_gz", lambda url, timeout: calls.append(url))
+    monkeypatch.setattr(U, "journal", lambda ev: logged.append(ev))
+    for st in ("KMDW", "KDFW", "KHOU", "KOKC"):
+        assert U.five_min_obs(st, tz, now) is None
+    assert len(calls) == 1 and len(logged) == 1   # one request and one journal line, then the breaker holds for FIVE_RETRY_S
+    U._FIVE_CACHE.clear(); U._FIVE_FAIL.update(until=0.0, open=False)
+
+
+def test_climate_day_starts_at_local_standard_midnight_on_clock_change_days():
+    chi = zoneinfo.ZoneInfo("America/Chicago"); phx = zoneinfo.ZoneInfo("America/Phoenix"); utc = dt.timezone.utc
+    for now in (dt.datetime(2026, 11, 1, 16, 0, tzinfo=utc), dt.datetime(2027, 3, 14, 16, 0, tzinfo=utc), dt.datetime(2026, 10, 6, 16, 0, tzinfo=utc),
+                dt.datetime(2026, 12, 6, 16, 0, tzinfo=utc)):
+        ds = U.climate_day_start(now, chi)
+        assert ds.astimezone(utc).hour == 6 and ds.astimezone(utc).date() == now.date()
+    assert U.climate_day_start(dt.datetime(2026, 10, 6, 16, 0, tzinfo=utc), chi).hour == 1       # 01:00 CDT
+    assert U.climate_day_start(dt.datetime(2026, 12, 6, 16, 0, tzinfo=utc), chi).hour == 0       # 00:00 CST
+    assert U.climate_day_start(dt.datetime(2026, 7, 6, 16, 0, tzinfo=utc), phx).hour == 0        # Phoenix: no daylight saving
+    assert U.climate_day_start(dt.datetime(2026, 10, 7, 5, 30, tzinfo=utc), chi).date() == dt.date(2026, 10, 6)   # 00:30 CDT is still Oct 6
