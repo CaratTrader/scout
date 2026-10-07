@@ -140,6 +140,39 @@ def stats(rows: list[dict], days: int) -> dict:
             "t": tt(p), "t$": tt(ret), "per_day": n / days, "usd": STAKE * sum(ret), "usd_day": STAKE * sum(ret) / days, "ret": st.mean(ret)}
 
 
+def gate_report(rows: list[dict], tag: str) -> None:
+    """docs/KALSHI_LAB.md gate rows 1-5 on the given trades: equal-$ return per trade, t clustered by station-day
+    (buckets of one city-day move together), robustness without the 3 best trades, halves by date, and the two
+    pre-registered out-of-sample segments when present."""
+    from statistics import NormalDist
+    if len(rows) < 3:
+        print(f"\nGATE ({tag}): n={len(rows)} - too few trades"); return
+    kf = Path("data/kalshi_lab/K.json"); K = len(json.loads(kf.read_text()).get("cells", [])) if kf.exists() else 1
+    z = NormalDist().inv_cdf(1 - 0.05 / max(K, 1))
+    def summ(rr):
+        ret = [r["pnl"] / r["px"] for r in rr]; ev = defaultdict(list)
+        for r in rr:
+            ev[(r["stn"], r["day"])].append(r["pnl"] / r["px"])
+        em = [st.mean(v) for v in ev.values()]
+        t = st.mean(em) / (st.pstdev(em) / math.sqrt(len(em))) if len(em) > 2 and st.pstdev(em) > 0 else float("nan")
+        return st.mean(ret), t, len(em)
+    mean, t, n_ev = summ(rows); rs = sorted((r["pnl"] / r["px"] for r in rows), reverse=True)
+    wo3 = st.mean(rs[3:]) if len(rs) > 3 else float("nan")
+    days = sorted(r["day"] for r in rows); mid = days[len(days) // 2]
+    h1 = [r for r in rows if r["day"] < mid]; h2 = [r for r in rows if r["day"] >= mid]
+    segs = {"2025-H2": [r for r in rows if r["day"] < "2026-01-01"], "2026-01..04": [r for r in rows if "2026-01-01" <= r["day"] <= "2026-04-22"]}
+    print(f"\nGATE ({tag}, docs/KALSHI_LAB.md; K={K} -> t >= {z:.2f})")
+    print(f"  1 n={len(rows)} (>= 40): {'ok' if len(rows) >= 40 else 'FAIL'}")
+    print(f"  2 mean return per $ {mean:+.1%} (>= +10%): {'ok' if mean >= 0.10 else 'FAIL'}")
+    print(f"  3 t clustered by station-day {t:.2f} over {n_ev} station-days (>= {z:.2f}): {'ok' if t >= z else 'FAIL'}")
+    print(f"  4 without the 3 best trades {wo3:+.1%} (> 0): {'ok' if wo3 > 0 else 'FAIL'}")
+    m1 = st.mean(r["pnl"] / r["px"] for r in h1) if h1 else float("nan"); m2 = st.mean(r["pnl"] / r["px"] for r in h2) if h2 else float("nan")
+    print(f"  5 halves {m1:+.1%} / {m2:+.1%} (both > 0): {'ok' if min(m1, m2) > 0 else 'FAIL'}")
+    for name, rr in segs.items():
+        if rr:
+            m, tt, ne = summ(rr); print(f"    segment {name}: n={len(rr)} mean {m:+.1%} t {tt:.2f} wins {sum(r['won'] for r in rr)}/{len(rr)}")
+
+
 def main():
     delay = int(sys.argv[1]) if len(sys.argv) > 1 else 2
     CAP = float(sys.argv[2]) if len(sys.argv) > 2 else 0.80
@@ -165,7 +198,12 @@ def main():
         if not obs or len(obs) < 12:
             skipped["no_metar"] += 1; continue
         # resolution check: Kalshi expiration_value vs NWS CLI high
-        ev = next((float(m["expiration_value"]) for m in mk if m.get("expiration_value")), None); H = cli.get(icao, {}).get(day)
+        def num(v):
+            try:
+                return float(v)
+            except (TypeError, ValueError):
+                return None   # archived markets sometimes carry "Yes"/"No" here instead of the value
+        ev = next((num(m["expiration_value"]) for m in mk if num(m.get("expiration_value")) is not None), None); H = cli.get(icao, {}).get(day)
         if ev is not None and H is not None:
             truth[int(round(ev - H))] += 1
         rows = []
@@ -294,6 +332,7 @@ def main():
     earlier = [(r, next(x for x in trades if x["rule"] == "R0" and x["ticker"] == r["ticker"])) for r in trades if r["rule"] == "R0h" and r["ticker"] in r0]
     print(f"  R0h on R0 markets: {len(earlier)}, earlier on {sum(a['t'] < b_['t'] for a, b_ in earlier)}, avg px R0h {st.mean(a['px'] for a, _ in earlier) if earlier else 0:.3f} vs R0 {st.mean(b_['px'] for _, b_ in earlier) if earlier else 0:.3f}")
     print("  losing R0h trades:", ", ".join(f"{r['ticker']} {r['side']}@{r['px']:.2f} t={r['t']//60:02d}:{r['t']%60:02d}" for r in trades if r["rule"] == "R0h" and not r["won"]))
+    gate_report(live, LIVE_R2)
     print("\nREFERENCE: R0 + R1c + R2 (report trigger on), one trade per market")
     rep(ref, "R0+R1c+R2")
     print("\nR1c by station:"); [rep([r for r in trades if r["rule"] == "R1c" and r["stn"] == s], f"  {s}") for s in Z00 if any(r["stn"] == s and r["rule"] == "R1c" for r in trades)]
