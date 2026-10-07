@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Kalshi Lab</title>
+<style>
+  :root { --bg:#f7f7f5; --card:#fff; --ink:#1d1d1b; --mute:#6b6b66; --line:#e4e3de; --good:#1f7a4d; --bad:#b3261e; --warn:#9a6700; --accent:#2f5bd3; }
+  @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --bg:#141413; --card:#1e1e1c; --ink:#ecebe6; --mute:#9d9c95; --line:#2f2e2b; --good:#5cc08c; --bad:#ef7b72; --warn:#e0b44c; --accent:#8aa8ff; } }
+  :root[data-theme="dark"] { --bg:#141413; --card:#1e1e1c; --ink:#ecebe6; --mute:#9d9c95; --line:#2f2e2b; --good:#5cc08c; --bad:#ef7b72; --warn:#e0b44c; --accent:#8aa8ff; }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--ink); font:14px/1.45 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+  main { max-width:1100px; margin:0 auto; padding:20px 16px 60px; }
+  h1 { font-size:22px; margin:0 0 4px; } h2 { font-size:15px; margin:26px 0 10px; text-transform:uppercase; letter-spacing:.04em; color:var(--mute); }
+  .sub { color:var(--mute); }
+  .grid { display:grid; grid-template-columns:repeat(auto-fit, minmax(240px, 1fr)); gap:12px; }
+  .card { background:var(--card); border:1px solid var(--line); border-radius:10px; padding:14px; }
+  .big { font-size:26px; font-weight:650; font-variant-numeric:tabular-nums; }
+  .good { color:var(--good); } .bad { color:var(--bad); } .warn { color:var(--warn); }
+  .pill { display:inline-block; padding:1px 8px; border-radius:99px; border:1px solid var(--line); font-size:12px; color:var(--mute); }
+  table { width:100%; border-collapse:collapse; font-variant-numeric:tabular-nums; }
+  th, td { text-align:left; padding:6px 8px; border-bottom:1px solid var(--line); vertical-align:top; }
+  th { color:var(--mute); font-weight:500; font-size:12px; }
+  .scroll { overflow-x:auto; }
+  pre { white-space:pre-wrap; word-break:break-word; background:var(--card); border:1px solid var(--line); border-radius:10px; padding:14px; font-size:12px; max-height:520px; overflow:auto; }
+  .row { display:flex; justify-content:space-between; gap:8px; align-items:baseline; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Kalshi strategy lab</h1>
+  <div class="sub">Paper only · $50 simulated bankroll per strategy · go-live gate in docs/KALSHI_LAB.md · <span id="countdown"></span></div>
+
+  <h2>Gate</h2>
+  <div class="grid" id="gate"></div>
+
+  <h2>Paper strategies</h2>
+  <div class="grid" id="paper"></div>
+
+  <h2>Recent signals</h2>
+  <div class="card scroll"><table id="signals"><thead><tr><th>time</th><th>strategy</th><th>market</th><th>side</th><th>price</th></tr></thead><tbody></tbody></table></div>
+
+  <h2>Nightly report</h2>
+  <pre id="report"></pre>
+</main>
+<script>
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const money = v => (v == null ? "—" : (v < 0 ? "−$" : "$") + Math.abs(v).toFixed(2));
+async function load() {
+  let d;
+  try { d = await (await fetch("/api/lab", {cache:"no-store"})).json(); } catch (e) { return; }
+  const ms = new Date(d.deadline) - new Date();
+  $("#countdown").textContent = ms > 0 ? `decision in ${Math.floor(ms/864e5)}d ${Math.floor(ms%864e5/36e5)}h (Sun 8 PM ET)` : "decision date reached";
+  const val = Object.entries(d.validation || {});
+  const passing = val.filter(([k, v]) => v.gate);
+  $("#gate").innerHTML = `
+    <div class="card"><div class="sub">Cells examined (K)</div><div class="big">${d.K ?? "—"}</div><div class="sub">significance bar t ≥ ${d.z ? d.z.toFixed(2) : "—"}</div></div>
+    <div class="card"><div class="sub">Validated candidates</div><div class="big ${passing.length ? "good" : ""}">${passing.length} / ${val.length}</div><div class="sub">pass every bar on held-out data</div></div>
+    <div class="card"><div class="sub">Strategies in registry</div><div class="big">${Object.keys(d.registry || {}).length}</div><div class="sub">${Object.entries(d.registry || {}).map(([k, v]) => `${esc(k)}: ${esc(v.status)}`).join(" · ")}</div></div>`;
+  $("#paper").innerHTML = (d.paper || []).map(p => {
+    const pnl = p.equity - p.start;
+    const open = (p.positions || []).map(x => `<tr><td>${esc(x.ticker)}</td><td>${esc(x.side)}</td><td>${x.px.toFixed(2)}</td><td>${money(x.stake)}</td></tr>`).join("");
+    return `<div class="card">
+      <div class="row"><b>${esc(p.name)}</b><span class="pill">${esc(p.status || "")}</span></div>
+      <div class="big ${pnl > 0 ? "good" : pnl < 0 ? "bad" : ""}">${money(p.equity)}</div>
+      <div class="sub">${p.settled} settled · ${p.won} won · P&amp;L ${money(p.pnl)}${p.halted ? ` · <span class="warn">halted: ${esc(p.halted)}</span>` : ""}</div>
+      ${open ? `<table style="margin-top:8px"><thead><tr><th>open</th><th>side</th><th>px</th><th>stake</th></tr></thead><tbody>${open}</tbody></table>` : `<div class="sub" style="margin-top:8px">no open positions</div>`}
+    </div>`;
+  }).join("") || `<div class="card sub">No paper ledgers yet.</div>`;
+  $("#signals tbody").innerHTML = (d.signals || []).slice().reverse().map(s => `<tr><td>${new Date(s.ts * 1000).toLocaleString([], {month:"short", day:"numeric", hour:"2-digit", minute:"2-digit"})}</td><td>${esc(s.strategy)}</td><td>${esc(s.ticker)}</td><td>${esc(s.side)}</td><td>${(+s.px).toFixed(2)}</td></tr>`).join("") || `<tr><td colspan="5" class="sub">No signals yet.</td></tr>`;
+  $("#report").textContent = d.report || "";
+}
+load(); setInterval(load, 60000);
+</script>
+</body>
+</html>

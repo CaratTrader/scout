@@ -1682,6 +1682,28 @@ def build_live() -> dict[str, Any]:
 
 
 # --------------------------------------------------------------------------- http
+def lab_summary() -> dict[str, Any]:
+    """Kalshi strategy lab (docs/KALSHI_LAB.md): registry, $50 paper ledgers, recent signals, nightly report."""
+    root = DATA / "kalshi_lab"
+    reg = read_json_stable(root / "registry.json", {})
+    papers = []
+    for f in sorted((root / "paper").glob("*.json")) if (root / "paper").exists() else []:
+        led = read_json_stable(f, {})
+        fills = led.get("fills", [])
+        papers.append({"name": led.get("name", f.stem), "cash": led.get("cash"), "equity": round((led.get("cash") or 0) + sum(p.get("stake", 0) for p in led.get("positions", [])), 2),
+                       "start": led.get("start", 50), "settled": len(fills), "won": sum(1 for x in fills if x.get("won")), "pnl": round(sum(x.get("pnl", 0) for x in fills), 2),
+                       "positions": led.get("positions", [])[-20:], "fills": fills[-20:], "halted": led.get("halted"), "status": (reg.get(led.get("name", f.stem)) or {}).get("status")})
+    sig = []
+    sf = root / "signals.jsonl"
+    if sf.exists():
+        sig = [json.loads(l) for l in sf.read_text().splitlines()[-40:] if l.strip()]
+    rep = (root / "report.md").read_text() if (root / "report.md").exists() else "No nightly report yet (first run 05:45)."
+    cal = read_json_stable(root / "calib.json", {})
+    k = read_json_stable(root / "K.json", {})
+    return {"registry": reg, "paper": papers, "signals": sig, "report": rep, "K": len(k.get("cells", [])) or cal.get("K"), "z": cal.get("z"),
+            "validation": cal.get("validation", {}), "deadline": "2026-10-11T20:00:00-04:00"}
+
+
 class Handler(BaseHTTPRequestHandler):
     server_version = "scout-dashboard/2.0"
 
@@ -1708,6 +1730,10 @@ class Handler(BaseHTTPRequestHandler):
                 self._send((HERE / "index.html").read_bytes(), "text/html; charset=utf-8")
             elif path in {"/ustemp", "/ustemp.html"}:
                 self._send((HERE / "ustemp.html").read_bytes(), "text/html; charset=utf-8")
+            elif path in {"/lab", "/lab.html"}:
+                self._send((HERE / "lab.html").read_bytes(), "text/html; charset=utf-8")
+            elif path == "/api/lab":
+                self._send(json.dumps(clean(lab_summary())).encode(), "application/json")
             elif path == "/api/ustemp":
                 now_ = time.time(); venue = params.get("venue") or "kalshi"
                 state_name = VENUE_FILES.get(venue, VENUE_FILES["kalshi"])[3]
