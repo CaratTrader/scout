@@ -30,17 +30,19 @@ SERIES = {"KXHIGHNY": ("NYC", "KNYC", "America/New_York"), "KXHIGHCHI": ("MDW", 
           "KXHIGHTMIN": ("MSP", "KMSP", "America/Chicago"), "KXHIGHTPHX": ("PHX", "KPHX", "America/Phoenix"), "KXHIGHTSEA": ("SEA", "KSEA", "America/Los_Angeles"),
           "KXHIGHTLV": ("LAS", "KLAS", "America/Los_Angeles"), "KXHIGHTSAN": ("SAN", "KSAN", "America/Los_Angeles"),
           "KXHIGHTHOU": ("HOU", "KHOU", "America/Chicago"), "KXHIGHTOKC": ("OKC", "KOKC", "America/Chicago"),
-          "KXHIGHTSATX": ("SAT", "KSAT", "America/Chicago"), "KXHIGHTNOLA": ("MSY", "KMSY", "America/Chicago")}
+          "KXHIGHTSATX": ("SAT", "KSAT", "America/Chicago"), "KXHIGHTNOLA": ("MSY", "KMSY", "America/Chicago"),
+          "KXHIGHTEWR": ("EWR", "KEWR", "America/New_York"), "KXHIGHTTTN": ("TTN", "KTTN", "America/New_York"),
+          "KXHIGHTSDF": ("SDF", "KSDF", "America/Kentucky/Louisville")}
 CLI_OK = {"NYC", "MIA", "MDW", "DCA", "PHL", "BOS", "ATL", "DFW", "MSP"}   # the bot's report offices (USTEMP_CLI_CITIES)
 Z00 = {"NYC": 20, "MIA": 20, "BOS": 20, "DCA": 20, "PHL": 20, "ATL": 20, "MDW": 19, "AUS": 19, "DFW": 19, "MSP": 19, "DEN": 18, "LAX": 17, "SFO": 17, "SEA": 17, "LAS": 17, "SAN": 17, "PHX": 17,
-       "HOU": 19, "OKC": 19, "SAT": 19, "MSY": 19}
+       "HOU": 19, "OKC": 19, "SAT": 19, "MSY": 19, "EWR": 20, "TTN": 20, "SDF": 20}
 FEE = 0.07
 STAKE = 25.0
 REPORT_LAG = int(os.environ.get("KB_REPORT_LAG", REPORT_LAG_MIN))
 REPORT_STRICT = os.environ.get("KB_REPORT_PARSE", "strict") != "lenient"
 REPORT_OFFICES = {c.strip().upper() for c in (os.environ.get("KB_REPORT_OFFICES") or ",".join(sorted(CLI_OK))).split(",") if c.strip()}
 HF_LAG = int(os.environ.get("KB_HF_LAG", 20))   # api.weather.gov serves the 5-minute observations ~18 min after the fact
-NEW = {"HOU", "OKC", "SAT", "MSY"}               # cities added 2026-10-06
+NEW = {"HOU", "OKC", "SAT", "MSY", "EWR", "TTN", "SDF"}   # cities added 2026-10-06/07 (never used to design the rules)
 DESIGN = {("LAX", "2026-10-02")}                 # the loss the 5-minute fix was designed around: never part of a holdout
 NO_LIVE_HF = {"NYC", "SAT"}                      # api.weather.gov serves no 5-minute rows for KNYC / KSAT (IEM has SAT's)
 def fee(p): return FEE * p * (1 - p)
@@ -277,7 +279,7 @@ def main():
         combos[combo] = one_per_market(trades, combo); rep(combos[combo], "+".join(combo))
         rep([r for r in combos[combo] if r["stn"] not in NEW and r["day"] < "2026-09-27"], "    old 17 cities to 09-26")
         rep([r for r in combos[combo] if r["stn"] not in NEW and r["day"] >= "2026-09-27" and (r["stn"], r["day"]) not in DESIGN], "    holdout: old cities 09-27+ ex LAX 10-02")
-        rep([r for r in combos[combo] if r["stn"] in NEW], "    holdout: new 4 cities")
+        rep([r for r in combos[combo] if r["stn"] in NEW], "    holdout: new cities")
     base = {r["ticker"]: r for r in trades if r["rule"] == "R2"}
     for tag in ("R2raw", "R2m", "R2u"):
         kept = {r["ticker"] for r in trades if r["rule"] == tag}

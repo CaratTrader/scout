@@ -18,7 +18,8 @@ TZ = {"sfo": "America/Los_Angeles", "lax": "America/Los_Angeles", "mdw": "Americ
       "bos": "America/New_York", "dca": "America/New_York", "phl": "America/New_York", "atl": "America/New_York", "den": "America/Denver",
       "aus": "America/Chicago", "dfw": "America/Chicago", "msp": "America/Chicago", "phx": "America/Phoenix", "sea": "America/Los_Angeles",
       "las": "America/Los_Angeles", "san": "America/Los_Angeles",
-      "hou": "America/Chicago", "okc": "America/Chicago", "sat": "America/Chicago", "msy": "America/Chicago"}
+      "hou": "America/Chicago", "okc": "America/Chicago", "sat": "America/Chicago", "msy": "America/Chicago",
+      "ewr": "America/New_York", "ttn": "America/New_York", "sdf": "America/Kentucky/Louisville"}
 STN = {c: c.upper() for c in TZ}
 FEE = 0.0695
 USE_6HR = True

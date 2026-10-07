@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!-- Kalshi strategy lab, nightly learning loop (lab/kalshi/loop.py): collect the day's settled markets, re-draw the 70/30
+     time split, re-test every strategy family, count cells examined, update registry gate status, write
+     data/kalshi_lab/report.md. Paper only: it never trades and never holds credentials. -->
+<plist version="1.0">
+<dict>
+    <key>Label</key><string>com.tradeinc.kalshilearn</string>
+    <key>ProgramArguments</key>
+    <array>
+        <string>/Users/roomyhome/Tradeinc/.venv/bin/python</string>
+        <string>-X</string><string>utf8</string><string>-u</string>
+        <string>-m</string><string>lab.kalshi.loop</string>
+    </array>
+    <key>WorkingDirectory</key><string>/Users/roomyhome/Tradeinc</string>
+    <key>StartCalendarInterval</key>
+    <dict><key>Hour</key><integer>5</integer><key>Minute</key><integer>45</integer></dict>
+    <key>StandardOutPath</key><string>/Users/roomyhome/Tradeinc/data/kalshi_lab/learn.log</string>
+    <key>StandardErrorPath</key><string>/Users/roomyhome/Tradeinc/data/kalshi_lab/learn.err.log</string>
+</dict>
+</plist>

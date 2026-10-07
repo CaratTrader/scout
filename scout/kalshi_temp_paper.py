@@ -33,6 +33,9 @@ SERIES = {
     # San Antonio (CLISAT), New Orleans (CLIMSY)
     "KXHIGHTHOU": ("hou", "KHOU", "America/Chicago"), "KXHIGHTOKC": ("okc", "KOKC", "America/Chicago"),
     "KXHIGHTSATX": ("sat", "KSAT", "America/Chicago"), "KXHIGHTNOLA": ("msy", "KMSY", "America/Chicago"),
+    # added 2026-10-07: Newark (CLIEWR), Trenton (CLITTN), Louisville (CLISDF; series titled "SATX" by Kalshi)
+    "KXHIGHTEWR": ("ewr", "KEWR", "America/New_York"), "KXHIGHTTTN": ("ttn", "KTTN", "America/New_York"),
+    "KXHIGHTSDF": ("sdf", "KSDF", "America/Kentucky/Louisville"),
 }
 if os.getenv("KTEMP_SERIES"):
     SERIES = {k: v for k, v in SERIES.items() if k in os.getenv("KTEMP_SERIES", "").split(",")}

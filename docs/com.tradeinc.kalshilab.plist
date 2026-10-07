@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!-- Kalshi strategy lab, PAPER trader (public data only, no keys): every strategy in data/kalshi_lab/registry.json with
+     status paper / gate-pass trades a simulated $50 bankroll (docs/KALSHI_LAB.md). Kalshi calls only in the
+     temperature bot's idle window. -->
+<plist version="1.0">
+<dict>
+    <key>Label</key><string>com.tradeinc.kalshilab</string>
+    <key>ProgramArguments</key>
+    <array>
+        <string>/Users/roomyhome/Tradeinc/.venv/bin/python</string>
+        <string>-X</string><string>utf8</string><string>-u</string>
+        <string>-m</string><string>scout.kalshi_lab_paper</string>
+    </array>
+    <key>WorkingDirectory</key><string>/Users/roomyhome/Tradeinc</string>
+    <key>EnvironmentVariables</key>
+    <dict>
+        <key>KLAB_POLL_S</key><string>300</string>
+    </dict>
+    <key>RunAtLoad</key><true/>
+    <key>KeepAlive</key><true/>
+    <key>ThrottleInterval</key><integer>60</integer>
+    <key>StandardOutPath</key><string>/Users/roomyhome/Tradeinc/data/kalshi_lab/lab_paper.log</string>
+    <key>StandardErrorPath</key><string>/Users/roomyhome/Tradeinc/data/kalshi_lab/lab_paper.err.log</string>
+</dict>
+</plist>

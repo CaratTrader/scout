@@ -55,7 +55,7 @@ CFG = {
 }
 Z00_LOCAL_HOUR = {"sfo": 17, "lax": 17, "sea": 17, "las": 17, "san": 17, "phx": 17, "den": 18, "mdw": 19, "aus": 19, "dfw": 19, "msp": 19,
                   "nyc": 20, "mia": 20, "bos": 20, "dca": 20, "phl": 20, "atl": 20,
-                  "hou": 19, "okc": 19, "sat": 19, "msy": 19}  # local hour of the 00Z report (daylight saving; Phoenix has none)
+                  "hou": 19, "okc": 19, "sat": 19, "msy": 19, "ewr": 20, "ttn": 20, "sdf": 20}  # local hour of the 00Z report (daylight saving; Phoenix has none)
 NWS = "https://api.weather.gov/products"
 CFG["r2"] = int(env_f("USTEMP_R2", 1))                    # fade rule on/off
 CFG["r1x_00z"] = int(env_f("USTEMP_R1X_00Z", 1))          # let the 00Z METAR maximum open the R1x window (off on Kalshi: no edge by then)
