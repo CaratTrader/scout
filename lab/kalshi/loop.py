@@ -44,10 +44,15 @@ def main(fetch: bool = True) -> None:
     rain_out = sh(["lab.kalshi.rain", "5", "1"])
     calib_out = sh(["lab.kalshi.calib"])
     wx_out = sh(["lab.us.kalshi_backtest", "2", "0.80"])
+    import os
+    env = dict(os.environ, KB_FROM="2025-07-01", KB_TO="2026-04-22")   # pre-registered out-of-sample window (docs/KALSHI_LAB.md)
+    r = subprocess.run([PY, "-m", "lab.us.kalshi_backtest", "2", "0.80"], capture_output=True, text=True, timeout=7200, env=env, cwd=str(Path(__file__).resolve().parents[2]))
+    oos_out = r.stdout or ""
     cal = json.loads((ROOT / "calib.json").read_text()) if (ROOT / "calib.json").exists() else {"K": 0, "validation": {}, "discovery": {}}
     # 3. K: every cell ever examined (calibration cells + the fixed rule families)
     Kd = json.loads(KF.read_text()) if KF.exists() else {"cells": []}
-    cells = set(Kd["cells"]) | set(cal.get("discovery", {}).keys()) | {f"rain|{h}" for h in (12, 15, 18, 20, 22)} | {f"weather|{v}" for v in ("R2", "R2raw", "R2m", "R2u", "R2rawc", "R0h")}
+    cells = set(Kd["cells"]) | set(cal.get("discovery", {}).keys()) | {f"rain|{h}" for h in (12, 15, 18, 20, 22)} | {f"weather|{v}" for v in ("R2", "R2raw", "R2m", "R2u", "R2rawc", "R0h")} | \
+        {f"gas|momentum|{e}|{t}" for e in (0.10, 0.20) for t in (360, 240, 60)}
     Kd["cells"] = sorted(cells); KF.write_text(json.dumps(Kd))
     K = len(cells)
     from statistics import NormalDist
@@ -85,10 +90,14 @@ def main(fetch: bool = True) -> None:
         ret = "" if p["ret"] is None else f"{p['ret']:+.1%}"
         lines.append(f"| {p['name']} | ${p['equity']:.2f} | {p['settled']} | {p['won']} | ${p['pnl']:+.2f} | {ret} | {p['open']} | {p['halted'] or ''} |")
     lines += ["", "## Registry", ""] + [f"- {k}: {v['status']} — {v.get('validation') or v.get('source', '')}" for k, v in reg.items()]
-    lines += ["", "## Calibration map (lab/kalshi/calib.py)", "```"] + calib_out.strip().splitlines()[:60] + ["```",
-              "", "## Rain (lab/kalshi/rain.py)", "```"] + rain_out.strip().splitlines()[-22:] + ["```",
-              "", "## Weather R0 + R2m (lab/us/kalshi_backtest.py)", "```"] + pick(wx_out, r"^LIVE|largest winner|without the largest|holdout|^station-days used") + ["```",
-              "", f"_loop took {time.time() - t0:.0f} s_"]
+    gate_block = oos_out[oos_out.find("GATE ("):].split("\n\nREFERENCE")[0].splitlines() if "GATE (" in oos_out else ["(no out-of-sample run)"]
+    lines += ["", "## Weather R0 + R2m — pre-registered out-of-sample test, Kalshi archive 2025-07-01..2026-04-22", "```"]
+    lines += pick(oos_out, r"^station-days used|^LIVE R0") + gate_block + ["```"]
+    lines += ["", "## Weather R0 + R2m (lab/us/kalshi_backtest.py, all data)", "```"]
+    lines += pick(wx_out, r"^LIVE|largest winner|without the largest|holdout|^station-days used") + ["```"]
+    lines += ["", "## Calibration map (lab/kalshi/calib.py)", "```"] + calib_out.strip().splitlines()[:60] + ["```"]
+    lines += ["", "## Rain (lab/kalshi/rain.py)", "```"] + rain_out.strip().splitlines()[-22:] + ["```"]
+    lines += ["", f"_loop took {time.time() - t0:.0f} s_"]
     (ROOT / "report.md").write_text("\n".join(lines) + "\n")
     print("\n".join(lines[:40]))
 
