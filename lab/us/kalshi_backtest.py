@@ -54,14 +54,15 @@ def hf_and_groups():
         station -> local day -> [(minute, F)] of every 6-hour maximum group, unfiltered, for the raw max).
     5-minute rows carry whole degrees C: the true reading lies within C +- 0.5."""
     hf = defaultdict(lambda: defaultdict(list)); gr = defaultdict(lambda: defaultdict(list))
-    for stn, _, _ in SERIES.values():
+    for stn, _, tzn in SERIES.values():
         f = Path(f"data/lab/us/asos_raw/{stn}.csv")
         if not f.exists():
             continue
+        start = B.day_start_minutes(stn, tzn)
         for r in csv.DictReader(open(f)):
             raw = r.get("metar") or ""; day, hm = r["valid"][:10], r["valid"][11:16]
-            minute = int(hm[:2]) * 60 + int(hm[3:])
-            if minute < 60 and stn != "PHX":
+            minute = int(hm[:2]) * 60 + int(hm[3:]); ds = start(day)
+            if minute < ds:
                 continue
             if "MADISHF" in raw and stn not in NO_LIVE_HF:
                 m = re.search(r"\s(M?\d{2})/(M?\d{2})?\s", raw)
@@ -75,7 +76,7 @@ def hf_and_groups():
                 hf[stn][day].append((minute, c))
             else:
                 t = U.metar_temps_f(raw)
-                if len(t) > 1 and minute >= 7 * 60:
+                if len(t) > 1 and minute >= ds + 6 * 60:
                     gr[stn][day].append((minute, t[1]))
     for d in (hf, gr):
         for stn in d:

@@ -58,12 +58,26 @@ def _six_hour_max_f(raw: str) -> float | None:
     return rnd(c * 9 / 5 + 32)
 
 
+def day_start_minutes(stn: str, tzname: str):
+    """local date (YYYY-MM-DD) -> minute of the day the climate day starts: 60 while daylight saving is in force, 0 in
+    winter (before 2026-10-07 the backtest assumed 60 all year, which dropped the first hour of winter days) and in
+    Phoenix. Observations before it belong to the previous climate day, after every decision time, and are skipped."""
+    tz = zoneinfo.ZoneInfo(tzname); cache: dict[str, int] = {}
+    def f(day: str) -> int:
+        if day not in cache:
+            d = dt.date.fromisoformat(day)
+            cache[day] = 0 if stn == "PHX" or not tz.dst(dt.datetime(d.year, d.month, d.day, 12)) else 60
+        return cache[day]
+    return f
+
+
 def metar() -> dict[str, dict[str, list[tuple[int, float]]]]:
     """station -> local day -> sorted (minute_of_day, tmpf). Observations before 01:00 local are dropped: the NWS
     climate day runs midnight-to-midnight local *standard* time, i.e. 01:00-01:00 during daylight saving (all of
     Apr-Sep). If the raw METAR text is available, the 6-hour maximum group is added as an extra observation."""
     out: dict[str, dict[str, list[tuple[int, float]]]] = defaultdict(lambda: defaultdict(list))
-    for st_ in STN.values():
+    for city, st_ in STN.items():
+        start = day_start_minutes(st_, TZ[city])
         f = Path(f"data/lab/us/asos_raw/{st_}.csv")
         if not f.exists():
             f = Path(f"data/lab/us/asos/{st_}.csv")
@@ -74,11 +88,12 @@ def metar() -> dict[str, dict[str, list[tuple[int, float]]]]:
                 continue
             day, hm = r["valid"][:10], r["valid"][11:16]
             minute = int(hm[:2]) * 60 + int(hm[3:])
-            if minute < 60 and st_ != "PHX":   # climate day = local standard midnight: 01:00 during daylight saving, 00:00 in Phoenix
+            ds = start(day)
+            if minute < ds:   # climate day = local standard midnight: 01:00 under daylight saving, 00:00 in winter and Phoenix
                 continue
             out[st_][day].append((minute, float(r["tmpf"]), False))
             mx = _six_hour_max_f(r.get("metar") or "") if USE_6HR else None
-            if mx is not None and minute >= 7 * 60 and mx >= float(r["tmpf"]) - 1:  # window (t-6h, t] inside the 01:00-01:00 climate day
+            if mx is not None and minute >= ds + 6 * 60 and mx >= float(r["tmpf"]) - 1:  # window (t-6h, t] inside the climate day
                 hourly = [(m_, x) for m_, x, tr in out[st_][day] if not tr and minute - 360 <= m_ <= minute]
                 good = [x for m_, x in hourly if (lambda neigh: not neigh or max(neigh) >= x - 2.5)([y for n_, y in hourly if n_ != m_ and abs(n_ - m_) <= 90])]
                 if good and mx > max(good) + 3.0:   # a computed max far above every *corroborated* hourly reading in its window = sensor artefact
