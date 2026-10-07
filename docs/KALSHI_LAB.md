@@ -56,3 +56,7 @@ The live switch is the account holder's action, with their own Kalshi API key. T
 - Run: `KB_FROM=2026-01-01 KB_TO=2026-04-22 python -m lab.us.kalshi_backtest 2 0.80`, row "LIVE R0+R2m".
 
 **Verdict.** Gate rows 1-5 above, with K as recorded in data/kalshi_lab/K.json on the day of the run. Afternoon climate-report data may be missing for these months; the rules then run on METAR alone. That is a known difference from the live bot, where the report can only make R2 more cautious.
+
+**Amendment (2026-10-07 ~10:40 ET, still before any out-of-sample result was seen).**
+- **Window.** Extended to climate days **2025-07-01..2026-04-22** (Kalshi archive, same 7 series, same rules) so the unseen sample can reach the n ≥ 40 bar. The verdict is the whole window. The 2025-H2 and 2026 segments are reported separately, and each must have positive return (gate row 5 applied per segment).
+- **No more windows.** None will be added after the first result is seen.
