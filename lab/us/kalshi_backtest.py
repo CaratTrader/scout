@@ -152,6 +152,8 @@ def main():
         stn, icao, tzn = SERIES[m["series"]]
         # market day = local date of close_time minus 1 (close is 05:00Z next day)
         close = dt.datetime.fromisoformat(m["close_time"].replace("Z", "+00:00")); day = (close.astimezone(zoneinfo.ZoneInfo(tzn)) - dt.timedelta(hours=6)).date().isoformat()
+        if not (os.environ.get("KB_FROM", "0000") <= day <= os.environ.get("KB_TO", "9999")):
+            continue   # KB_FROM / KB_TO: restrict to a date window (e.g. the out-of-sample archive 2026-01-01..04-22)
         days[(stn, day)].append(m)
     print(f"Kalshi ladders: {len(days)} station-days, {sum(len(v) for v in days.values())} markets")
     print(f"report: usable at issuance + {REPORT_LAG} min, parse {'strict (VALID TODAY)' if REPORT_STRICT else 'lenient'}, offices {','.join(sorted(REPORT_OFFICES))}")

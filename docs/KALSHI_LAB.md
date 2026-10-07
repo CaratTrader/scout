@@ -44,3 +44,15 @@ The live switch is the account holder's action, with their own Kalshi API key. T
 - Bankroll $50. Stake = min(quarter-Kelly on the validation win rate shrunk 50% toward the price, $5).
 - At most 3 open positions.
 - Halt after 3 losses in a row (owner's rule). Halt after a $10 daily loss or a $15 cumulative loss; review before restarting.
+
+## Pre-registered: weather out-of-sample test (written 2026-10-07 ~11:00 ET, before the data finished downloading)
+
+**Data.** Kalshi archive (`/historical/...`) of KXHIGH{NY,CHI,MIA,LAX,AUS,DEN,PHIL}, climate days 2026-01-01..04-22, with IEM ASOS rows (hourly, specials and 5-minute) for those days. No weather rule has seen these days: Polymarket design data starts 2026-04-23, Kalshi design data 2026-07-19.
+
+**Rules.** Exactly as the paper bot runs them on 2026-10-07, with no re-tuning:
+- R0: dead bucket by a full degree on the METAR max.
+- R2m: floor ≥ round(max(METAR max, unfiltered max, 5-minute max)) + 3F after the peak (15:00 local, 1F fall, 45 min), YES bid ≥ 0.15.
+- One trade per market, 2-minute fill delay, taker at the quoted price, 0.07·p·(1−p) fee.
+- Run: `KB_FROM=2026-01-01 KB_TO=2026-04-22 python -m lab.us.kalshi_backtest 2 0.80`, row "LIVE R0+R2m".
+
+**Verdict.** Gate rows 1-5 above, with K as recorded in data/kalshi_lab/K.json on the day of the run. Afternoon climate-report data may be missing for these months; the rules then run on METAR alone. That is a known difference from the live bot, where the report can only make R2 more cautious.
