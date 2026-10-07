@@ -1,0 +1,46 @@
+# Kalshi strategy lab: learning loop and go-live gate
+
+Written 2026-10-07, **before** any results of the lab were seen. The gate below may only be tightened, never loosened, after this date.
+
+## Goal
+
+Grow a $50 Kalshi bankroll with a strategy that earns **at least +10% per trade on average** after fees. Decision date: Sunday 2026-10-11, 20:00 ET.
+
+## Loop (runs every night; paper only)
+
+1. **Collect.** `lab/kalshi/fetch.py` adds the day's settled markets and 1-minute candles for ~35 high-frequency series:
+   - crypto/commodity 15-minute
+   - hourly above/below
+   - rain, gas, commodities
+   - sports games, tennis
+
+   It runs incrementally and is synced to the paper bot's idle window (Kalshi allows ~1 request/s per IP).
+2. **Map.** `lab/kalshi/calib.py` measures where Kalshi prices are wrong: realised win rate vs taker price by series family, price band and time before close. For sports it uses time before the *scheduled* end, never before the actual close, which would leak the future.
+3. **Test.** Strategy families (observation rules such as the weather R0/R2m and rain-recorded; favourite/longshot bands; model-vs-price rules) are backtested walk-forward:
+   - parameters are chosen on the first 70% of the history;
+   - results count only on the last 30% (validation), which is never used for choosing.
+4. **Paper.** Strategies that pass validation run on live data with a simulated $50 bankroll each. Fills are at the quoted ask, sized to the book, and include the 0.07·p·(1−p) taker fee.
+5. **Record.** Every family and variant ever examined is counted (K). The significance bar rises with K, so searching more cannot manufacture a winner.
+6. **Report.** `data/kalshi_lab/report.md`: leaderboard, gate status per strategy, paper P&L.
+
+## Go-live gate (all must hold)
+
+| # | Test | Bar |
+|---|---|---|
+| 1 | Validation trades | n ≥ 40 |
+| 2 | Mean return per $ on validation, after fees, taker at the ask | ≥ +10% |
+| 3 | Significance, clustered by event, equal stakes | t ≥ z(0.05/K) (K = cells examined; e.g. K=50 → t ≥ 3.1) |
+| 4 | Not one lucky trade | mean > 0 after removing the 3 best trades |
+| 5 | Stable | both halves of the validation period positive |
+| 6 | Capacity | median book size at the signal price ≥ $5 |
+| 7 | Forward paper since freeze | zero wrong-side fills from data or code errors; mean not below backtest mean − 2 SE |
+
+If nothing passes by Sunday the answer is **no-go**: paper trading continues and the loop keeps searching.
+
+## Live profile, if a strategy passes
+
+The live switch is the account holder's action, with their own Kalshi API key. The code never holds credentials.
+
+- Bankroll $50. Stake = min(quarter-Kelly on the validation win rate shrunk 50% toward the price, $5).
+- At most 3 open positions.
+- Halt after 3 losses in a row (owner's rule). Halt after a $10 daily loss or a $15 cumulative loss; review before restarting.
