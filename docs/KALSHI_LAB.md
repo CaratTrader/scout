@@ -80,3 +80,32 @@ The live switch is the account holder's action, with their own Kalshi API key. T
 On all 15 months (2025-07..2026-10) the same rules make +2.5% per $ (t 0.2), or −1.5% without the single best trade. The +19% of Jul-Oct 2026 was in-sample luck plus overfitting.
 
 The weather strategy is a **monitor only** from now on. Strategy search continues in round 1 of the parallel hunt (lab/kalshi/strategies/).
+
+## Round 1 / 1b strategy hunt (2026-10-08): 20 families, ~10,900 variants, all cut
+
+Families tested:
+- crypto 15-minute and hourly, versus Coinbase
+- index hourly, versus Yahoo
+- commodities, FX and rates
+- hourly temperature nowcast
+- sports versus DraftKings, plus sports archive calibration
+- tennis Elo and in-play
+- cross-venue Polymarket
+- macro releases (CPI nowcast, jobless claims)
+- weather daily-high walk-forward, daily lows
+- rain long history, rain maker
+- ladder and cross-series arbitrage
+- microstructure, passive maker
+- learned recalibration
+- earthquakes and entertainment
+
+Findings:
+- On professionally quoted series the Kalshi mid beats every free model.
+- Venue moves coincide within about 6 s, and REST quotes are about 20 s stale.
+- Takers filling 1-2 minutes late lose to spread plus fee.
+- Makers are adversely selected. The one exception, KXRAIN NO in Jul-Sep 2026, has vanished as spreads tightened.
+- Longshots are overpriced everywhere, but the favourite side pays only +1-5%.
+
+Lab K is about 12,100 (bar t ≥ 4.46 for searched cells). Code: lab/kalshi/strategies/. Results: data/kalshi_lab/strategies/<family>/result.json.
+
+Round 2 targets slow, retail-dominated markets: monthly accumulators, thin weather cities, mention markets, launch windows, spreads and totals, charts, and weather/commodity maker.
