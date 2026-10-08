@@ -60,3 +60,14 @@ The live switch is the account holder's action, with their own Kalshi API key. T
 **Amendment (2026-10-07 ~10:40 ET, still before any out-of-sample result was seen).**
 - **Window.** Extended to climate days **2025-07-01..2026-04-22** (Kalshi archive, same 7 series, same rules) so the unseen sample can reach the n ≥ 40 bar. The verdict is the whole window. The 2025-H2 and 2026 segments are reported separately, and each must have positive return (gate row 5 applied per segment).
 - **No more windows.** None will be added after the first result is seen.
+
+## Result: weather out-of-sample test (run 2026-10-07 evening, read 2026-10-08)
+
+**FAILED.** Kalshi archive 2025-07-01..2026-04-22: 2,072 station-days, LIVE R0+R2m.
+- n=48, 67% win, **−17.6% per $**, t (by station-day) −1.80. K=296, so the bar was t ≥ 3.58.
+- Without the 3 best trades: −23.3%. Halves: −17.9% and −17.4%.
+- Segments: 2025-H2 n=22, −14.1%; 2026-01..04 n=26, −20.6%.
+
+On all 15 months (2025-07..2026-10) the same rules make +2.5% per $ (t 0.2), or −1.5% without the single best trade. The +19% of Jul-Oct 2026 was in-sample luck plus overfitting.
+
+The weather strategy is a **monitor only** from now on. Strategy search continues in round 1 of the parallel hunt (lab/kalshi/strategies/).
