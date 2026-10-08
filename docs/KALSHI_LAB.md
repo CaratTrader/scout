@@ -109,3 +109,21 @@ Findings:
 Lab K is about 12,100 (bar t ≥ 4.46 for searched cells). Code: lab/kalshi/strategies/. Results: data/kalshi_lab/strategies/<family>/result.json.
 
 Round 2 targets slow, retail-dominated markets: monthly accumulators, thin weather cities, mention markets, launch windows, spreads and totals, charts, and weather/commodity maker.
+
+## Round 2 strategy hunt (2026-10-08/09): 9 families in slow retail markets, 3,325 variants, all cut
+
+| Family | Result |
+|---|---|
+| Monthly rain accumulators | Model loses to the mid; locked strikes are already ≥ 0.97 |
+| Thin-city weather maker | −9% |
+| Launch window | Pre-registered out-of-sample: −28% |
+| Sports spreads and totals | Track DraftKings |
+| Chart favourites | +1.8% |
+| Weather daily maker | +2.4% |
+| Daily-commodity maker | Out-of-sample: −39% |
+
+Infra audit: candles carry no look-ahead; REST /markets is about 20 s stale.
+
+**Only lead:** maker NO at listing on mention markets. Validation +18.6%/$ (t 2.76), reproduced independently. The auditor showed part of it came from entry times anchored on the future close. The robust core is about +4% per fill, and +10% would need queue priority. It goes to a forward test in round 3.
+
+Lab K is about 15,450 (bar t ≥ 4.51).
