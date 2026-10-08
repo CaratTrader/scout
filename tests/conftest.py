@@ -19,6 +19,8 @@ _REDIRECT = {
     "scout.run": ["JOURNAL_PATH", "SCAN_PATH"],
     "scout.lessons": ["LESSONS_PATH", "POSTMORTEM_PATH", "POSTMORTEMS_PATH"],
     "scout.weather_lock": ["LEDGER", "JOURNAL"],
+    "scout.kalshi_lab_paper": ["ROOT", "PAPER", "REG", "SIGNALS", "JOURNAL", "BOT_LOG"],
+    "scout.kalshi_lab_strategies.weather_mirror": ["SRC"],
 }
 
 

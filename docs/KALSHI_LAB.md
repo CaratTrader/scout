@@ -37,6 +37,15 @@ Grow a $50 Kalshi bankroll with a strategy that earns **at least +10% per trade 
 
 If nothing passes by Sunday the answer is **no-go**: paper trading continues and the loop keeps searching.
 
+## Paper harness and plug-ins
+
+`scout/kalshi_lab_paper.py` (launchd `com.tradeinc.kalshilab`) runs every registry entry with status paper, gate-pass or monitor as a plug-in. Interface: `scout/kalshi_lab_strategies/base.py`.
+
+- **Registry entry.** `"module"` names the plug-in: a bare name is looked up in `scout.kalshi_lab_strategies`, then `lab.kalshi.strategies`; a dotted name is imported as is; `"module:Class"` picks one class. Entries without `"module"` fall back to their family (rain → `rain_n`, weather → `weather_mirror`). Optional `"poll_s"` sets the poll interval.
+- **Plug-in.** Declares the Kalshi series it needs and its poll interval, optionally asks for outside data (cached fetchers: METAR, Coinbase candles, ESPN, Polymarket), and returns signals `{ticker, side, max_price, why}` from `decide(now, market_quotes, external_data)`. It never calls Kalshi itself.
+- **Kalshi calls.** One open-markets call per series per poll, shared by every strategy due in that poll. An order book only when a signal fires. All calls fall in the temperature bot's idle window, at least 1.2 s apart, and at most 25 in any minute (`KLAB_MAX_CALLS_PER_MIN`). Poll intervals stretch when the planned open-market calls would use more than 60% of that cap.
+- **Bankroll.** Sizing, halts, the unit-stake signal log and the ledgers are the harness's, the same for every strategy. A plug-in acts on one signal per market and side unless it keeps its own bookkeeping.
+
 ## Live profile, if a strategy passes
 
 The live switch is the account holder's action, with their own Kalshi API key. The code never holds credentials.

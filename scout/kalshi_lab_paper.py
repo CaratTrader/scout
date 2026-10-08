@@ -1,54 +1,51 @@
 """Kalshi strategy lab: paper trading on live data with a simulated $50 bankroll per strategy (docs/KALSHI_LAB.md).
 
-Strategies (parameters frozen in data/kalshi_lab/registry.json; only the nightly loop may change their status):
-  rain_n  - KXRAIN ("rain today in <city>"): at HOUR local, if the settlement station's METARs show no measurable
-            precipitation so far in the climate day and no precipitation in the last three reports, buy NO at
-            1 - yes_bid when that price is within [0.02, cap].
-  weather - mirror of the Kalshi temperature paper bot (data/ledger_kalshi_temp.json, R0 + R2m): its fills re-sized to
-            this bankroll's stake rule. No extra API calls.
+Strategies are plug-ins (interface: scout/kalshi_lab_strategies/base.py) named by their registry entry in
+data/kalshi_lab/registry.json (field "module"; entries without one fall back to their family: rain -> rain_n,
+weather -> weather_mirror). Parameters are frozen there; only the nightly loop may change a strategy's status.
 Every signal is also logged at a unit stake (signals.jsonl), so statistics do not depend on bankroll limits.
 Sizing: stake = min(quarter-Kelly with the win rate shrunk halfway to the price, max_stake, cash), contracts capped by
 the order-book depth at the price. Halts (bankroll only): 3 losses in a row, $10 daily loss, $15 cumulative loss.
-Kalshi calls are made only in the temperature bot's idle window (shared ~1 request/s limit)."""
+Kalshi calls: one open-markets call per series per poll (shared by all strategies due in it), an order book only when
+a signal fires, made only in the temperature bot's idle window (shared ~1 request/s limit), >= 1.2 s apart and at most
+KLAB_MAX_CALLS_PER_MIN (25) in any minute. Each strategy polls at its own interval (registry "poll_s", else the
+plug-in's, else KLAB_POLL_S); intervals are stretched when the planned open-market calls would use more than
+KLAB_PLAN_SHARE (60%) of the cap, leaving the rest for order books and settlement."""
 from __future__ import annotations
 
+import collections
 import datetime as dt
+import importlib
 import json
+import math
 import os
-import re
 import sys
 import time
 import urllib.error
 import urllib.request
-import zoneinfo
 from pathlib import Path
-from typing import Any
+from typing import Any, Callable
+
+from scout.kalshi_lab_strategies.base import Feeds, Strategy
+from scout.kalshi_lab_strategies.rain_n import RAIN_STATIONS, TZ, precip_in, rain_state  # noqa: F401  (re-exported)
 
 K = "https://api.elections.kalshi.com/trade-api/v2"
-AWC = "https://aviationweather.gov/api/data/metar"
 ROOT = Path(os.getenv("KLAB_ROOT") or "data/kalshi_lab")
 PAPER = ROOT / "paper"; REG = ROOT / "registry.json"; SIGNALS = ROOT / "signals.jsonl"; JOURNAL = ROOT / "lab_journal.jsonl"
 BOT_LOG = Path("data/kalshi_temp.log")
 POLL_S = float(os.getenv("KLAB_POLL_S") or 300)
+MAX_CALLS_PER_MIN = int(os.getenv("KLAB_MAX_CALLS_PER_MIN") or 25)
+PLAN_SHARE = float(os.getenv("KLAB_PLAN_SHARE") or 0.6)
 FEE = 0.07
-START = "2026-10-07"   # lab start: the weather mirror counts fills opened from this day
-RAIN_STATIONS = {"ABQ": "ABQ", "ATL": "ATL", "AUS": "AUS", "BOS": "BOS", "CHI": "ORD", "CLL": "CLL", "CMH": "CMH", "DAL": "DFW", "DC": "DCA",
-                 "DEN": "DEN", "EWR": "EWR", "HOU": "HOU", "LAX": "LAX", "LEX": "LEX", "LV": "LAS", "MIA": "MIA", "MIN": "MSP", "MKE": "MKE",
-                 "NOLA": "MSY", "NYC": "NYC", "OKC": "OKC", "PHIL": "PHL", "PHX": "PHX", "PIT": "PIT", "PVD": "PVD", "SATX": "SAT", "SEA": "SEA",
-                 "SFO": "SFO", "SGF": "SGF", "TTN": "TTN"}
-TZ = {"ABQ": "America/Denver", "ATL": "America/New_York", "AUS": "America/Chicago", "BOS": "America/New_York", "ORD": "America/Chicago",
-      "CLL": "America/Chicago", "CMH": "America/New_York", "DFW": "America/Chicago", "DCA": "America/New_York", "DEN": "America/Denver",
-      "EWR": "America/New_York", "HOU": "America/Chicago", "LAX": "America/Los_Angeles", "LEX": "America/New_York", "LAS": "America/Los_Angeles",
-      "MIA": "America/New_York", "MSP": "America/Chicago", "MKE": "America/Chicago", "MSY": "America/Chicago", "NYC": "America/New_York",
-      "OKC": "America/Chicago", "PHL": "America/New_York", "PHX": "America/Phoenix", "PIT": "America/New_York", "PVD": "America/New_York",
-      "SAT": "America/Chicago", "SEA": "America/Los_Angeles", "SFO": "America/Los_Angeles", "SGF": "America/Chicago", "TTN": "America/New_York"}
+BUILTIN = {"rain": "rain_n", "weather": "weather_mirror"}   # family -> plug-in for registry entries without "module"
 DEFAULT_REGISTRY = {
-    "rain_n15": {"family": "rain", "status": "paper", "frozen": "2026-10-07", "params": {"hour": 15, "cap": 0.97, "q_hat": 0.81},
+    "rain_n15": {"family": "rain", "module": "rain_n", "status": "paper", "frozen": "2026-10-07", "params": {"hour": 15, "cap": 0.97, "q_hat": 0.81},
                  "source": "lab/kalshi/rain.py discovery 2026-10-07 (partial data): n=205, win 81%, +14%/$, t 1.8"},
-    "weather": {"family": "weather", "status": "paper", "frozen": "2026-10-06", "params": {"q_hat": 0.89},
+    "weather": {"family": "weather", "module": "weather_mirror", "status": "paper", "frozen": "2026-10-06", "params": {"q_hat": 0.89},
                 "source": "lab/us/kalshi_backtest.py R0+R2m: 47 trades, 89% win, +19%/$, t($) 2.6"},
 }
 LIMITS = {"bankroll": 50.0, "max_stake": 5.0, "kelly": 0.25, "halt_streak": 3, "halt_day": 10.0, "halt_total": 15.0}
+ACTIVE = ("paper", "gate-pass", "monitor")
 
 
 def journal(ev: dict[str, Any]) -> None:
@@ -61,20 +58,58 @@ def fee(px: float, n: float) -> float:
     return round(FEE * px * (1 - px) * n, 4)
 
 
-# ------------------------------------------------------------------ data
+# ------------------------------------------------------------------ Kalshi (paced, budgeted)
+class CallBudget:
+    """At most `per_min` requests in any 60-second window (sliding)."""
+
+    def __init__(self, per_min: int, clock: Callable[[], float] = time.monotonic) -> None:
+        self.per_min = per_min
+        self.clock = clock
+        self.stamps: collections.deque[float] = collections.deque()
+
+    def _trim(self, t: float) -> None:
+        while self.stamps and t - self.stamps[0] >= 60:
+            self.stamps.popleft()
+
+    def wait_s(self) -> float:
+        """Seconds until a request may be made (0 = now)."""
+        t = self.clock(); self._trim(t)
+        return 0.0 if len(self.stamps) < self.per_min else 60 - (t - self.stamps[0]) + 0.01
+
+    def take(self) -> None:
+        self.stamps.append(self.clock())
+
+    def used(self) -> int:
+        self._trim(self.clock())
+        return len(self.stamps)
+
+
 _LAST = [0.0]
+BUDGET = CallBudget(MAX_CALLS_PER_MIN)
+CALLS = {"total": 0}
 
 
-def kget(url: str) -> Any:
-    """Kalshi GET in the temperature bot's idle window (polls start every 60 s and take ~20 s), >= 1.2 s apart."""
-    for attempt in range(4):
+def _pace() -> None:
+    """Wait for the temperature bot's idle window (its polls start every 60 s and take ~20 s), >= 1.2 s since the last
+    call, and a free slot in the per-minute budget; a budget wait re-checks the idle window."""
+    while True:
         if BOT_LOG.exists() and time.time() - BOT_LOG.stat().st_mtime < 180:
             while time.time() - BOT_LOG.stat().st_mtime > 33:
                 time.sleep(0.5)
         wait = 1.2 - (time.time() - _LAST[0])
         if wait > 0:
             time.sleep(wait)
-        _LAST[0] = time.time()
+        hold = BUDGET.wait_s()
+        if hold <= 0:
+            break
+        time.sleep(hold)
+    BUDGET.take(); _LAST[0] = time.time(); CALLS["total"] += 1
+
+
+def kget(url: str) -> Any:
+    """Kalshi GET, paced (_pace) and retried on 429."""
+    for attempt in range(4):
+        _pace()
         try:
             with urllib.request.urlopen(urllib.request.Request(url, headers={"User-Agent": "scout-kalshi-lab", "Accept": "application/json"}), timeout=30) as r:
                 return json.loads(r.read())
@@ -96,53 +131,12 @@ def depth(ticker: str, side: str, n: int = 5) -> list[list[float]] | None:
     return [[round(1 - float(p), 4), float(s)] for p, s in sorted(((float(p), float(s)) for p, s in lv), key=lambda x: -x[0])[:n]]
 
 
-def metars(stations: list[str]) -> dict[str, list[dict]] | None:
-    url = f"{AWC}?ids={','.join('K' + s for s in stations)}&format=json&hours=30"
-    try:
-        with urllib.request.urlopen(urllib.request.Request(url, headers={"User-Agent": "scout-kalshi-lab"}), timeout=40) as r:
-            rows = json.loads(r.read())
-    except Exception as exc:
-        journal({"event": "error", "url": "awc", "err": str(exc)[:100]}); return None
-    out: dict[str, list[dict]] = {}
-    for r in rows or []:
-        out.setdefault(str(r.get("icaoId", ""))[1:], []).append(r)
-    return out
-
-
-def precip_in(raw: str) -> float | None:
-    """Same parser as lab/kalshi/rain.py: max of hourly P and 6-hour 6RRRR groups in inches (0.0 = trace)."""
-    if " RMK " not in f" {raw} ":
+def open_markets(key: str) -> dict[str, dict] | None:
+    """Open markets of a series ({ticker: market}), or of a raw query when `key` contains "="; None when the call failed."""
+    d = kget(f"{K}/markets?{key if '=' in key else 'series_ticker=' + key}&status=open&limit=200")
+    if d is None:
         return None
-    toks = raw.split(" RMK ", 1)[1].split(); best = None; skip = 0
-    for i, tok in enumerate(toks):
-        if skip:
-            skip -= 1; continue
-        if tok == "PK" and i + 1 < len(toks) and toks[i + 1] == "WND":
-            skip = 2; continue
-        m = re.fullmatch(r"P(\d{4})", tok) or re.fullmatch(r"6(\d{4})", tok)
-        if m:
-            best = max(best or 0.0, int(m.group(1)) / 100.0)
-    return best
-
-
-WX = re.compile(r"\s(?:\+|-|VC)?(?:TS|SH)?(?:RA|DZ|SN|PL|GR|GS|UP)\w*")
-
-
-def rain_state(rows: list[dict], tz: zoneinfo.ZoneInfo, now: dt.datetime) -> dict[str, Any]:
-    loc = now.astimezone(tz); std = loc.utcoffset() - (loc.dst() or dt.timedelta(0))
-    d = (now.astimezone(dt.timezone.utc) + std).date(); start = dt.datetime.combine(d, dt.time(0), tzinfo=dt.timezone(std))
-    reps = []
-    for r in rows:
-        try:
-            t = dt.datetime.fromtimestamp(float(r["obsTime"]), dt.timezone.utc)
-        except (KeyError, TypeError, ValueError):
-            continue
-        if start <= t <= now:
-            raw = r.get("rawOb") or ""; p = precip_in(raw)
-            reps.append((t, p, bool(WX.search(" " + raw.split(" RMK")[0] + " ")) or (p is not None)))
-    reps.sort()
-    measurable = any(p is not None and p >= 0.01 and t - start >= dt.timedelta(minutes=70) for t, p, _ in reps)
-    return {"day": d, "n": len(reps), "measurable": measurable, "recent_wet": [w for _, _, w in reps[-3:]]}
+    return {m["ticker"]: m for m in d.get("markets") or []}
 
 
 # ------------------------------------------------------------------ ledgers
@@ -182,130 +176,225 @@ def signal(name: str, rec: dict[str, Any]) -> None:
         fh.write(json.dumps({"ts": time.time(), "strategy": name, **rec}) + "\n")
 
 
-def open_position(led: dict[str, Any], ticker: str, side: str, px: float, q_hat: float, close: str | None, why: str, book: list | None) -> dict | None:
+def open_position(led: dict[str, Any], ticker: str, side: str, px: float, q_hat: float, close: str | None, why: str, book: list | None,
+                  size: float | None = None, opened: str | None = None, min_stake: float = 0.5) -> dict | None:
+    """Paper fill at px: quarter-Kelly stake, contracts capped by `size` or else the book depth up to px + 0.005."""
     stake = stake_for(led, px, q_hat)
-    if stake < 0.5:
+    if stake < min_stake:
         return None
-    size = sum(s for p, s in (book or []) if p <= px + 0.005) if book else 0.0
+    if size is None:
+        size = sum(s for p, s in (book or []) if p <= px + 0.005) if book else 0.0
     n = round(min(stake / px, size), 2)
     if n < 1 or led["cash"] < n * px + fee(px, n):
         return None
-    pos = {"ticker": ticker, "side": side, "px": px, "shares": n, "stake": round(n * px, 4), "fee": fee(px, n), "opened": dt.datetime.now(dt.timezone.utc).isoformat(),
+    pos = {"ticker": ticker, "side": side, "px": px, "shares": n, "stake": round(n * px, 4), "fee": fee(px, n), "opened": opened or dt.datetime.now(dt.timezone.utc).isoformat(),
            "close": close, "why": why}
     led["cash"] = round(led["cash"] - pos["stake"] - pos["fee"], 4); led["positions"].append(pos)
     journal({"event": "fill", "strategy": led["name"], **pos})
     return pos
 
 
-def settle(led: dict[str, Any]) -> None:
+def settle(led: dict[str, Any], strat: Strategy | None = None, now: dt.datetime | None = None, markets: dict[str, dict] | None = None) -> None:
+    """Settle open positions on the Kalshi result after their close time (`markets` caches results within a poll), or
+    through strat.result() for strategies that settle themselves."""
+    now = now or dt.datetime.now(dt.timezone.utc)
+    markets = {} if markets is None else markets
     for pos in list(led["positions"]):
-        if pos.get("close") and dt.datetime.fromisoformat(pos["close"].replace("Z", "+00:00")) > dt.datetime.now(dt.timezone.utc):
-            continue
-        m = (kget(f"{K}/markets/{pos['ticker']}") or {}).get("market") or {}
-        if m.get("result") not in ("yes", "no"):
-            continue
-        yes = m["result"] == "yes"; win = yes if pos["side"] == "YES" else not yes
+        if strat is not None and not strat.settle_on_kalshi:
+            r = strat.result(pos, now)
+            if not r:
+                continue
+            win, when = bool(r["won"]), r["settled"]
+        else:
+            if pos.get("close") and dt.datetime.fromisoformat(pos["close"].replace("Z", "+00:00")) > dt.datetime.now(dt.timezone.utc):
+                continue
+            if pos["ticker"] not in markets:
+                markets[pos["ticker"]] = (kget(f"{K}/markets/{pos['ticker']}") or {}).get("market") or {}
+            m = markets[pos["ticker"]]
+            if m.get("result") not in ("yes", "no"):
+                continue
+            yes = m["result"] == "yes"; win = yes if pos["side"] == "YES" else not yes; when = dt.datetime.now(dt.timezone.utc).isoformat()
         pnl = round((pos["shares"] if win else 0.0) - pos["stake"] - pos["fee"], 4)
         led["cash"] = round(led["cash"] + (pos["shares"] if win else 0.0), 4); led["positions"].remove(pos)
         led["streak"] = 0 if win else led["streak"] + 1
-        led["fills"].append({**pos, "settled": dt.datetime.now(dt.timezone.utc).isoformat(), "won": win, "pnl": pnl})
+        led["fills"].append({**pos, "settled": when, "won": win, "pnl": pnl})
         journal({"event": "settle", "strategy": led["name"], "ticker": pos["ticker"], "won": win, "pnl": pnl})
 
 
-# ------------------------------------------------------------------ strategies
-def run_rain(name: str, spec: dict[str, Any], now: dt.datetime) -> str:
-    led = load(name); p = spec["params"]; notes = []
-    due = []
-    for code, stn in RAIN_STATIONS.items():
-        tz = zoneinfo.ZoneInfo(TZ[stn]); loc = now.astimezone(tz)
-        key = f"{code}:{loc.date()}"
-        if loc.hour == p["hour"] and loc.minute < 30 and key not in led["decided"]:
-            due.append((code, stn, tz, key))
-    if due:
-        obs = metars(sorted({stn for _, stn, _, _ in due}))
-        mk = {}
-        d = kget(f"{K}/markets?series_ticker=KXRAIN&status=open&limit=200")
-        for m in (d or {}).get("markets") or []:
-            mk[m["ticker"]] = m
-        for code, stn, tz, key in due:
-            if obs is None or d is None:
-                break   # retry on the next poll (key not marked decided)
-            st = rain_state(obs.get(stn, []), tz, now)
-            ticker = f"KXRAIN-{st['day'].strftime('%y%b%d').upper()}-{code}"
-            led["decided"].append(key); m = mk.get(ticker)
-            if not m:
-                notes.append(f"{code}: no open market"); continue
-            if st["n"] < 3 or st["measurable"] or any(st["recent_wet"]):
-                notes.append(f"{code}: skip ({'rain so far' if st['measurable'] else 'wet recent reports' if any(st['recent_wet']) else 'too few reports'})"); continue
-            bid = float(m.get("yes_bid_dollars") or 0); px = round(1 - bid, 4)
-            if not (0.02 <= px <= p["cap"]) or bid <= 0:
-                notes.append(f"{code}: NO price {px:.2f} outside 0.02-{p['cap']}"); continue
-            book = depth(ticker, "NO")
-            signal(name, {"ticker": ticker, "side": "NO", "px": px, "close": m.get("close_time"), "book": book})
-            if led["halted"] or halted(led):
-                led["halted"] = led["halted"] or halted(led); notes.append(f"{code}: signal (bankroll halted: {led['halted']})"); continue
-            pos = open_position(led, ticker, "NO", px, p["q_hat"], m.get("close_time"), f"no measurable rain by {p['hour']}:00, last 3 reports dry", book)
-            notes.append(f"{code}: NO @ {px:.2f}" + (f" x{pos['shares']:.0f}" if pos else " (no size)"))
-        led["decided"] = led["decided"][-400:]
-    settle(led); save(led)
-    return f"{name}: cash ${led['cash']:.2f} open {len(led['positions'])} " + "; ".join(notes)
-
-
-def run_weather(name: str, spec: dict[str, Any], now: dt.datetime) -> str:
-    """Mirror the temperature bot's fills (opened since START) at this bankroll's stake; settle when it settles."""
-    led = load(name); src = Path("data/ledger_kalshi_temp.json")
-    if not src.exists():
-        return f"{name}: no source ledger"
-    bot = json.loads(src.read_text())
-    for f in bot.get("positions", []) + bot.get("fills", []):
-        k = f"{f['ticker']}|{f['side']}"
-        if f.get("opened", "")[:10] < START or k in led["mirrored"]:
-            continue
-        led["mirrored"].append(k)
-        signal(name, {"ticker": f["ticker"], "side": f["side"], "px": f["px"], "rule": f.get("rule")})
-        if led["halted"] or halted(led):
-            led["halted"] = led["halted"] or halted(led); continue
-        stake = stake_for(led, f["px"], spec["params"]["q_hat"]); n = round(min(stake / f["px"], f["shares"]), 2)
-        if n >= 1 and led["cash"] >= n * f["px"] + fee(f["px"], n):
-            pos = {"ticker": f["ticker"], "side": f["side"], "px": f["px"], "shares": n, "stake": round(n * f["px"], 4), "fee": fee(f["px"], n),
-                   "opened": f["opened"], "close": f.get("end_date"), "why": f.get("why", "")}
-            led["cash"] = round(led["cash"] - pos["stake"] - pos["fee"], 4); led["positions"].append(pos)
-    done = {f"{f['ticker']}|{f['side']}": f for f in bot.get("fills", []) if "won" in f}
-    for pos in list(led["positions"]):
-        f = done.get(f"{pos['ticker']}|{pos['side']}")
-        if f:
-            win = f["won"]; pnl = round((pos["shares"] if win else 0.0) - pos["stake"] - pos["fee"], 4)
-            led["cash"] = round(led["cash"] + (pos["shares"] if win else 0.0), 4); led["positions"].remove(pos)
-            led["streak"] = 0 if win else led["streak"] + 1
-            led["fills"].append({**pos, "settled": f.get("settled") or now.isoformat(), "won": win, "pnl": pnl})
-    save(led)
-    return f"{name}: cash ${led['cash']:.2f} open {len(led['positions'])} settled {len(led['fills'])}"
-
-
-RUNNERS = {"rain": run_rain, "weather": run_weather}
-
-
+# ------------------------------------------------------------------ plug-ins
 def registry() -> dict[str, Any]:
     if not REG.exists():
         ROOT.mkdir(parents=True, exist_ok=True); REG.write_text(json.dumps(DEFAULT_REGISTRY, indent=1))
     return json.loads(REG.read_text())
 
 
-def main() -> None:
-    once = "--once" in sys.argv
-    print(f"Kalshi lab paper: strategies {[k for k, v in registry().items() if v['status'] in ('paper', 'gate-pass')]}, bankroll ${LIMITS['bankroll']:.0f} each, poll {POLL_S:.0f}s", flush=True)
-    while True:
-        t0 = time.monotonic(); now = dt.datetime.now(dt.timezone.utc)
-        for name, spec in registry().items():
-            if spec.get("status") not in ("paper", "gate-pass", "monitor") or spec["family"] not in RUNNERS:
+def load_plugin(name: str, spec: dict[str, Any], fresh: bool = False) -> Strategy | None:
+    """Instantiate the plug-in a registry entry names; None when it names none (e.g. nightly-loop "calib" cells).
+    fresh: re-import the module (its file may have changed since it was first imported)."""
+    mod_name = spec.get("module") or BUILTIN.get(spec.get("family", ""))
+    if not mod_name:
+        return None
+    mod_name, _, cls_name = mod_name.partition(":")   # "module:Class" picks one of several classes
+    paths = [mod_name] if "." in mod_name else [f"scout.kalshi_lab_strategies.{mod_name}", f"lab.kalshi.strategies.{mod_name}"]
+    if fresh:
+        importlib.invalidate_caches()
+    for path in paths:
+        try:
+            mod = importlib.reload(sys.modules[path]) if fresh and path in sys.modules else importlib.import_module(path)
+        except ModuleNotFoundError as e:
+            if e.name and (path == e.name or path.startswith(e.name + ".")):
+                continue   # this candidate does not exist; a missing dependency inside it is a real error
+            raise
+        cls = getattr(mod, cls_name) if cls_name else getattr(mod, "STRATEGY", None)
+        if cls is None:
+            found = [c for c in vars(mod).values() if isinstance(c, type) and issubclass(c, Strategy) and c is not Strategy and c.__module__ == mod.__name__]
+            if len(found) != 1:
+                raise ImportError(f"{path}: expected one Strategy subclass or STRATEGY, found {len(found)}")
+            cls = found[0]
+        return cls(name, spec)
+    raise ImportError(f"no plug-in module {mod_name!r} (tried {', '.join(paths)})")
+
+
+class Harness:
+    def __init__(self) -> None:
+        self.strats: dict[str, Strategy] = {}
+        self.specs: dict[str, str] = {}
+        self.failed: dict[str, tuple[str, float]] = {}   # name -> (spec, time) of a failed load: reported once, retried every 10 min
+        self.next_due: dict[str, float] = {}
+        self.stretch = 1.0
+        self.feeds = Feeds(on_error=lambda src, exc: journal({"event": "error", "url": src, "err": str(exc)[:100]}))
+
+    def refresh(self) -> None:
+        """(Re)load plug-ins for the active registry entries; a changed entry is re-imported and re-instantiated."""
+        try:
+            reg = registry()
+        except (OSError, ValueError) as exc:   # e.g. caught mid-write by the nightly loop: keep the current set
+            journal({"event": "error", "url": "registry", "err": str(exc)[:100]}); return
+        keep = {}
+        for name, spec in reg.items():
+            if spec.get("status") not in ACTIVE:
+                continue
+            key = json.dumps(spec, sort_keys=True)
+            if self.specs.get(name) == key and name in self.strats:
+                keep[name] = self.strats[name]; continue
+            fail = self.failed.get(name)
+            if fail and fail[0] == key and time.time() - fail[1] < 600:
                 continue
             try:
-                print(now.strftime("%m-%d %H:%M"), RUNNERS[spec["family"]](name, spec, now), flush=True)
+                s = load_plugin(name, spec, fresh=name in self.specs or fail is not None)
             except Exception as exc:
-                print(f"{name} error: {type(exc).__name__}: {exc}", flush=True); journal({"event": "cycle_error", "strategy": name, "err": str(exc)[:200]})
+                if not (fail and fail[0] == key):
+                    print(f"{name} plug-in error: {type(exc).__name__}: {exc}", flush=True); journal({"event": "plugin_error", "strategy": name, "err": str(exc)[:200]})
+                self.failed[name] = (key, time.time())
+                continue
+            if s is not None:
+                keep[name] = s; self.specs[name] = key; self.failed.pop(name, None)
+        self.strats = keep
+        self.stretch = max(1.0, self.planned_per_min() / (PLAN_SHARE * MAX_CALLS_PER_MIN))
+
+    def base_interval(self, s: Strategy) -> float:
+        return float(s.spec.get("poll_s") or s.poll_s or POLL_S)
+
+    def interval(self, s: Strategy) -> float:
+        return self.base_interval(s) * self.stretch
+
+    def planned_per_min(self) -> float:
+        """Open-market calls per minute at the base intervals (each series once per poll of its fastest strategy)."""
+        fastest: dict[str, float] = {}
+        for s in self.strats.values():
+            for k in s.series:
+                fastest[k] = min(fastest.get(k, math.inf), self.base_interval(s))
+        return sum(60.0 / v for v in fastest.values())
+
+    def due(self, t: float) -> list[Strategy]:
+        return [s for name, s in self.strats.items() if self.next_due.get(name, 0.0) <= t]
+
+    def run(self, strats: list[Strategy], now: dt.datetime) -> None:
+        """One poll of the given strategies: shared open-market calls, decisions, fills, settlement, ledgers."""
+        wants: dict[str, tuple[list[str], dict[str, dict]]] = {}
+        for s in strats:
+            s.ledger = load(s.name); s.notes = []
+            try:
+                wants[s.name] = (list(s.series_now(now)), dict(s.external_now(now)))
+            except Exception as exc:
+                self._error(s, now, exc)
+        quotes: dict[str, dict[str, dict] | None] = {}
+        for series, _ in wants.values():
+            for key in series:
+                if key not in quotes:
+                    quotes[key] = open_markets(key)
+        markets: dict[str, dict] = {}
+        for s in strats:
+            if s.name not in wants:
+                continue
+            series, ext = wants[s.name]
+            try:
+                mq = {k: quotes[k] for k in series}
+                for sig in s.decide(now, mq, {k: self.feeds.get(k, kw) for k, kw in ext.items()}) or []:
+                    self.execute(s, sig, mq)
+                settle(s.ledger, s, now, markets)
+                save(s.ledger)
+                print(now.strftime("%m-%d %H:%M"), s.summary(), flush=True)
+            except Exception as exc:
+                self._error(s, now, exc)
+
+    def _error(self, s: Strategy, now: dt.datetime, exc: Exception) -> None:
+        print(f"{s.name} error: {type(exc).__name__}: {exc}", flush=True); journal({"event": "cycle_error", "strategy": s.name, "err": str(exc)[:200]})
+
+    def execute(self, s: Strategy, sig: dict[str, Any], quotes: dict[str, dict[str, dict] | None]) -> None:
+        """A signal: order book (unless the signal carries a size), unit-stake log, then a bankroll fill unless halted.
+        Repeats of a ticker and side are dropped when the strategy has one_signal_per_market."""
+        led = s.ledger; ticker = sig["ticker"]; side = sig["side"]; px = float(sig["max_price"]); label = sig.get("label") or ticker
+        if side not in ("YES", "NO") or not 0 < px < 1:
+            s.notes.append(f"{label}: bad signal {side} @ {px}"); return
+        if s.one_signal_per_market:
+            seen = led.setdefault("signalled", []); key = f"{ticker}|{side}"
+            if key in seen:
+                return
+            seen.append(key); del seen[:-1000]
+        close = sig["close"] if "close" in sig else next((q[ticker].get("close_time") for q in quotes.values() if q and ticker in q), None)
+        book = None if "size" in sig else depth(ticker, side)
+        rec = {"ticker": ticker, "side": side, "px": px, **(sig["log"] if "log" in sig else {"close": close, "why": sig.get("why", "")})}
+        if "size" not in sig:
+            rec["book"] = book
+        signal(s.name, rec)
+        if led["halted"] or halted(led):
+            led["halted"] = led["halted"] or halted(led); s.notes.append(f"{label}: signal (bankroll halted: {led['halted']})"); return
+        q_hat = sig.get("q_hat", s.params.get("q_hat"))
+        if q_hat is None:
+            s.notes.append(f"{label}: signal (no q_hat to size it)"); return
+        pos = open_position(led, ticker, side, px, q_hat, close, sig.get("why", ""), book, size=sig.get("size"), opened=sig.get("opened"), min_stake=s.min_stake)
+        s.notes.append(f"{label}: {side} @ {px:.2f}" + (f" x{pos['shares']:.0f}" if pos else " (no size)"))
+
+    def tick(self) -> None:
+        """Run every strategy that is due; each next poll is aligned to a multiple of its interval (so strategies with
+        the same interval share their open-market calls)."""
+        self.refresh(); t = time.time(); due = self.due(t)
+        if not due:
+            return
+        before = CALLS["total"]
+        self.run(due, dt.datetime.now(dt.timezone.utc))
+        for s in due:
+            iv = self.interval(s); self.next_due[s.name] = (math.floor(t / iv) + 1) * iv
+        if CALLS["total"] > before:
+            print(dt.datetime.now(dt.timezone.utc).strftime("%m-%d %H:%M"), f"kalshi calls: {CALLS['total'] - before} this poll, {BUDGET.used()}/{MAX_CALLS_PER_MIN} in the last minute", flush=True)
+
+    def sleep_s(self) -> float:
+        nxt = min((self.next_due.get(n, 0.0) for n in self.strats), default=time.time() + 30)
+        return min(30.0, max(1.0, nxt - time.time()))
+
+
+def main() -> None:
+    once = "--once" in sys.argv
+    h = Harness(); h.refresh()
+    plan = ", ".join(f"{n} ({type(s).__name__}, {h.interval(s):.0f}s)" for n, s in h.strats.items())
+    print(f"Kalshi lab paper: strategies [{plan}], bankroll ${LIMITS['bankroll']:.0f} each; planned {h.planned_per_min():.1f} open-market calls/min, "
+          f"cap {MAX_CALLS_PER_MIN}/min" + (f", intervals stretched x{h.stretch:.2f}" if h.stretch > 1 else ""), flush=True)
+    while True:
+        h.tick()
         if once:
             break
-        time.sleep(max(0.0, t0 + POLL_S - time.monotonic()))
+        time.sleep(h.sleep_s())
 
 
 if __name__ == "__main__":
