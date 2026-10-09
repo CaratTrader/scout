@@ -99,17 +99,30 @@ def evaluate(markets: list[dict], rows: list[dict], now: dt.datetime, model: Mod
     LP = LivePosts(rows, t)
     c, seen, mu = model.dist(x, LP, t)
     pr = model.bracket_probs(x, LP, t) if x["brackets"] else {}
+    # C1_fix arm (amendment 2026-10-09, frozen before any forward row; data/kalshi_lab/strategies/r6_truth_social_count_endgame/
+    # preregistration_c1_fix.json): integer-support bracket probabilities (the as-coded ladder can sum to < 1 at bracket edges)
+    try:
+        from lab.kalshi.strategies.lead_round7 import probs_fixed
+        pr_fix = probs_fixed(model, x, LP, t) if x["brackets"] else {}
+        fix_err = None
+    except Exception as exc:  # the as-coded arm must keep running whatever happens to the fix arm
+        pr_fix, fix_err = {}, f"{type(exc).__name__}: {exc}"[:200]
     out = {"ts": t, "iso": now.astimezone(ET).isoformat(timespec="seconds"), "event": ms[0]["event_ticker"] if ms else None,
-           "seen": seen, "kept_est": round(c, 2), "mu_remaining": round(mu, 2), "h_to_window_end": round((B - t) / 3600, 2), "brackets": [], "signals": []}
+           "seen": seen, "kept_est": round(c, 2), "mu_remaining": round(mu, 2), "h_to_window_end": round((B - t) / 3600, 2), "brackets": [], "signals": [],
+           "fix_error": fix_err, "ladder_sum": round(sum(pr.values()), 4) if pr else None, "ladder_sum_fix": round(sum(pr_fix.values()), 4) if pr_fix else None}
     for m in ms:
         tk = m["ticker"]; ask = _f(m.get("yes_ask_dollars")); bid = _f(m.get("yes_bid_dollars"))
         p = pr.get(tk)
         out["brackets"].append({"t": tk, "sub": m.get("yes_sub_title"), "bid": bid, "ask": ask, "ask_size": _f(m.get("yes_ask_size_fp")),
-                                "bid_size": _f(m.get("yes_bid_size_fp")), "model": None if p is None else round(p, 4)})
+                                "bid_size": _f(m.get("yes_bid_size_fp")), "model": None if p is None else round(p, 4),
+                                "model_fix": None if pr_fix.get(tk) is None else round(pr_fix[tk], 4)})
         if p is None or ask is None or bid is None or t >= B or t < close - 24 * 3600:
             continue
-        for name, r in RULES.items():
-            for side, px, pw in (("YES", ask, p), ("NO", 1 - bid, 1 - p)):
+        arms = [(name, r, p) for name, r in RULES.items()]
+        if pr_fix.get(tk) is not None and PRIMARY in RULES:
+            arms.append((PRIMARY + "_fix", RULES[PRIMARY], pr_fix[tk]))
+        for name, r, pp in arms:
+            for side, px, pw in (("YES", ask, pp), ("NO", 1 - bid, 1 - pp)):
                 if r["side"] and side != r["side"]:
                     continue
                 if PX_LO <= px <= PX_HI and pw - px >= r["theta"]:

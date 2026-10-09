@@ -203,3 +203,26 @@ Lab K is about 20,175 (bar t ≥ 4.57). Lead estimate that a durable +10% taker 
 - **(j)** For early-closing series, the decision clock anchors on the scheduled expiry, never on the actual close.
 - **(k)** t uses the sample standard deviation.
 - **(l)** Any pattern found post hoc is judged on forward data only.
+
+## Round 7 (2026-10-09): forward-only shadows. The search is complete.
+
+**Forward loggers installed (all paper, public data, no keys, never order):**
+
+| Job | Test | Schedule |
+|---|---|---|
+| com.tradeinc.klab.mentions | r2/r3 mention-market maker | Every 10 min |
+| com.tradeinc.klab.earnings | Earnings-call seeded books | Every 10 min, Q3 season |
+| com.tradeinc.klab.single | Single-appearance seeded books | Every 10 min |
+| com.tradeinc.klab.summaries | Nightly summaries | Nightly |
+| com.tradeinc.klab.regimes | Rain/monthly-rain regime monitors | Hourly |
+| com.tradeinc.klab.truthsocial | Weekly Truth Social count C1 plus the corrected C1_fix arm | Saturdays |
+| com.tradeinc.klab.truthsocial.daily | Daily Truth Social count D1 | Every 15 min, 10:00-23:45 ET |
+| com.tradeinc.klab.r7launch | Announced-date launch ladders NO | Daily 11-13 ET |
+
+**C1_fix amendment.** The as-coded r6 weekly probabilities leak mass at bracket edges: ladder sum as low as 0.015, and it would buy NO on the likely winner. The C1_fix arm uses integer-support probabilities (lead_round7.probs_fixed). It was frozen in preregistration_c1_fix.json before any forward row; the as-coded arm keeps logging unchanged.
+
+**Public-tally census.** Killed at its pre-registered bar (only 2 qualifying series, 90 events).
+
+**Totals.** 61 families, K about 20,211. No Kalshi rule has cleared +10% per trade out of sample.
+
+**Decision for 2026-10-11: NO-GO.** Review the forward logs monthly against the forward-only gate.
