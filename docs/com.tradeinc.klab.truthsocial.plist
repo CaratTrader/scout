@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!-- Kalshi lab forward PAPER logger (public data only, no keys, never orders): Truth Social weekly count C1
+     (data/kalshi_lab/strategies/r6_truth_social_count_endgame/preregistration.json). Active Sat ~10:00-23:59 ET. -->
+<plist version="1.0">
+<dict>
+    <key>Label</key><string>com.tradeinc.klab.truthsocial</string>
+    <key>ProgramArguments</key>
+    <array>
+        <string>/bin/sh</string><string>-c</string>
+        <string>cd /Users/roomyhome/Tradeinc &amp;&amp; .venv/bin/python -X utf8 -u -m lab.kalshi.strategies.r6_truth_social_count_endgame_logger pass; if [ "$(date +%u%H)" -ge 711 ] &amp;&amp; [ "$(date +%u%H)" -le 723 ]; then .venv/bin/python -X utf8 -u -m lab.kalshi.strategies.r6_truth_social_count_endgame_logger settle; fi</string>
+    </array>
+    <key>WorkingDirectory</key><string>/Users/roomyhome/Tradeinc</string>
+    <key>StartInterval</key><integer>300</integer>
+    <key>StandardOutPath</key><string>/Users/roomyhome/Tradeinc/data/kalshi_lab/logs/com.tradeinc.klab.truthsocial.log</string>
+    <key>StandardErrorPath</key><string>/Users/roomyhome/Tradeinc/data/kalshi_lab/logs/com.tradeinc.klab.truthsocial.err.log</string>
+</dict>
+</plist>

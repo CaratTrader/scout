@@ -181,3 +181,25 @@ Forward loggers added (paper; they pool with the r3 mention maker under one kill
 | Announced-date slips | Too few events |
 
 Lab K is about 18,565 (bar t ≥ 4.55). Lead estimate that a durable +10% taker edge exists and is findable with these tools: at most 3%. Round 6 focuses on high-n families.
+
+## Round 6 (2026-10-08/09): 7 families, ~1,610 variants, no gate pass. Backtest search stopped.
+
+| Family | Result |
+|---|---|
+| Near-deadline "nothing happens" | Calibrated; launch/release ladders are a small exception |
+| Earnings word history | No edge over the T-24h mid |
+| New-series honeymoon | Maker −53% |
+| D-1 weather with MOS | 1c spread, no information over the mid |
+| Climate-day boundary | −28% |
+| Thin-book sweeps | Absorbed in 2 min |
+| Truth Social weekly count C1 | Not refuted, but n=20, t 1.4 and lottery-driven; forward paper only (com.tradeinc.klab.truthsocial) |
+
+Lab K is about 20,175 (bar t ≥ 4.57). Lead estimate that a durable +10% taker edge is verifiable within a year: about 2-3%.
+
+### Gate amendments (h)-(l) (2026-10-09; tightening only)
+
+- **(h)** Hourly-data backtests decide on the last candle at or before t and fill on the first candle at or after t + 60 s. The signal, band and spread filters are never tested on the fill quote.
+- **(i)** Quote carry-forward stops at the end of the fetched window.
+- **(j)** For early-closing series, the decision clock anchors on the scheduled expiry, never on the actual close.
+- **(k)** t uses the sample standard deviation.
+- **(l)** Any pattern found post hoc is judged on forward data only.
