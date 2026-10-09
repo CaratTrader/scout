@@ -1,0 +1,39 @@
+"""Counted, cached Kalshi GET for r3_frozen_c1_other_mention_formats.
+
+Every Kalshi request goes through lab.us.data_refresh.fetch(url, pace=1.15) (waits for the paper bot's idle window,
+retries 429s). Each call is logged to data/kalshi_lab/strategies/r3_frozen_c1_other_mention_formats/calls.log and the
+response cached under api_cache/, so re-running the analysis never re-hits the API. Hard budget: 200 calls."""
+from __future__ import annotations
+import hashlib, json, sys, time
+from pathlib import Path
+sys.path.insert(0, str(Path(__file__).resolve().parents[3]))
+from lab.us.data_refresh import fetch, K
+
+OUT = Path("data/kalshi_lab/strategies/r3_frozen_c1_other_mention_formats")
+CACHE = OUT / "api_cache"
+LOG = OUT / "calls.log"
+BUDGET = 200
+
+
+def used() -> int:
+    return len(LOG.read_text().splitlines()) if LOG.exists() else 0
+
+
+def kget(path: str, cache_only: bool = False) -> dict:
+    """GET K + path (path starts with '/'). Returns {} on failure (empty body)."""
+    CACHE.mkdir(parents=True, exist_ok=True)
+    cf = CACHE / (hashlib.sha1(path.encode()).hexdigest()[:24] + ".json")
+    if cf.exists():
+        return json.loads(cf.read_text())
+    if cache_only:
+        return {}
+    if used() >= BUDGET:
+        raise RuntimeError("Kalshi call budget exhausted")
+    txt = fetch(K + path, pace=1.15)
+    with LOG.open("a") as f:
+        f.write(f"{int(time.time())}\t{len(txt)}\t{path[:300]}\n")
+    if not txt:
+        return {}
+    d = json.loads(txt)
+    cf.write_text(txt)
+    return d

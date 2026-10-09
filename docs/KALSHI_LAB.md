@@ -127,3 +127,31 @@ Infra audit: candles carry no look-ahead; REST /markets is about 20 s stale.
 **Only lead:** maker NO at listing on mention markets. Validation +18.6%/$ (t 2.76), reproduced independently. The auditor showed part of it came from entry times anchored on the future close. The robust core is about +4% per fill, and +10% would need queue priority. It goes to a forward test in round 3.
 
 Lab K is about 15,450 (bar t ≥ 4.51).
+
+## Gate amendments (2026-10-08 ~20:40 ET; both tighten the gate, written before any forward fill)
+
+- **(c) Maker strategies (resting orders).** Gate row 2 is the size-weighted mean return per $ on through-only fills ≥ +10%, after maker fees. Through-only fills are trade prints strictly through the order price, after post + 120 s and before cancel. Fills at the order price count only in a separately reported any-print measure.
+- **(d) High win rates.** Row 3 also requires the one-sided 95% exact-binomial (Beta) lower bound on the per-$ return over unique events to be above 0. A clustered t is meaningless when samples have zero losses.
+
+## Forward paper tests started 2026-10-08
+
+| Test | Logger | Schedule |
+|---|---|---|
+| r3 mention-market maker | lab/kalshi/strategies/r3_mentions_maker_forward_logger.py | Every 10 min, ≤ 10 Kalshi calls per pass |
+| r3 seasonal regime monitors | lab/kalshi/strategies/r3_seasonal_regime_monitors_logger.py | Hourly |
+
+Pre-registrations: data/kalshi_lab/strategies/r3_*/preregistration.json.
+
+## Round 3 strategy hunt (2026-10-08): 8 families, 1,730 variants, none passes
+
+**Dead:**
+- other mention formats
+- listing-spread YES premium outside mentions
+- TSA weekly
+- Rotten Tomatoes drift
+
+**Weak positives, now forward paper only:**
+- **Long-dated retail questions.** Kalshi NO at 0.70-0.92: fresh out-of-sample n=35 at +12.4%. Polymarket shows about 0%. 1-3 signals a month.
+- **Maker orders into Kalshi's seeded books at listing.** Earnings-call mentions made +87%/$ on 14 validation events, with high variance; NO at about 0.20 wins about 35%.
+
+Lab K is about 17,180 (bar t ≥ 4.53). Round 4 is testing more of the long-dated and seeded-book themes.
