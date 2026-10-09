@@ -168,3 +168,16 @@ Forward loggers added (paper; they pool with the r3 mention maker under one kill
 - com.tradeinc.klab.earnings (every 10 min, before the Q3 season)
 - com.tradeinc.klab.single (every 10 min)
 - com.tradeinc.klab.summaries (nightly)
+
+## Round 5 (2026-10-08): 6 families, ~487 variants, no survivor
+
+| Family | Result |
+|---|---|
+| Placeholder-only seeded books | The edge was three September earnings calls; −3% without them |
+| Speaker base-rate filter | Does not remove adverse selection |
+| Scheduled web-release poller | About 2 useful weeks a year |
+| Election-night race books | Professionally quoted |
+| Derived Fed/shutdown series | Follow their lead within about 4 min |
+| Announced-date slips | Too few events |
+
+Lab K is about 18,565 (bar t ≥ 4.55). Lead estimate that a durable +10% taker edge exists and is findable with these tools: at most 3%. Round 6 focuses on high-n families.
