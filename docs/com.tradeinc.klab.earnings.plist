@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!-- Kalshi lab forward PAPER logger (public data only, no keys, never orders): lab.kalshi.strategies.r4_earnings_seeded_book_48h_forward_logger -->
+<plist version="1.0">
+<dict>
+    <key>Label</key><string>com.tradeinc.klab.earnings</string>
+    <key>ProgramArguments</key>
+    <array>
+        <string>/Users/roomyhome/Tradeinc/.venv/bin/python</string>
+        <string>-X</string><string>utf8</string><string>-u</string>
+        <string>-m</string><string>lab.kalshi.strategies.r4_earnings_seeded_book_48h_forward_logger</string>
+    </array>
+    <key>WorkingDirectory</key><string>/Users/roomyhome/Tradeinc</string>
+    <key>StartCalendarInterval</key><array><dict><key>Minute</key><integer>3</integer></dict><dict><key>Minute</key><integer>13</integer></dict><dict><key>Minute</key><integer>23</integer></dict><dict><key>Minute</key><integer>33</integer></dict><dict><key>Minute</key><integer>43</integer></dict><dict><key>Minute</key><integer>53</integer></dict></array>
+    <key>StandardOutPath</key><string>/Users/roomyhome/Tradeinc/data/kalshi_lab/logs/com.tradeinc.klab.earnings.log</string>
+    <key>StandardErrorPath</key><string>/Users/roomyhome/Tradeinc/data/kalshi_lab/logs/com.tradeinc.klab.earnings.err.log</string>
+</dict>
+</plist>

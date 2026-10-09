@@ -155,3 +155,16 @@ Pre-registrations: data/kalshi_lab/strategies/r3_*/preregistration.json.
 - **Maker orders into Kalshi's seeded books at listing.** Earnings-call mentions made +87%/$ on 14 validation events, with high variance; NO at about 0.20 wins about 35%.
 
 Lab K is about 17,180 (bar t ≥ 4.53). Round 4 is testing more of the long-dated and seeded-book themes.
+
+## Round 4 (2026-10-08): 8 families, ~900 variants, none passes
+
+- The long-dated census killed the long-dated NO premise: fresh B cell n=50, −10.5%, binomial lower bound −22.9%.
+- Nested deadlines, multi-leg combos, official-posting lag: all refuted by both verifiers.
+- Earnings 48 h and single-appearance seeded books: dead in backtest.
+
+Lab K is about 18,078 (bar t ≥ 4.54).
+
+Forward loggers added (paper; they pool with the r3 mention maker under one kill rule):
+- com.tradeinc.klab.earnings (every 10 min, before the Q3 season)
+- com.tradeinc.klab.single (every 10 min)
+- com.tradeinc.klab.summaries (nightly)
